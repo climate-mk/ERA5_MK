@@ -1,5 +1,5 @@
 # ── Data files (large CSVs, not committed) ───────────────────────────────────
-data/
+#data/
 
 # ── Deployment / secrets ─────────────────────────────────────────────────────
 deploy.sh

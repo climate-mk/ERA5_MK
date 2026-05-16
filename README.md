@@ -81,7 +81,8 @@ cd ERA5_MK
 
 # Create virtualenv and install dependencies
 python3 -m venv venv
-source venv/bin/activate
+source venv/bin/activate 
+# or, in powershell: .\venv\Scripts\Activate.ps1
 pip install -r requirements.txt
 
 # Fetch data (requires internet, takes ~5 min)
