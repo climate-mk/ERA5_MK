@@ -138,6 +138,113 @@ The app runs on a Hetzner CX23 VPS behind nginx, served via Cloudflare with Full
 Browser → Cloudflare (HTTPS) → nginx (HTTPS, Origin Cert) → Flask (HTTP, localhost:5050)
 ```
 
+### Server requirements
+
+- Ubuntu 24.04
+- Python 3.12 + venv
+- nginx
+- A domain managed by Cloudflare (for free HTTPS via Origin Certificate)
+
+### First-time deploy
+
+1. Provision a VPS (tested on Hetzner CX23) with Ubuntu 24.04 and SSH access.
+2. Add your SSH public key to the server during provisioning.
+3. Upload the project files and data:
+
+```bash
+SERVER="root@<your-server-ip>"
+APP_DIR="/opt/mk_climate"
+
+ssh $SERVER "mkdir -p $APP_DIR/data $APP_DIR/static"
+rsync -az mk_api.py requirements.txt $SERVER:$APP_DIR/
+rsync -az data/   $SERVER:$APP_DIR/data/
+rsync -az static/ $SERVER:$APP_DIR/static/
+```
+
+4. On the server, set up Python, nginx and the systemd service:
+
+```bash
+apt-get install -y python3 python3-venv nginx
+cd /opt/mk_climate
+python3 -m venv venv
+venv/bin/pip install -r requirements.txt
+```
+
+5. Create `/etc/systemd/system/mk_climate.service`:
+
+```ini
+[Unit]
+Description=MK Climate Explorer
+After=network.target
+
+[Service]
+User=www-data
+WorkingDirectory=/opt/mk_climate
+ExecStart=/opt/mk_climate/venv/bin/python3 mk_api.py
+Restart=always
+
+[Install]
+WantedBy=multi-user.target
+```
+
+```bash
+chown -R www-data:www-data /opt/mk_climate
+systemctl enable --now mk_climate
+```
+
+6. Create `/etc/nginx/sites-available/mk_climate` (replace `climate.example.com` with your domain):
+
+```nginx
+server {
+    listen 80;
+    server_name climate.example.com;
+    return 301 https://$host$request_uri;
+}
+
+server {
+    listen 443 ssl;
+    server_name climate.example.com;
+
+    ssl_certificate     /etc/nginx/ssl/origin.crt;   # Cloudflare Origin Certificate
+    ssl_certificate_key /etc/nginx/ssl/origin.key;
+
+    location / {
+        proxy_pass         http://127.0.0.1:5050/;
+        proxy_set_header   Host $host;
+        proxy_set_header   X-Real-IP $remote_addr;
+        proxy_read_timeout 120s;
+    }
+}
+```
+
+```bash
+ln -s /etc/nginx/sites-available/mk_climate /etc/nginx/sites-enabled/
+nginx -t && systemctl reload nginx
+```
+
+7. In **Cloudflare → DNS**, add an `A` record pointing your subdomain to the server IP (Proxied).
+8. In **Cloudflare → SSL/TLS → Origin Server**, create an Origin Certificate, save it to `/etc/nginx/ssl/origin.crt` and `/etc/nginx/ssl/origin.key` on the server.
+9. Set **Cloudflare SSL/TLS mode** to **Full (strict)**.
+
+### Re-deploying after code changes
+
+Upload changed files and restart the service:
+
+```bash
+rsync -az mk_api.py static/ $SERVER:$APP_DIR/
+ssh $SERVER "systemctl restart mk_climate"
+```
+
+### Verifying the deployment
+
+```bash
+# Check the service is running
+ssh $SERVER "systemctl status mk_climate --no-pager"
+
+# Confirm nginx proxies correctly
+ssh $SERVER "curl -s http://localhost/ | head -3"
+```
+
 ---
 
 ## Data source credit
