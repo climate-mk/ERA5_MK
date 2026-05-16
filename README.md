@@ -92,6 +92,31 @@ python3 mk_api.py
 # Open http://127.0.0.1:5050
 ```
 
+### Verifying the setup
+
+Once the server is running, confirm all three API endpoints respond correctly:
+
+```bash
+# Should return list of locations, variables and colour palette
+curl http://127.0.0.1:5050/api/meta
+
+# Should return scatter points, trend line and stats for Skopje on Apr 15
+curl "http://127.0.0.1:5050/api/regression?loc=Skopje&var=temperature_mean&doy=105&window=7&method=theilsen"
+
+# Should return 365-day trend calendar for Skopje (takes ~10 s first run, cached after)
+curl "http://127.0.0.1:5050/api/calendar?loc=Skopje&var=temperature_mean&window=7&method=theilsen"
+```
+
+All three should return JSON without errors. Then open **http://127.0.0.1:5050** in your browser — the chart should load within a few seconds and show a warming trend for the selected location and day.
+
+To test on another device on the same network, edit the last line of `mk_api.py` and add `host="0.0.0.0"`:
+
+```python
+app.run(debug=False, host="0.0.0.0", port=5050, threaded=True)
+```
+
+Then open `http://<your-local-ip>:5050` on the second device.
+
 ---
 
 ## Statistical methods
