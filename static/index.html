@@ -1,0 +1,133 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>MK Climate Explorer</title>
+  <link rel="stylesheet" href="style.css">
+  <!-- Highcharts CDN -->
+  <script src="https://code.highcharts.com/highcharts.js"></script>
+  <script src="https://code.highcharts.com/highcharts-more.js"></script>
+</head>
+<body>
+<div id="app">
+
+  <header>
+    <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="#4c52c9" stroke-width="2" stroke-linecap="round">
+      <path d="M3 20l4-8 4 4 4-8 4 6"/>
+      <line x1="3" y1="20" x2="21" y2="20"/>
+    </svg>
+    <div>
+      <h1>MK Climate Explorer</h1>
+      <div class="subtitle">ERA5-Land · North Macedonia · 1950–2024</div>
+    </div>
+  </header>
+
+  <div class="main-layout">
+
+    <!-- ── Sidebar ─────────────────────────────────────────── -->
+    <aside id="sidebar">
+
+      <!-- Locations -->
+      <div class="ctrl-section">
+        <div class="ctrl-label">Locations (up to 8)</div>
+        <div id="loc-list"><!-- filled by JS --></div>
+      </div>
+
+      <!-- Variable -->
+      <div class="ctrl-section">
+        <div class="ctrl-label">Variable</div>
+        <select id="var-select">
+          <option value="temperature_mean">Temperature Mean (°C)</option>
+          <option value="temperature_max">Temperature Max (°C)</option>
+          <option value="temperature_min">Temperature Min (°C)</option>
+          <option value="precipitation_sum">Precipitation (mm)</option>
+          <option value="et0_evapotranspiration">ET₀ Evapotranspiration (mm)</option>
+        </select>
+      </div>
+
+      <!-- Method -->
+      <div class="ctrl-section">
+        <div class="ctrl-label">Regression Method</div>
+        <div class="radio-group" id="method-group">
+          <label class="radio-item">
+            <input type="radio" name="method" value="theilsen" checked>
+            <span>Theil-Sen + TFPW MK</span>
+          </label>
+          <label class="radio-item">
+            <input type="radio" name="method" value="ols">
+            <span>OLS (linear)</span>
+          </label>
+        </div>
+      </div>
+
+      <!-- Lapse-rate correction (temp only) -->
+      <div class="ctrl-section" id="corr-section">
+        <div class="ctrl-label">Temperature correction</div>
+        <div class="toggle-row">
+          <span class="toggle-label">Lapse-rate (elevation)</span>
+          <label class="toggle">
+            <input type="checkbox" id="corr-toggle">
+            <div class="toggle-track"></div>
+          </label>
+        </div>
+      </div>
+
+      <!-- Window -->
+      <div class="ctrl-section">
+        <div class="ctrl-label">Window half-width</div>
+        <div class="window-row">
+          <input type="number" id="window-input" value="7" min="1" max="90">
+          <span class="unit">days either side</span>
+        </div>
+      </div>
+
+      <!-- DOY -->
+      <div class="ctrl-section">
+        <div class="doy-header">
+          <div class="ctrl-label">Day of year</div>
+          <div class="doy-badge" id="doy-badge">Apr 15</div>
+        </div>
+        <input type="range" id="doy-slider" min="1" max="365" value="105">
+        <div class="play-row" style="margin-top:6px">
+          <button class="btn" id="btn-prev">◀ Prev</button>
+          <button class="btn" id="btn-play">▶ Play</button>
+          <button class="btn" id="btn-next">Next ▶</button>
+        </div>
+      </div>
+
+    </aside>
+
+    <!-- ── Main content ───────────────────────────────────── -->
+    <main id="content">
+
+      <!-- Regression chart -->
+      <div class="chart-card">
+        <div class="chart-wrap">
+          <div id="reg-chart"></div>
+          <div class="loading-overlay" id="reg-loading">
+            <div class="spinner"></div> Loading…
+          </div>
+        </div>
+      </div>
+
+      <!-- Stats cards -->
+      <div id="stats-row"></div>
+
+      <!-- Calendar chart -->
+      <div class="chart-card">
+        <div class="chart-wrap">
+          <div id="cal-chart"></div>
+          <div class="loading-overlay" id="cal-loading">
+            <div class="spinner"></div> Calculating year-round trends…
+          </div>
+        </div>
+      </div>
+
+    </main>
+  </div>
+</div>
+
+<script src="app.js"></script>
+</body>
+</html>

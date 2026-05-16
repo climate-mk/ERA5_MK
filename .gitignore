@@ -1,0 +1,22 @@
+# ── Data files (large CSVs, not committed) ───────────────────────────────────
+data/
+
+# ── Deployment / secrets ─────────────────────────────────────────────────────
+deploy.sh
+
+# ── Python ────────────────────────────────────────────────────────────────────
+venv/
+__pycache__/
+*.pyc
+*.pyo
+*.egg-info/
+dist/
+build/
+.eggs/
+
+# ── Editor / OS ───────────────────────────────────────────────────────────────
+.DS_Store
+.env
+.venv
+*.swp
+*.swo
