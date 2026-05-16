@@ -92,30 +92,26 @@ python3 mk_api.py
 # Open http://127.0.0.1:5050
 ```
 
-### Verifying the setup
+### Testing the full web app locally
 
-Once the server is running, confirm all three API endpoints respond correctly:
+With the server running (`python3 mk_api.py`), open **http://127.0.0.1:5050** in your browser. You should see the full dashboard with the regression chart loading for Skopje on Apr 15.
+
+Quick checklist:
+- Regression chart loads with scatter points and a trend line
+- Stats card appears below the chart with slope, τ² and p-value
+- Switching variable (e.g. Precipitation) updates the chart and changes colours
+- Moving the DOY slider updates the chart after a short debounce
+- ▶ Play animates through the year automatically
+- Clicking **Year-round calendar** computes and draws 365 bars (~10 s first run, instant after)
+- Selecting a second location adds a second series to the regression chart
+
+To also test on a phone or tablet on the same Wi-Fi, find your local IP:
 
 ```bash
-# Should return list of locations, variables and colour palette
-curl http://127.0.0.1:5050/api/meta
-
-# Should return scatter points, trend line and stats for Skopje on Apr 15
-curl "http://127.0.0.1:5050/api/regression?loc=Skopje&var=temperature_mean&doy=105&window=7&method=theilsen"
-
-# Should return 365-day trend calendar for Skopje (takes ~10 s first run, cached after)
-curl "http://127.0.0.1:5050/api/calendar?loc=Skopje&var=temperature_mean&window=7&method=theilsen"
+ipconfig getifaddr en0   # Mac
 ```
 
-All three should return JSON without errors. Then open **http://127.0.0.1:5050** in your browser — the chart should load within a few seconds and show a warming trend for the selected location and day.
-
-To test on another device on the same network, edit the last line of `mk_api.py` and add `host="0.0.0.0"`:
-
-```python
-app.run(debug=False, host="0.0.0.0", port=5050, threaded=True)
-```
-
-Then open `http://<your-local-ip>:5050` on the second device.
+Then open `http://<your-local-ip>:5050` on the second device. The `host="0.0.0.0"` setting in `mk_api.py` already allows this.
 
 ---
 
