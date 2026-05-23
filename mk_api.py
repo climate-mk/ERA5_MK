@@ -283,6 +283,7 @@ def api_meta():
         "variables":   VARIABLES,
         "month_names": MONTH_NAMES,
         "palette":     PALETTE,
+        "chat_enabled": bool(DIRECT_LINE_SECRET),
     })
 
 @app.route("/api/regression")

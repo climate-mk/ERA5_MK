@@ -692,6 +692,11 @@ async function init() {
     sel.appendChild(opt);
   });
 
+  // Show/hide chat button based on server config
+  if (!meta.chat_enabled) {
+    document.getElementById("chat-toggle-btn").style.display = "none";
+  }
+
   // Build location list
   buildLocationList(meta.locations);
 
