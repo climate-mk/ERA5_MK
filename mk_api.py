@@ -4,15 +4,33 @@ Run:  source venv/bin/activate && python3 mk_api.py
 Open: http://127.0.0.1:5050
 """
 
-import os, glob
+import os, glob, time, hashlib
 import numpy as np
 import pandas as pd
-from flask import Flask, jsonify, request, send_from_directory
+import requests as http_requests
+from flask import Flask, jsonify, request, send_from_directory, session
+from flask_limiter import Limiter
+from flask_limiter.util import get_remote_address
 from scipy import stats
 from scipy.stats import theilslopes
 import pymannkendall as mk_test
 import warnings
 warnings.filterwarnings("ignore")
+from dotenv import load_dotenv
+
+# Load environment variables from .env
+load_dotenv()
+
+# ── Direct Line config ─────────────────────────────────────────────────────────
+
+DIRECT_LINE_SECRET   = os.getenv("DIRECT_LINE_SECRET", "")
+_DL_GENERATE_URL     = "https://europe.directline.botframework.com/v3/directline/tokens/generate"
+_DL_REFRESH_URL      = "https://europe.directline.botframework.com/v3/directline/tokens/refresh"
+_TOKEN_CACHE_BUFFER  = 300   # treat token as expired if < 5 min remaining
+
+# Rate limits — change these two strings to tune the /api/token endpoints
+TOKEN_LIMIT_MINUTE = "10 per minute"
+TOKEN_LIMIT_HOUR   = "200 per hour"
 
 # ── Load data ──────────────────────────────────────────────────────────────────
 
@@ -248,6 +266,12 @@ def compute_calendar(loc, col, var, half_window, method):
 
 app = Flask(__name__, static_folder="static", static_url_path="")
 
+# Session secret derived from the Direct Line secret — stable across restarts,
+# invalidated automatically if the secret is rotated (correct behaviour).
+app.secret_key = hashlib.sha256(DIRECT_LINE_SECRET.encode()).digest() if DIRECT_LINE_SECRET else os.urandom(24)
+
+limiter = Limiter(get_remote_address, app=app, default_limits=[])
+
 @app.route("/")
 def index():
     return send_from_directory("static", "index.html")
@@ -312,6 +336,79 @@ def api_calendar():
         "unit":         unit,
         "loc":          loc,
         "method_label": "OLS · R²" if method == "ols" else "Theil-Sen · TFPW MK · τ",
+    })
+
+@app.route("/api/token")
+@limiter.limit(TOKEN_LIMIT_MINUTE)
+@limiter.limit(TOKEN_LIMIT_HOUR)
+def get_token():
+    if not DIRECT_LINE_SECRET:
+        return jsonify({"error": "Chat service not configured"}), 503
+
+    # Return cached token if it still has more than TOKEN_CACHE_BUFFER seconds left
+    cached = session.get("dl_token")
+    if cached and time.time() < cached["expires_at"] - _TOKEN_CACHE_BUFFER:
+        return jsonify({
+            "token":          cached["token"],
+            "conversationId": cached["conversationId"],
+            "expires_in":     int(cached["expires_at"] - time.time()),
+        })
+
+    try:
+        resp = http_requests.post(
+            _DL_GENERATE_URL,
+            headers={"Authorization": f"Bearer {DIRECT_LINE_SECRET}"},
+            timeout=10,
+        )
+        resp.raise_for_status()
+    except http_requests.HTTPError as e:
+        print(f"[token] Direct Line HTTP {e.response.status_code}: {e.response.text[:300]}")
+        return jsonify({"error": "Failed to generate token", "detail": e.response.text[:200]}), 502
+    except http_requests.RequestException as e:
+        print(f"[token] Direct Line request failed: {e}")
+        return jsonify({"error": "Failed to generate token"}), 502
+
+    data = resp.json()
+    session["dl_token"] = {
+        "token":          data["token"],
+        "conversationId": data["conversationId"],
+        "expires_at":     time.time() + data["expires_in"],
+    }
+    return jsonify({
+        "token":          data["token"],
+        "conversationId": data["conversationId"],
+        "expires_in":     data["expires_in"],
+    })
+
+
+@app.route("/api/token/refresh", methods=["POST"])
+@limiter.limit(TOKEN_LIMIT_MINUTE)
+@limiter.limit(TOKEN_LIMIT_HOUR)
+def refresh_token():
+    cached = session.get("dl_token")
+    if not cached:
+        return jsonify({"error": "No active session"}), 400
+
+    try:
+        resp = http_requests.post(
+            _DL_REFRESH_URL,
+            headers={"Authorization": f"Bearer {cached['token']}"},
+            timeout=10,
+        )
+        resp.raise_for_status()
+    except http_requests.RequestException:
+        return jsonify({"error": "Failed to refresh token"}), 502
+
+    data = resp.json()
+    session["dl_token"] = {
+        "token":          data["token"],
+        "conversationId": data["conversationId"],
+        "expires_at":     time.time() + data["expires_in"],
+    }
+    return jsonify({
+        "token":          data["token"],
+        "conversationId": data["conversationId"],
+        "expires_in":     data["expires_in"],
     })
 
 if __name__ == "__main__":

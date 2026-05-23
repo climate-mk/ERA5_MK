@@ -1,4 +1,4 @@
-# ── Data files (large CSVs, not committed) ───────────────────────────────────
+# ── Data files (large CSVs, uncomment to be not committed) ───────────────────────────────────
 #data/
 
 # ── Deployment / secrets ─────────────────────────────────────────────────────
@@ -14,9 +14,13 @@ dist/
 build/
 .eggs/
 
+# ── Cache ─────────────────────────────────────────────────────────────────────
+.openmeteo_cache.sqlite
+
 # ── Editor / OS ───────────────────────────────────────────────────────────────
 .DS_Store
 .env
 .venv
 *.swp
 *.swo
+.vscode/

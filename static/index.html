@@ -21,6 +21,10 @@
       <h1>MK Climate Explorer</h1>
       <div class="subtitle">ERA5-Land · North Macedonia · 1950–2024</div>
     </div>
+    <button id="chat-toggle-btn" class="chat-icon-btn" aria-label="Open chat assistant" title="Chat with Ognen, the Climate Assistant" onclick="openChat()">
+      <img src="Ognen.png" alt="Chat" class="chat-icon-img">
+      <span class="chat-btn-text">Chat with Ognen, the Climate Assistant</span>
+    </button>
   </header>
 
   <div class="main-layout">
@@ -28,10 +32,25 @@
     <!-- ── Sidebar ─────────────────────────────────────────── -->
     <aside id="sidebar">
 
-      <!-- Locations -->
+      <!-- Locations (multi-select dropdown) -->
       <div class="ctrl-section">
-        <div class="ctrl-label">Locations (up to 8)</div>
-        <div id="loc-list"><!-- filled by JS --></div>
+        <div class="ctrl-label">Location</div>
+        <div class="loc-dropdown">
+          <button id="loc-btn" class="loc-dropdown-btn">
+            <span id="loc-display">Loading…</span>
+            <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+              <path d="M6 9l6 6 6-6"/>
+            </svg>
+          </button>
+          <div id="loc-menu" class="loc-dropdown-menu">
+            <div class="loc-menu-header">
+              <span>Select locations</span>
+              <button id="loc-close-btn" class="loc-close-btn" aria-label="Close">✕</button>
+            </div>
+            <div id="loc-list"></div>
+          </div>
+          <div id="loc-backdrop" class="loc-backdrop"></div>
+        </div>
       </div>
 
       <!-- Variable -->
@@ -124,10 +143,36 @@
         </div>
       </div>
 
+      <!-- Footer -->
+      <footer class="app-footer">
+        <span>Data: <a href="https://cds.climate.copernicus.eu/datasets/reanalysis-era5-land" target="_blank" rel="noopener">ERA5-Land</a> | <a href="https://open-meteo.com" target="_blank" rel="noopener">Open-Meteo</a></span>
+        <span>© 2026 MK Climate Explorer</span>
+        <a href="https://github.com/kesma01/ERA5_MK" target="_blank" rel="noopener">
+          <svg width="15" height="15" viewBox="0 0 24 24" fill="currentColor">
+            <path d="M12 0C5.37 0 0 5.37 0 12c0 5.31 3.435 9.795 8.205 11.385.6.105.825-.255.825-.57 0-.285-.015-1.23-.015-2.235-3.015.555-3.795-.735-4.035-1.41-.135-.345-.72-1.41-1.23-1.695-.42-.225-1.02-.78-.015-.795.945-.015 1.62.87 1.845 1.23 1.08 1.815 2.805 1.305 3.495.99.105-.78.42-1.305.765-1.605-2.67-.3-5.46-1.335-5.46-5.925 0-1.305.465-2.385 1.23-3.225-.12-.3-.54-1.53.12-3.18 0 0 1.005-.315 3.3 1.23.96-.27 1.98-.405 3-.405s2.04.135 3 .405c2.295-1.56 3.3-1.23 3.3-1.23.66 1.65.24 2.88.12 3.18.765.84 1.23 1.905 1.23 3.225 0 4.605-2.805 5.625-5.475 5.925.435.375.81 1.095.81 2.22 0 1.605-.015 2.895-.015 3.3 0 .315.225.69.825.57A12.02 12.02 0 0 0 24 12c0-6.63-5.37-12-12-12z"/>
+          </svg>
+          GitHub
+        </a>
+      </footer>
+
     </main>
+  </div>
+
+  <!-- Responsive Chat Modal -->
+  <div id="chat-modal" class="chat-modal" onclick="if(event.target.id === 'chat-modal') { document.getElementById('chat-modal').classList.remove('open'); document.body.classList.remove('chat-modal-open'); }">
+    <div class="chat-modal-content">
+      <div class="chat-modal-header">
+        <div class="chat-title">
+          <span>Chat with Ognen, the Climate Assistant</span>
+        </div>
+        <button class="chat-close-btn" aria-label="Close chat" onclick="document.getElementById('chat-modal').classList.remove('open'); document.body.classList.remove('chat-modal-open')">✕</button>
+      </div>
+      <div id="webchat-container"></div>
+    </div>
   </div>
 </div>
 
+<script src="https://cdn.botframework.com/botframework-webchat/latest/webchat.js"></script>
 <script src="app.js"></script>
 </body>
 </html>
