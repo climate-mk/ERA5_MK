@@ -21,7 +21,7 @@ const state = {
   monthNames: [],
   palette:    [],
   selLocs:    ["Skopje"],
-  selVar:     "temperature_mean",
+  selVar:     "temperature_max",
   method:     "theilsen",
   corr:       "raw",
   doy:        105,
@@ -305,6 +305,8 @@ function doyToDate(doy) {
 function doyBadge(doy) {
   return doyToDate(doy);
 }
+
+
 
 function getTodayDOY() {
   const today = new Date();
@@ -725,6 +727,81 @@ function setDoy(val) {
 }
 
 slider.addEventListener("input", () => setDoy(parseInt(slider.value)));
+
+badge.addEventListener("click", e => {
+  e.stopPropagation();
+  document.getElementById("doy-popup")?.remove();
+
+  const MONTHS = ["Jan","Feb","Mar","Apr","May","Jun","Jul","Aug","Sep","Oct","Nov","Dec"];
+  const MAX_DAYS = [31,28,31,30,31,30,31,31,30,31,30,31];
+
+  const ref = new Date(2001, 0, state.doy);
+  let curMonth = ref.getMonth();
+  let curDay   = ref.getDate();
+
+  const popup = document.createElement("div");
+  popup.id = "doy-popup";
+  popup.className = "doy-popup";
+
+  const mSel = document.createElement("select");
+  MONTHS.forEach((m, i) => {
+    const opt = document.createElement("option");
+    opt.value = i; opt.textContent = m;
+    if (i === curMonth) opt.selected = true;
+    mSel.appendChild(opt);
+  });
+
+  const dSel = document.createElement("select");
+  function populateDays(max, selected) {
+    dSel.innerHTML = "";
+    for (let d = 1; d <= max; d++) {
+      const opt = document.createElement("option");
+      opt.value = d; opt.textContent = d;
+      if (d === selected) opt.selected = true;
+      dSel.appendChild(opt);
+    }
+  }
+  populateDays(MAX_DAYS[curMonth], curDay);
+
+  mSel.addEventListener("change", () => {
+    curMonth = parseInt(mSel.value);
+    curDay = Math.min(curDay, MAX_DAYS[curMonth]);
+    populateDays(MAX_DAYS[curMonth], curDay);
+  });
+
+  dSel.addEventListener("change", () => {
+    curDay = parseInt(dSel.value);
+    const d = new Date(2001, curMonth, curDay);
+    const doy = Math.round((d - new Date(2001, 0, 0)) / 86400000);
+    setDoy(Math.max(1, Math.min(365, doy)));
+    close();
+  });
+
+  popup.appendChild(mSel);
+  popup.appendChild(dSel);
+  document.body.appendChild(popup);
+
+  const rect = badge.getBoundingClientRect();
+  popup.style.top  = (rect.bottom + 6) + "px";
+  popup.style.left = rect.left + "px";
+  requestAnimationFrame(() => {
+    const pw = popup.offsetWidth;
+    if (rect.left + pw > window.innerWidth - 10)
+      popup.style.left = Math.max(10, window.innerWidth - pw - 10) + "px";
+  });
+
+  function close() {
+    popup.remove();
+    document.removeEventListener("click", onOutside);
+    document.removeEventListener("keydown", onKey);
+  }
+  const onOutside = ev => { if (!popup.contains(ev.target)) close(); };
+  const onKey     = ev => { if (ev.key === "Escape") close(); };
+  setTimeout(() => {
+    document.addEventListener("click", onOutside);
+    document.addEventListener("keydown", onKey);
+  }, 0);
+});
 
 btnPrev.addEventListener("click", () => {
   stopPlay();
