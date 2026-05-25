@@ -307,6 +307,7 @@ body.chat-modal-open { overflow: hidden; }
 
 @media (max-width: 900px) {
   #main-row { grid-template-columns: 1fr; padding: 16px 20px 0; }
+  .panel { min-width: 0; }
   .toolbar { padding-left: 20px; padding-right: 20px; margin-left: 20px; margin-right: 20px; }
   .cal-panel { margin-left: 20px; margin-right: 20px; }
   /* Single column on tablet */
@@ -332,7 +333,7 @@ body.chat-modal-open { overflow: hidden; }
 
 @media (max-width: 600px) {
   .nav-links { display: none; }
-  .topbar { padding: 10px 14px; gap: 12px; }
+  .topbar { padding: 10px 14px; gap: 12px; overflow: hidden; }
   .loc-hero-card { padding: 16px 14px 14px !important; }
   .stat-num { font-size: 56px !important; }
   .stat-unit { font-size: 16px !important; }

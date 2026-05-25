@@ -1168,5 +1168,12 @@ function closeWelcome() {
 }
 
 if (!localStorage.getItem("welcome_dismissed")) {
-  document.getElementById("welcome-modal").classList.add("open");
+  requestAnimationFrame(() => requestAnimationFrame(() => {
+    document.getElementById("welcome-modal").classList.add("open");
+  }));
 }
+
+window.addEventListener("load", () => {
+  mapChart?.reflow();
+  regChart?.reflow();
+});
