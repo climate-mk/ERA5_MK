@@ -54,8 +54,8 @@ _DL_REFRESH_URL      = "https://europe.directline.botframework.com/v3/directline
 _TOKEN_CACHE_BUFFER  = 300   # treat token as expired if < 5 min remaining
 
 # Rate limits — change these two strings to tune the /api/token endpoints
-TOKEN_LIMIT_MINUTE = "10 per minute"
-TOKEN_LIMIT_HOUR   = "200 per hour"
+TOKEN_LIMIT_MINUTE = "3 per minute"
+TOKEN_LIMIT_HOUR   = "20 per hour"
 
 # ── Load data ──────────────────────────────────────────────────────────────────
 
