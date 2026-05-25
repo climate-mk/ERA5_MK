@@ -170,6 +170,7 @@ def window_raw(loc_data, month, day, half_window, col):
 def compute_regression(loc, var, month, day, half_window, col, method):
     ld     = data[data["location"] == loc]
     series = window_series(ld, month, day, half_window, col)
+    n_raw  = int(window_filter(ld, month, day, half_window)[col].notna().sum())
     if len(series) < 5:
         return None
 
@@ -259,7 +260,7 @@ def compute_regression(loc, var, month, day, half_window, col, method):
             "fit_desc":     fit_desc,
             "sig_label":    sig_label(float(p_val)),
             "n_years":      int(len(x_arr)),
-            "n_values":     int(len(x_arr)),
+            "n_values":     n_raw,
             "ar1":          ar1,
         },
     }

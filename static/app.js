@@ -771,6 +771,12 @@ badge.addEventListener("click", e => {
 
   dSel.addEventListener("change", () => {
     curDay = parseInt(dSel.value);
+  });
+
+  const setBtn = document.createElement("button");
+  setBtn.className = "doy-popup-set";
+  setBtn.textContent = "Set";
+  setBtn.addEventListener("click", () => {
     const d = new Date(2001, curMonth, curDay);
     const doy = Math.round((d - new Date(2001, 0, 0)) / 86400000);
     setDoy(Math.max(1, Math.min(365, doy)));
@@ -779,6 +785,7 @@ badge.addEventListener("click", e => {
 
   popup.appendChild(mSel);
   popup.appendChild(dSel);
+  popup.appendChild(setBtn);
   document.body.appendChild(popup);
 
   const rect = badge.getBoundingClientRect();
@@ -786,8 +793,11 @@ badge.addEventListener("click", e => {
   popup.style.left = rect.left + "px";
   requestAnimationFrame(() => {
     const pw = popup.offsetWidth;
+    const ph = popup.offsetHeight;
     if (rect.left + pw > window.innerWidth - 10)
       popup.style.left = Math.max(10, window.innerWidth - pw - 10) + "px";
+    if (rect.bottom + 6 + ph > window.innerHeight - 10)
+      popup.style.top = Math.max(10, rect.top - ph - 6) + "px";
   });
 
   function close() {
