@@ -191,29 +191,32 @@ def compute_regression(loc, var, month, day, half_window, col, method):
             "anomaly": round(float(a), 3),
         })
 
-    # Raw data for fitting
+    # Always fit on annual aggregates (means or sums) — using raw daily values
+    # contaminates the slope with within-year seasonal variation: a wider window
+    # around a rising/falling season includes more intra-year pairs whose slope
+    # reflects seasonality, not long-term trend. Annual aggregates are immune to
+    # this because the seasonal component cancels within each year's window.
     is_sum = col in ["precipitation_sum","et0_evapotranspiration"]
-    x_raw, y_raw = (x_arr, y_arr) if is_sum else window_raw(ld, month, day, half_window, col)
+    x_fit, y_fit = x_arr, y_arr   # annual means (temp) or annual sums (precip/ET0)
 
     x_line = np.linspace(x_arr.min(), x_arr.max(), 300)
 
     if method == "ols":
-        slope, intercept, _, _, _ = stats.linregress(x_raw, y_raw)
-        _, _, r_ann, p_val, _     = stats.linregress(x_arr, y_arr)
+        slope, intercept, r_ann, p_val, _ = stats.linregress(x_fit, y_fit)
         y_line    = slope * x_line + intercept
-        residuals = y_raw - (slope * x_raw + intercept)
-        se_res    = np.sqrt(np.sum(residuals**2) / max(len(x_raw) - 2, 1))
-        ss_x      = np.sum((x_raw - x_raw.mean())**2)
-        t_crit    = stats.t.ppf(0.975, df=max(len(x_arr) - 2, 1))
-        se_ln     = se_res * np.sqrt(1/len(x_raw) + (x_line - x_raw.mean())**2 / max(ss_x, 1e-12))
+        residuals = y_fit - (slope * x_fit + intercept)
+        se_res    = np.sqrt(np.sum(residuals**2) / max(len(x_fit) - 2, 1))
+        ss_x      = np.sum((x_fit - x_fit.mean())**2)
+        t_crit    = stats.t.ppf(0.975, df=max(len(x_fit) - 2, 1))
+        se_ln     = se_res * np.sqrt(1/len(x_fit) + (x_line - x_fit.mean())**2 / max(ss_x, 1e-12))
         upper, lower = y_line + t_crit * se_ln, y_line - t_crit * se_ln
         metric, metric_lbl, ar1 = r_ann**2, "R²", None
     else:
-        res    = theilslopes(y_raw, x_raw, 0.95)
+        res    = theilslopes(y_fit, x_fit, 0.95)
         slope  = res.slope
         mk_r   = mk_test.yue_wang_modification_test(y_arr)
         p_val, tau = mk_r.p, mk_r.Tau
-        x_med, y_med = float(np.median(x_raw)), float(np.median(y_raw))
+        x_med, y_med = float(np.median(x_fit)), float(np.median(y_fit))
         ic      = y_med - slope          * x_med
         ic_hi   = y_med - res.high_slope * x_med
         ic_lo   = y_med - res.low_slope  * x_med
@@ -228,8 +231,8 @@ def compute_regression(loc, var, month, day, half_window, col, method):
     chg_unit  = vs["chg_unit"]
     yrs_per   = 1.0 / slope_abs if slope_abs > 1e-9 else None
     chg_str   = f"1 {chg_unit} change every {yrs_per:.1f} yrs" if yrs_per else "No trend"
-    fit_desc  = (f"Fitted on {len(x_arr)} annual sums (1/year)" if is_sum
-                 else f"Fitted on {len(x_raw)} daily values ({len(x_arr)} years)")
+    agg_label = "annual sums" if is_sum else "annual means"
+    fit_desc  = f"Fitted on {len(x_arr)} {agg_label} ({len(x_arr)} years)"
     if ar1 is not None:
         fit_desc += f"  ·  AR(1)={ar1:.2f}"
 
@@ -256,7 +259,7 @@ def compute_regression(loc, var, month, day, half_window, col, method):
             "fit_desc":     fit_desc,
             "sig_label":    sig_label(float(p_val)),
             "n_years":      int(len(x_arr)),
-            "n_values":     None if is_sum else int(len(x_raw)),
+            "n_values":     int(len(x_arr)),
             "ar1":          ar1,
         },
     }
@@ -292,7 +295,9 @@ def compute_calendar(loc, col, var, half_window, method):
                 mkr = mk_test.yue_wang_modification_test(y)
                 pv, metric = mkr.p, mkr.Tau
             alpha = 0.95 if pv < 0.001 else 0.70 if pv < 0.01 else 0.40 if pv < 0.05 else 0.12
-            r, g, b = vs["cal_pos"] if metric >= 0 else vs["cal_neg"]
+            # Use slope sign for colour direction — metric is R² for OLS (always ≥0)
+            # and τ for Theil-Sen (signed), so sv is the reliable direction indicator
+            r, g, b = vs["cal_pos"] if sv >= 0 else vs["cal_neg"]
             days.append({
                 "doy":     doy,
                 "slope10": round(float(sv * 10), 4),
