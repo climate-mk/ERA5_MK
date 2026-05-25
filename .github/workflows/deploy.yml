@@ -1,0 +1,53 @@
+name: Deploy to production
+
+on:
+  push:
+    branches: [main]
+
+env:
+  FORCE_JAVASCRIPT_ACTIONS_TO_NODE24: true
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Set up SSH
+        run: |
+          mkdir -p ~/.ssh
+          printf '%s\n' "${{ secrets.SSH_PRIVATE_KEY }}" > ~/.ssh/id_ed25519
+          chmod 600 ~/.ssh/id_ed25519
+          ssh-keyscan -H 46.224.208.142 >> ~/.ssh/known_hosts
+
+      - name: Deploy via rsync
+        run: |
+          rsync -az \
+            --exclude='.git' \
+            --exclude='.github' \
+            --exclude='__pycache__' \
+            --exclude='*.pyc' \
+            --exclude='venv' \
+            --exclude='data' \
+            --exclude='deploy.sh' \
+            --exclude='*.sqlite' \
+            ./ root@46.224.208.142:/opt/mk_climate/
+
+      - name: Restart service
+        run: |
+          ssh root@46.224.208.142 "
+            chown -R www-data:www-data /opt/mk_climate &&
+            systemctl restart mk_climate &&
+            sleep 4 &&
+            systemctl is-active mk_climate
+          "
+
+      - name: Health check
+        run: |
+          sleep 5
+          ssh root@46.224.208.142 "curl -sf http://localhost:5050/api/meta" | python3 -c "
+          import sys, json
+          d = json.load(sys.stdin)
+          print('Health OK —', len(d['locations']), 'locations loaded')
+          "
