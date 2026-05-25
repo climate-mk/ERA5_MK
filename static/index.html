@@ -3,125 +3,157 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>MK Climate Explorer</title>
+  <title>climate.mk — North Macedonia Climate Explorer</title>
+  <meta name="description" content="Interactive climate trend explorer for North Macedonia. Visualise ERA5-Land reanalysis data (1950–present) across 20 locations using Theil-Sen and Mann-Kendall statistical methods.">
+  <meta name="keywords" content="North Macedonia, climate change, ERA5, temperature trends, precipitation, climate data, reanalysis">
+  <meta property="og:title" content="climate.mk — North Macedonia Climate Explorer">
+  <meta property="og:description" content="Explore long-term climate trends across North Macedonia with ERA5-Land reanalysis data.">
+  <meta property="og:type" content="website">
+  <meta property="og:url" content="https://climate.kesma.wtf">
+  <link rel="canonical" href="https://climate.kesma.wtf">
+  <link rel="icon" type="image/x-icon" href="favicon.ico">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500;600&family=Instrument+Serif:ital@0;1&display=swap" rel="stylesheet">
   <link rel="stylesheet" href="style.css">
   <!-- Highcharts CDN -->
   <script src="https://code.highcharts.com/highcharts.js"></script>
   <script src="https://code.highcharts.com/highcharts-more.js"></script>
+  <script src="https://code.highcharts.com/maps/modules/map.js"></script>
+  <script src="https://code.highcharts.com/maps/modules/tiledwebmap.js"></script>
 </head>
 <body>
 <div id="app">
 
-  <header>
-    <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="#4c52c9" stroke-width="2" stroke-linecap="round">
-      <path d="M3 20l4-8 4 4 4-8 4 6"/>
-      <line x1="3" y1="20" x2="21" y2="20"/>
-    </svg>
-    <div>
-      <h1>MK Climate Explorer</h1>
-      <div class="subtitle">ERA5-Land · North Macedonia · 1950–2024</div>
+  <header class="topbar">
+    <div class="brand">
+      <a href="#"><img class="brand-logo" src="logo.png" alt="climate.mk"></a>
     </div>
-    <button id="chat-toggle-btn" class="chat-icon-btn" aria-label="Open chat assistant" title="Chat with Ognen, the Climate Assistant" onclick="openChat()">
-      <img src="Ognen.png" alt="Chat" class="chat-icon-img">
-      <span class="chat-btn-text">Chat with Ognen, the Climate Assistant</span>
+    <nav class="nav-links">
+      <a href="#">Home</a>
+      <a href="#controls-bar">Charts</a>
+      <a href="#about">About</a>
+    </nav>
+    <button class="chat-btn" onclick="openChat()" id="chat-toggle-btn">
+      <img class="chat-avatar" src="Ognen100.png" alt="Ognen">
+      <span class="chat-label">
+        <span class="chat-name">Chat with Ognen</span>
+        <span class="chat-role">climate assistant</span>
+      </span>
     </button>
   </header>
 
-  <div class="main-layout">
+  <!-- Hero + sig — JS-populated; repeats once per selected location -->
+  <section id="hero"></section>
 
-    <!-- ── Sidebar ─────────────────────────────────────────── -->
-    <aside id="sidebar">
+  <!-- Controls / toolbar -->
+  <div class="toolbar" id="controls-bar">
 
-      <!-- Locations (multi-select dropdown) -->
-      <div class="ctrl-section">
-        <div class="ctrl-label">Location</div>
-        <div class="loc-dropdown">
-          <button id="loc-btn" class="loc-dropdown-btn">
-            <span id="loc-display">Loading…</span>
-            <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-              <path d="M6 9l6 6 6-6"/>
-            </svg>
-          </button>
-          <div id="loc-menu" class="loc-dropdown-menu">
-            <div class="loc-menu-header">
-              <span>Select locations</span>
-              <button id="loc-close-btn" class="loc-close-btn" aria-label="Close">✕</button>
-            </div>
-            <div id="loc-list"></div>
+    <!-- Location -->
+    <div class="pill-group ctrl-pill--loc">
+      <span class="pg-k">Location</span>
+      <div class="loc-dropdown">
+        <button id="loc-btn" class="loc-dropdown-btn">
+          <span id="loc-display">Loading…</span>
+          <svg width="9" height="9" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M6 9l6 6 6-6"/></svg>
+        </button>
+        <div id="loc-menu" class="loc-dropdown-menu">
+          <div class="loc-menu-header">
+            <span>Select locations</span>
+            <button id="loc-close-btn" class="loc-close-btn" aria-label="Close">✕</button>
           </div>
-          <div id="loc-backdrop" class="loc-backdrop"></div>
+          <div id="loc-list"></div>
+        </div>
+        <div id="loc-backdrop" class="loc-backdrop"></div>
+      </div>
+    </div>
+
+    <!-- Variable -->
+    <div class="pill-group">
+      <span class="pg-k">Variable</span>
+      <div class="pill pill-select"><select id="var-select"></select></div>
+    </div>
+
+    <!-- Method -->
+    <div class="pill-group">
+      <span class="pg-k">Method</span>
+      <div class="radio-group" id="method-group">
+        <label class="pill pill-radio">
+          <span class="check-box" id="check-theilsen"></span>
+          <input type="radio" name="method" value="theilsen" checked hidden>
+          <span>Theil-Sen + MK</span>
+        </label>
+        <label class="pill alt pill-radio">
+          <span class="check-box" id="check-ols" style="display:none"></span>
+          <input type="radio" name="method" value="ols" hidden>
+          <span>OLS</span>
+        </label>
+      </div>
+    </div>
+
+    <!-- Elevation correction (temp only) -->
+    <div class="pill-group" id="corr-section">
+      <span class="pg-k">Elevation corr.</span>
+      <label class="toggle">
+        <input type="checkbox" id="corr-toggle" hidden>
+        <div class="toggle-track"></div>
+      </label>
+    </div>
+
+    <!-- Window -->
+    <div class="pill-group">
+      <span class="pg-k">Window</span>
+      <div class="pill pill-num">±<input type="number" id="window-input" value="7" min="1" max="90"> days</div>
+    </div>
+
+    <div class="spacer"></div>
+
+    <!-- Day of year -->
+    <div class="day-control">
+      <span class="day-k">Day</span>
+      <div class="day-v" id="doy-badge">Apr 15</div>
+      <div class="scrub"><input type="range" id="doy-slider" min="1" max="365" value="105"></div>
+      <div class="playbar">
+        <button class="play-btn" id="btn-prev">◀</button>
+        <button class="play-btn primary" id="btn-play">▶</button>
+        <button class="play-btn" id="btn-next">▶</button>
+      </div>
+    </div>
+
+  </div>
+
+  <!-- Map + Regression row -->
+  <div id="main-row">
+    <div id="map-panel" class="panel">
+      <div class="panel-h">
+        <div class="panel-title">North Macedonia</div>
+        <div class="panel-sub" id="map-station-count">20 WEATHER STATIONS</div>
+      </div>
+      <div class="chart-wrap map-wrap">
+        <div id="map-chart"></div>
+        <div class="loading-overlay" id="map-loading">
+          <div class="spinner"></div> Loading map…
         </div>
       </div>
-
-      <!-- Variable -->
-      <div class="ctrl-section">
-        <div class="ctrl-label">Variable</div>
-        <select id="var-select">
-          <option value="temperature_mean">Temperature Mean (°C)</option>
-          <option value="temperature_max">Temperature Max (°C)</option>
-          <option value="temperature_min">Temperature Min (°C)</option>
-          <option value="precipitation_sum">Precipitation (mm)</option>
-          <option value="et0_evapotranspiration">ET₀ Evapotranspiration (mm)</option>
-        </select>
+      <div class="map-legend">
+        <span class="leg-cool">falling</span>
+        <span class="leg-ramp"></span>
+        <span class="leg-warm">rising</span>
       </div>
-
-      <!-- Method -->
-      <div class="ctrl-section">
-        <div class="ctrl-label">Regression Method</div>
-        <div class="radio-group" id="method-group">
-          <label class="radio-item">
-            <input type="radio" name="method" value="theilsen" checked>
-            <span>Theil-Sen + TFPW MK</span>
-          </label>
-          <label class="radio-item">
-            <input type="radio" name="method" value="ols">
-            <span>OLS (linear)</span>
-          </label>
+    </div>
+    <div id="reg-panel" class="panel">
+      <div class="panel-h">
+        <div>
+          <div class="panel-title" id="chart-title">—</div>
+          <div class="panel-sub" id="chart-sub" style="margin-top:3px">—</div>
         </div>
+        <div class="panel-sub" id="chart-obs">—</div>
       </div>
-
-      <!-- Lapse-rate correction (temp only) -->
-      <div class="ctrl-section" id="corr-section">
-        <div class="ctrl-label">Temperature correction</div>
-        <div class="toggle-row">
-          <span class="toggle-label">Lapse-rate (elevation)</span>
-          <label class="toggle">
-            <input type="checkbox" id="corr-toggle">
-            <div class="toggle-track"></div>
-          </label>
+      <div class="chart-stage">
+        <div class="chart-stats-box" id="chart-stats-box">
+          <div class="chart-big" id="chart-change">—</div>
+          <div class="chart-change-lbl">change over the record</div>
         </div>
-      </div>
-
-      <!-- Window -->
-      <div class="ctrl-section">
-        <div class="ctrl-label">Window half-width</div>
-        <div class="window-row">
-          <input type="number" id="window-input" value="7" min="1" max="90">
-          <span class="unit">days either side</span>
-        </div>
-      </div>
-
-      <!-- DOY -->
-      <div class="ctrl-section">
-        <div class="doy-header">
-          <div class="ctrl-label">Day of year</div>
-          <div class="doy-badge" id="doy-badge">Apr 15</div>
-        </div>
-        <input type="range" id="doy-slider" min="1" max="365" value="105">
-        <div class="play-row" style="margin-top:6px">
-          <button class="btn" id="btn-prev">◀ Prev</button>
-          <button class="btn" id="btn-play">▶ Play</button>
-          <button class="btn" id="btn-next">Next ▶</button>
-        </div>
-      </div>
-
-    </aside>
-
-    <!-- ── Main content ───────────────────────────────────── -->
-    <main id="content">
-
-      <!-- Regression chart -->
-      <div class="chart-card">
         <div class="chart-wrap">
           <div id="reg-chart"></div>
           <div class="loading-overlay" id="reg-loading">
@@ -129,36 +161,48 @@
           </div>
         </div>
       </div>
-
-      <!-- Stats cards -->
-      <div id="stats-row"></div>
-
-      <!-- Calendar chart -->
-      <div class="chart-card">
-        <div class="chart-wrap">
-          <div id="cal-chart"></div>
-          <div class="loading-overlay" id="cal-loading">
-            <div class="spinner"></div> Calculating year-round trends…
-          </div>
+      <div class="chart-footer">
+        <div class="chart-key">
+          <span class="swatch"><i id="swatch-neg" style="background:var(--accent-cool);border-radius:50%"></i>Under mean</span>
+          <span class="swatch"><i id="swatch-pos" style="background:var(--accent);border-radius:50%"></i>Over mean</span>
+          <span class="swatch"><i style="background:var(--ink);border-radius:1px;width:14px;height:3px"></i>Trend line</span>
+          <span class="swatch"><i style="background:rgba(194,90,44,0.25);border-radius:2px;width:10px;height:10px"></i>95% CI</span>
         </div>
+        <span class="panel-sub" id="chart-year-range">—</span>
       </div>
-
-      <!-- Footer -->
-      <footer class="app-footer">
-        <span>Data: <a href="https://cds.climate.copernicus.eu/datasets/reanalysis-era5-land" target="_blank" rel="noopener">ERA5-Land</a> | <a href="https://open-meteo.com" target="_blank" rel="noopener">Open-Meteo</a></span>
-        <span>© 2026 MK Climate Explorer</span>
-        <a href="https://github.com/kesma01/ERA5_MK" target="_blank" rel="noopener">
-          <svg width="15" height="15" viewBox="0 0 24 24" fill="currentColor">
-            <path d="M12 0C5.37 0 0 5.37 0 12c0 5.31 3.435 9.795 8.205 11.385.6.105.825-.255.825-.57 0-.285-.015-1.23-.015-2.235-3.015.555-3.795-.735-4.035-1.41-.135-.345-.72-1.41-1.23-1.695-.42-.225-1.02-.78-.015-.795.945-.015 1.62.87 1.845 1.23 1.08 1.815 2.805 1.305 3.495.99.105-.78.42-1.305.765-1.605-2.67-.3-5.46-1.335-5.46-5.925 0-1.305.465-2.385 1.23-3.225-.12-.3-.54-1.53.12-3.18 0 0 1.005-.315 3.3 1.23.96-.27 1.98-.405 3-.405s2.04.135 3 .405c2.295-1.56 3.3-1.23 3.3-1.23.66 1.65.24 2.88.12 3.18.765.84 1.23 1.905 1.23 3.225 0 4.605-2.805 5.625-5.475 5.925.435.375.81 1.095.81 2.22 0 1.605-.015 2.895-.015 3.3 0 .315.225.69.825.57A12.02 12.02 0 0 0 24 12c0-6.63-5.37-12-12-12z"/>
-          </svg>
-          GitHub
-        </a>
-      </footer>
-
-    </main>
+    </div>
   </div>
 
-  <!-- Responsive Chat Modal -->
+  <!-- Calendar — JS populates one .cal-panel per selected location -->
+  <div id="cal-section"></div>
+
+  <!-- About -->
+  <section id="about" class="about-section">
+    <div class="about-body">
+      <div class="about-col">
+        <div class="about-title">About climate.mk</div>
+        <p>Climate.mk is a volunteer-driven platform, developed with AI assitance, designed to visualize ERA5 reanalysis data for public education on regional climate change. The project aims to highlight the impacts of global warming on North Macedonia and the surrounding region. You can contact us and contribute via the <a href="https://github.com/kesma01/ERA5_MK" target="_blank" rel="noopener">GitHub page</a> and, if you like what you see, we encourage you to Buy us a coffee.</p>
+      </div>
+      <div class="about-col">
+        <div class="about-title">Methods used</div>
+        <p>We utilize statistical methods for slope calculation and to detect trends while correcting for serial correlation. Data processing involves modeling, elevation-based lapse-rate corrections, and window half-width smoothing to analyze multi-decade climate shifts, with visualizations powered by the Highcharts library. For more detailed information about these methods, the website or the regional climate changes, consult our chatbot Ognen, The Climate Assistant or visit the <a href="https://github.com/kesma01/ERA5_MK" target="_blank" rel="noopener">GitHub page</a>.</p>
+      </div>
+    </div>
+  </section>
+
+  <!-- Footer -->
+  <footer class="app-footer">
+    <span>Data: <a href="https://cds.climate.copernicus.eu/datasets/reanalysis-era5-land" target="_blank" rel="noopener">ERA5-Land</a> | <a href="https://open-meteo.com" target="_blank" rel="noopener">Open-Meteo</a></span>
+    <span>© 2026 Climate.mk</span>
+    <a href="https://github.com/kesma01/ERA5_MK" target="_blank" rel="noopener">
+      <svg width="15" height="15" viewBox="0 0 24 24" fill="currentColor">
+        <path d="M12 0C5.37 0 0 5.37 0 12c0 5.31 3.435 9.795 8.205 11.385.6.105.825-.255.825-.57 0-.285-.015-1.23-.015-2.235-3.015.555-3.795-.735-4.035-1.41-.135-.345-.72-1.41-1.23-1.695-.42-.225-1.02-.78-.015-.795.945-.015 1.62.87 1.845 1.23 1.08 1.815 2.805 1.305 3.495.99.105-.78.42-1.305.765-1.605-2.67-.3-5.46-1.335-5.46-5.925 0-1.305.465-2.385 1.23-3.225-.12-.3-.54-1.53.12-3.18 0 0 1.005-.315 3.3 1.23.96-.27 1.98-.405 3-.405s2.04.135 3 .405c2.295-1.56 3.3-1.23 3.3-1.23.66 1.65.24 2.88.12 3.18.765.84 1.23 1.905 1.23 3.225 0 4.605-2.805 5.625-5.475 5.925.435.375.81 1.095.81 2.22 0 1.605-.015 2.895-.015 3.3 0 .315.225.69.825.57A12.02 12.02 0 0 0 24 12c0-6.63-5.37-12-12-12z"/>
+      </svg>
+      GitHub
+    </a>
+  </footer>
+
+  <!-- Chat Modal -->
   <div id="chat-modal" class="chat-modal" onclick="if(event.target.id === 'chat-modal') { document.getElementById('chat-modal').classList.remove('open'); document.body.classList.remove('chat-modal-open'); }">
     <div class="chat-modal-content">
       <div class="chat-modal-header">
@@ -168,8 +212,25 @@
         <button class="chat-close-btn" aria-label="Close chat" onclick="document.getElementById('chat-modal').classList.remove('open'); document.body.classList.remove('chat-modal-open')">✕</button>
       </div>
       <div id="webchat-container"></div>
+      <div class="chat-credit">Developed and sponsored by <a href="https://42dynamics.com/" target="_blank" rel="noopener">42Dynamics</a></div>
     </div>
   </div>
+
+  <!-- Welcome Modal -->
+  <div id="welcome-modal" class="welcome-modal" onclick="if(event.target.id==='welcome-modal') closeWelcome()">
+    <div class="welcome-content">
+      <button class="welcome-close" onclick="closeWelcome()" aria-label="Close">✕</button>
+      <div class="welcome-logo">
+        <img src="logo.png" alt="climate.mk">
+      </div>
+      <div class="welcome-body">
+        <p class="welcome-greeting">Dear friend,</p>
+        <p>Welcome to Climate.mk. Please note that this is a volunteer project, and not everything may be fully working or is supported, for instance, the multi-language support - at the moment, we are English-only but we are working on this and other improvements.</p>
+        <p>In case of any questions, you can try our chatbot Ognen, The Climate Assistant or visit our GitHub page. If you already like what you see, we encourage you to buy us a coffee. :)</p>
+      </div>
+    </div>
+  </div>
+
 </div>
 
 <script src="https://cdn.botframework.com/botframework-webchat/latest/webchat.js"></script>

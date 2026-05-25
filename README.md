@@ -1,6 +1,6 @@
 # ERA5_MK — North Macedonia Climate Explorer
 
-Interactive web dashboard for exploring long-term climate trends across 20 locations in North Macedonia, powered by ERA5-Land reanalysis data (1950–2024).
+Interactive web dashboard for exploring long-term climate trends across 20 locations in North Macedonia, powered by ERA5-Land reanalysis data (1950–present).
 
 **Live:** [climate.kesma.wtf](https://climate.kesma.wtf)
 
@@ -12,7 +12,7 @@ Interactive web dashboard for exploring long-term climate trends across 20 locat
 - Day-of-year slider with ±N day window filter and year-end wraparound
 - Two regression methods: **OLS** and **Theil-Sen + Mann-Kendall TFPW** (corrects for AR(1) autocorrelation)
 - Year-round trend calendar — one bar per day of year, coloured by trend direction and significance
-- Multi-location overlay with colour-coded scatter + confidence band
+- Multi-location overlay with colour-coded scatter + confidence band (up to 6 locations simultaneously)
 - Lapse-rate elevation correction for temperature comparisons
 - Fully responsive — works on desktop and mobile
 
@@ -54,6 +54,8 @@ ERA5_MK/
 | `GET /api/meta` | — | Location list, variable labels, colour palette |
 | `GET /api/regression` | `loc`, `var`, `doy`, `window`, `corr`, `method` | Scatter points, trend line, CI band, stats |
 | `GET /api/calendar` | `loc`, `var`, `window`, `corr`, `method` | 365-day trend array for the calendar chart |
+| `GET /api/trends` | `var`, `doy`, `window` | Trend slope per station for the map |
+| `GET /api/token` | — | Short-lived Direct Line token for the chatbot (rate-limited) |
 
 ---
 
@@ -113,7 +115,7 @@ python3 mk_collect.py
 # Run the API server
 python3 mk_api.py
 # Open http://127.0.0.1:5050
-# To add your custom copilot chatbot to the UI, add its url to .env file, see .env.example
+# To enable the AI climate assistant chatbot, create a .env file with your Direct Line secret — see .env.example
 ```
 
 ### Testing the full web app locally
@@ -122,11 +124,11 @@ With the server running (`python3 mk_api.py`), open **http://127.0.0.1:5050** in
 
 Quick checklist:
 - Regression chart loads with scatter points and a trend line
-- Stats card appears below the chart with slope, τ² and p-value
+- Hero section at the top shows trend slope, p-value and significance for each selected location
 - Switching variable (e.g. Precipitation) updates the chart and changes colours
 - Moving the DOY slider updates the chart after a short debounce
 - ▶ Play animates through the year automatically
-- Clicking **Year-round calendar** computes and draws 365 bars (~10 s first run, instant after)
+- Year-round calendar auto-loads below the main charts, one panel per selected location
 - Selecting a second location adds a second series to the regression chart
 
 To also test on a phone or tablet on the same Wi-Fi, find your local IP:
