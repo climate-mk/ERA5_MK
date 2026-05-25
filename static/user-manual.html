@@ -1,0 +1,671 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>User Manual — climate.mk</title>
+  <link rel="icon" type="image/x-icon" href="favicon.ico">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500;600&family=Instrument+Serif:ital@0;1&display=swap" rel="stylesheet">
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+    :root {
+      --paper:     #F5F2EC;
+      --paper-2:   #EFEBE2;
+      --card:      #FFFFFF;
+      --ink:       #0E0E0C;
+      --ink-soft:  #6B655B;
+      --ink-faint: #ABA59A;
+      --rule:      rgba(14,14,12,0.08);
+      --rule-2:    rgba(14,14,12,0.14);
+      --accent:    #C25A2C;
+      --radius:    14px;
+      --max-w:     820px;
+    }
+
+    html { scroll-padding-top: 80px; }
+
+    body {
+      font-family: 'Space Grotesk', system-ui, sans-serif;
+      background: var(--paper);
+      color: var(--ink);
+      font-size: 15px;
+      line-height: 1.65;
+    }
+
+    /* ── Topbar ── */
+    .topbar {
+      position: sticky; top: 0; z-index: 100;
+      background: var(--paper);
+      border-bottom: 1px solid var(--rule);
+      padding: 14px 40px;
+      display: flex; align-items: center; gap: 20px;
+    }
+    .topbar a.home { display: flex; align-items: center; gap: 10px; text-decoration: none; color: var(--ink-soft); font-family: 'JetBrains Mono', monospace; font-size: 11px; letter-spacing: 0.1em; text-transform: uppercase; }
+    .topbar a.home:hover { color: var(--accent); }
+    .topbar-title { font-weight: 600; font-size: 15px; color: var(--ink); }
+    .topbar-sep { color: var(--ink-faint); }
+
+    /* ── Layout ── */
+    .page { display: flex; gap: 0; max-width: 1100px; margin: 0 auto; }
+
+    /* ── Sidebar TOC ── */
+    .toc {
+      width: 220px; flex-shrink: 0;
+      padding: 32px 20px 32px 40px;
+      position: sticky; top: 57px;
+      height: calc(100vh - 57px);
+      overflow-y: auto;
+      border-right: 1px solid var(--rule);
+    }
+    .toc-title { font-family: 'JetBrains Mono', monospace; font-size: 9px; letter-spacing: 0.14em; text-transform: uppercase; color: var(--ink-faint); margin-bottom: 12px; }
+    .toc ol { list-style: none; counter-reset: toc; }
+    .toc li { counter-increment: toc; margin-bottom: 4px; }
+    .toc li::before { content: counter(toc) ". "; color: var(--ink-faint); font-family: 'JetBrains Mono', monospace; font-size: 10px; }
+    .toc a { color: var(--ink-soft); text-decoration: none; font-size: 12px; line-height: 1.4; }
+    .toc a:hover { color: var(--accent); }
+
+    /* ── Content ── */
+    .content { flex: 1; min-width: 0; padding: 40px 40px 80px; }
+    .content > section { max-width: var(--max-w); margin-bottom: 56px; }
+
+    /* ── Section headings ── */
+    h1 { font-size: 32px; font-weight: 700; letter-spacing: -0.02em; margin-bottom: 8px; }
+    h1 .sub { font-family: 'Instrument Serif', serif; font-style: italic; font-weight: 400; font-size: 20px; color: var(--ink-soft); display: block; margin-top: 4px; }
+    .section-num { font-family: 'JetBrains Mono', monospace; font-size: 10px; letter-spacing: 0.14em; text-transform: uppercase; color: var(--accent); display: block; margin-bottom: 6px; }
+    h2 { font-size: 22px; font-weight: 600; margin-bottom: 16px; padding-bottom: 8px; border-bottom: 1px solid var(--rule); }
+    h3 { font-size: 16px; font-weight: 600; margin: 24px 0 10px; color: var(--ink); }
+    h4 { font-size: 14px; font-weight: 600; margin: 18px 0 8px; color: var(--ink-soft); font-family: 'JetBrains Mono', monospace; letter-spacing: 0.04em; text-transform: uppercase; font-size: 11px; }
+
+    /* ── Body text ── */
+    p { margin-bottom: 14px; color: var(--ink-soft); }
+    p strong { color: var(--ink); }
+    a { color: var(--accent); text-decoration: none; }
+    a:hover { text-decoration: underline; }
+
+    /* ── Lists ── */
+    ul, ol { padding-left: 20px; margin-bottom: 14px; color: var(--ink-soft); }
+    li { margin-bottom: 4px; }
+    li strong { color: var(--ink); }
+
+    /* ── Tables ── */
+    .table-wrap { overflow-x: auto; margin-bottom: 20px; }
+    table { width: 100%; border-collapse: collapse; font-size: 13px; }
+    thead tr { background: var(--paper-2); }
+    th { text-align: left; padding: 8px 12px; font-family: 'JetBrains Mono', monospace; font-size: 10px; letter-spacing: 0.08em; text-transform: uppercase; color: var(--ink-soft); border-bottom: 1px solid var(--rule-2); }
+    td { padding: 8px 12px; border-bottom: 1px solid var(--rule); color: var(--ink-soft); vertical-align: top; }
+    td strong { color: var(--ink); }
+    tr:last-child td { border-bottom: none; }
+
+    /* ── Code / mono ── */
+    code { font-family: 'JetBrains Mono', monospace; font-size: 12px; background: var(--paper-2); padding: 2px 5px; border-radius: 4px; color: var(--ink); }
+    .formula { font-family: 'JetBrains Mono', monospace; font-size: 13px; background: var(--card); border: 1px solid var(--rule); border-left: 3px solid var(--accent); border-radius: 8px; padding: 14px 16px; margin: 12px 0 18px; color: var(--ink); line-height: 1.8; }
+
+    /* ── Callout boxes ── */
+    .callout { background: var(--card); border: 1px dashed var(--rule-2); border-radius: var(--radius); padding: 16px 20px; margin: 16px 0; }
+    .callout-label { font-family: 'JetBrains Mono', monospace; font-size: 9px; letter-spacing: 0.14em; text-transform: uppercase; color: var(--accent); margin-bottom: 6px; }
+    .callout p { margin-bottom: 0; }
+
+    /* ── Quick-start steps ── */
+    .steps { counter-reset: step; list-style: none; padding: 0; }
+    .steps li { counter-increment: step; display: flex; gap: 16px; margin-bottom: 18px; align-items: flex-start; }
+    .steps li::before { content: counter(step); min-width: 28px; height: 28px; background: var(--accent); color: #fff; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-weight: 700; font-size: 13px; flex-shrink: 0; margin-top: 1px; }
+    .steps li div strong { display: block; color: var(--ink); margin-bottom: 2px; }
+
+    /* ── Significance table ── */
+    .sig-table { display: grid; grid-template-columns: auto auto 1fr; gap: 0; border: 1px solid var(--rule); border-radius: 10px; overflow: hidden; font-size: 13px; margin-bottom: 18px; }
+    .sig-table > div { padding: 8px 14px; border-bottom: 1px solid var(--rule); }
+    .sig-table > div:nth-last-child(-n+3) { border-bottom: none; }
+    .sig-table .sig-hd { font-family: 'JetBrains Mono', monospace; font-size: 10px; letter-spacing: 0.08em; text-transform: uppercase; color: var(--ink-soft); background: var(--paper-2); }
+    .sig-stars { color: var(--accent); letter-spacing: -0.05em; }
+
+    /* ── Figures / screenshots ── */
+    figure { margin: 20px 0 28px; }
+    figure img { width: 100%; border-radius: 10px; border: 1px solid var(--rule); display: block; }
+    figcaption { font-family: 'JetBrains Mono', monospace; font-size: 11px; color: var(--ink-faint); margin-top: 8px; letter-spacing: 0.04em; padding-left: 2px; }
+
+    /* ── Footer ── */
+    .footer { border-top: 1px solid var(--rule); padding: 20px 40px; font-family: 'JetBrains Mono', monospace; font-size: 10px; color: var(--ink-faint); text-align: center; letter-spacing: 0.06em; }
+
+    /* ── Responsive ── */
+    @media (max-width: 780px) {
+      .toc { display: none; }
+      .topbar { padding: 12px 16px; }
+      .content { padding: 24px 16px 60px; }
+      h1 { font-size: 24px; }
+      h2 { font-size: 18px; }
+    }
+  </style>
+</head>
+<body>
+
+<header class="topbar">
+  <a href="/" class="home">← climate.mk</a>
+  <span class="topbar-sep">·</span>
+  <span class="topbar-title">User Manual</span>
+</header>
+
+<div class="page">
+
+  <!-- Sidebar TOC -->
+  <nav class="toc" aria-label="Table of contents">
+    <div class="toc-title">Contents</div>
+    <ol>
+      <li><a href="#intro">Introduction</a></li>
+      <li><a href="#quickstart">Quick Start</a></li>
+      <li><a href="#controls">Controls</a></li>
+      <li><a href="#map">The Map</a></li>
+      <li><a href="#chart">Regression Chart</a></li>
+      <li><a href="#hero">Hero Cards &amp; Stats</a></li>
+      <li><a href="#calendar">Calendar Chart</a></li>
+      <li><a href="#methods">Statistical Methods</a></li>
+      <li><a href="#variables">Variables &amp; Units</a></li>
+      <li><a href="#locations">Locations</a></li>
+      <li><a href="#assistant">AI Assistant</a></li>
+      <li><a href="#limitations">Limitations</a></li>
+    </ol>
+  </nav>
+
+  <!-- Main content -->
+  <main class="content">
+
+    <!-- Title -->
+    <section id="intro">
+      <h1>
+        climate.mk
+        <span class="sub">User Manual &amp; Statistical Reference</span>
+      </h1>
+
+      <p><strong>climate.mk</strong> is an interactive web dashboard for exploring long-term climate trends across North Macedonia. It visualises ERA5-Land reanalysis data covering the period 1950–present for 20 locations, using robust statistical methods to detect and quantify trends in temperature, precipitation, and evapotranspiration.</p>
+
+      <p>This manual explains every control, chart, and statistic shown on the site. The <a href="#methods">Statistical Methods</a> section provides full technical detail for researchers and educators. All features are accessible without any prior statistical knowledge — the site is designed to communicate findings clearly to a general audience.</p>
+
+      <div class="callout">
+        <div class="callout-label">Data source</div>
+        <p>All data comes from the <strong>ERA5-Land</strong> reanalysis dataset produced by ECMWF, accessed via the <a href="https://open-meteo.com/" target="_blank" rel="noopener">Open-Meteo</a> API. ERA5-Land provides daily climate variables reconstructed from atmospheric models and observations, starting from 1950.</p>
+      </div>
+
+      <figure>
+        <img src="screenshots/overview.png" alt="Full view of climate.mk showing the hero card for Skopje, the controls toolbar, and the map and regression chart panels side by side">
+        <figcaption>The climate.mk interface: hero card at top, controls toolbar, map (left) and regression chart (right).</figcaption>
+      </figure>
+    </section>
+
+    <!-- Quick Start -->
+    <section id="quickstart">
+      <span class="section-num">02</span>
+      <h2>Quick Start</h2>
+      <ol class="steps">
+        <li>
+          <div>
+            <strong>Choose a location</strong>
+            Click the <strong>Location</strong> dropdown in the toolbar and select one or more stations (up to 6). Skopje is selected by default. You can also click a bubble on the map to toggle a location.
+          </div>
+        </li>
+        <li>
+          <div>
+            <strong>Pick a climate variable</strong>
+            Use the <strong>Variable</strong> dropdown to choose between temperature (max, min, mean), precipitation, or evapotranspiration. The map, chart, and hero card all update immediately.
+          </div>
+        </li>
+        <li>
+          <div>
+            <strong>Select a day of year</strong>
+            Drag the <strong>Day</strong> slider or click the play button (▶) to animate through the year. The date badge shows the current selection (e.g. "Apr 15"). All charts update for that calendar day.
+          </div>
+        </li>
+        <li>
+          <div>
+            <strong>Read the trend</strong>
+            The large number in the hero card shows the trend in <em>units per decade</em>. A positive value (orange) means rising; negative (blue) means falling. Below the number, the sig-row shows the p-value, correlation strength, and sample size.
+          </div>
+        </li>
+        <li>
+          <div>
+            <strong>Explore across the year</strong>
+            The <strong>calendar chart</strong> below the main panels shows the trend for every day of the year at once. Bar height is the slope; colour and opacity indicate direction and statistical significance.
+          </div>
+        </li>
+      </ol>
+    </section>
+
+    <!-- Controls -->
+    <section id="controls">
+      <span class="section-num">03</span>
+      <h2>Controls</h2>
+
+      <figure>
+        <img src="screenshots/toolbar.png" alt="The controls toolbar showing Location, Variable, Method, Elevation correction, Window, and Day-of-year slider with play buttons">
+        <figcaption>The controls toolbar. All settings take effect immediately and update every chart on the page.</figcaption>
+      </figure>
+
+      <div class="table-wrap">
+        <table>
+          <thead>
+            <tr><th>Control</th><th>Options / Range</th><th>Description</th></tr>
+          </thead>
+          <tbody>
+            <tr>
+              <td><strong>Location</strong></td>
+              <td>1–6 of 20 stations</td>
+              <td>Multi-select dropdown. Select up to 6 stations to overlay on the regression chart and display separate hero cards. The map always shows all 20 stations.</td>
+            </tr>
+            <tr>
+              <td><strong>Variable</strong></td>
+              <td>5 options</td>
+              <td>Climate variable to analyse. See <a href="#variables">Variables &amp; Units</a> for full list. Changing variable resets the elevation correction to Off.</td>
+            </tr>
+            <tr>
+              <td><strong>Method</strong></td>
+              <td>Theil-Sen + MK · OLS</td>
+              <td>Statistical method for fitting the trend line. <strong>Theil-Sen + MK</strong> (default) is robust and accounts for autocorrelation. <strong>OLS</strong> is standard linear regression. See <a href="#methods">Statistical Methods</a>.</td>
+            </tr>
+            <tr>
+              <td><strong>Elevation corr.</strong></td>
+              <td>On · Off (default)</td>
+              <td>Applies a lapse-rate elevation correction to temperature values, adjusting for the difference between the station elevation and the ERA5-Land grid elevation. Available for temperature variables only.</td>
+            </tr>
+            <tr>
+              <td><strong>Window</strong></td>
+              <td>±1 to ±90 days (default ±7)</td>
+              <td>Half-width of the calendar window around the selected day. <code>±7</code> means all daily values within 7 days either side of the target date are included each year, giving a 15-day total window. A wider window gives more data points per year but smooths over within-season variation.</td>
+            </tr>
+            <tr>
+              <td><strong>Day slider</strong></td>
+              <td>Day 1 (Jan 1) – Day 365 (Dec 31)</td>
+              <td>Selects the target calendar day. The date badge (e.g. "Apr 15") updates as you drag. All charts update after a short debounce delay.</td>
+            </tr>
+            <tr>
+              <td><strong>◀ Prev / ▶ Play / ▶ Next</strong></td>
+              <td>—</td>
+              <td>Prev and Next step the day by one. Play animates through all 365 days, waiting for each day's data to load before advancing. Click again to pause.</td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+    </section>
+
+    <!-- Map -->
+    <section id="map">
+      <span class="section-num">04</span>
+      <h2>The Map</h2>
+
+      <figure>
+        <img src="screenshots/map.png" alt="The North Macedonia map panel showing 20 coloured bubbles of varying sizes representing trend magnitude and direction at each station">
+        <figcaption>Map panel showing trend direction (colour) and magnitude (bubble size) for all 20 stations at the selected day of year and variable.</figcaption>
+      </figure>
+
+      <p>The map shows all 20 stations simultaneously for the currently selected variable, day of year, and window. Each station is represented by a coloured bubble.</p>
+
+      <h3>Bubble colour</h3>
+      <p>Colour indicates the <strong>direction</strong> of the trend. For temperature variables, orange–red means warming and blue means cooling. For precipitation, blue means wetter and brown means drier. For evapotranspiration, amber means increasing and green means decreasing. Stations with little or no trend appear near-neutral grey.</p>
+
+      <h3>Bubble size</h3>
+      <p>Size indicates the <strong>magnitude</strong> of the trend — a larger bubble means a stronger trend per decade. The scaling uses a power transformation so that moderate trends are visually distinguishable from very strong ones.</p>
+
+      <h3>Interaction</h3>
+      <p>Hover over any bubble to see the station name, trend value (per decade), p-value, and significance rating. Click a bubble to toggle that station in the multi-location selection.</p>
+
+      <p>The subtitle below the "North Macedonia" heading shows the currently selected variable name alongside the station count.</p>
+    </section>
+
+    <!-- Regression chart -->
+    <section id="chart">
+      <span class="section-num">05</span>
+      <h2>The Regression Chart</h2>
+
+      <figure>
+        <img src="screenshots/regression.png" alt="Regression chart showing annual scatter points coloured by anomaly above or below the mean, a trend line, and a shaded 95% confidence interval band">
+        <figcaption>Regression chart: scatter points coloured by anomaly, trend line, shaded 95% CI band, and dashed baseline (long-term mean).</figcaption>
+      </figure>
+
+      <p>The regression chart shows one data point per year — the aggregated value for the selected window around the chosen day of year. When multiple locations are selected, each location has its own coloured series.</p>
+
+      <h3>Scatter dots</h3>
+      <p>Each dot represents one year. Dots are coloured by their <strong>anomaly</strong> — how far above or below the long-term mean that year fell. Dots above the mean are warmer/wetter (orange–red), dots below are cooler/drier (blue). Intensity increases with the size of the anomaly.</p>
+
+      <h3>Trend line</h3>
+      <p>The straight line is the fitted trend, computed using the selected method (Theil-Sen or OLS). Its slope equals the trend per year; multiply by 10 for the trend per decade as shown in the hero card.</p>
+
+      <h3>95% Confidence Interval (shaded band)</h3>
+      <p>The shaded band around the trend line shows the 95% confidence interval. Where the band is narrow, the trend estimate is precise. A wide band means greater uncertainty. See <a href="#methods-ci">Confidence Intervals</a> for how this is computed for each method.</p>
+
+      <h3>Baseline (dashed line)</h3>
+      <p>The horizontal dashed line marks the long-term mean for that location, day of year, and window. Points above the baseline are positive anomalies; points below are negative. When multiple locations are shown, each has its own colour-coded baseline.</p>
+
+      <h3>Chart footer</h3>
+      <p>The colour legend at the bottom identifies dot colours and the CI band. The year range (e.g. "1950 – 2026") shows the span of available data for the first selected location. The top-right shows the number of years and observations used.</p>
+
+      <h3>"Change over the record" annotation</h3>
+      <p>The figure on the left of the chart (e.g. "+1.23 °C") shows the total change over the record: the value of the trend line at the end year minus the value at the start year.</p>
+    </section>
+
+    <!-- Hero cards -->
+    <section id="hero">
+      <span class="section-num">06</span>
+      <h2>Hero Cards &amp; Stats</h2>
+
+      <figure>
+        <img src="screenshots/hero.png" alt="Hero card for Skopje showing the trend value +0.37 degrees Celsius per decade, a narrative verdict, and the sig-row with significance, tau squared, sample size, and autocorrelation">
+        <figcaption>Hero card for a single location: large trend number, narrative verdict (temperature only), and the sig-row with four statistical summaries.</figcaption>
+      </figure>
+
+      <p>One hero card appears at the top of the page for each selected location. The card summarises the key finding for that location, variable, and day of year.</p>
+
+      <h3>Trend number</h3>
+      <p>The large number is the <strong>trend per decade</strong> — the slope of the trend line multiplied by 10. The sign (+ or −) and colour (orange = rising, blue = falling) indicate direction. The unit depends on the variable (°C/decade for temperature, mm/decade for precipitation).</p>
+
+      <h3>Verdict (temperature only)</h3>
+      <p>For temperature variables, an italic sentence describes the trend in plain language, for example: <em>"A century to warm by +0.37 °C – at current pace, every 27 years adds another degree."</em> The century-scale projection is simply the slope × 100 and does not account for acceleration or deceleration of the trend.</p>
+
+      <h3>Sig-row statistics</h3>
+      <p>Below the main number, four statistics are shown:</p>
+
+      <div class="table-wrap">
+        <table>
+          <thead>
+            <tr><th>Field</th><th>Description</th></tr>
+          </thead>
+          <tbody>
+            <tr>
+              <td><strong>Significance</strong></td>
+              <td>The p-value from the significance test (Mann-Kendall for Theil-Sen; t-test for OLS), presented as a threshold and star rating. See the <a href="#methods-sig">significance thresholds</a> table.</td>
+            </tr>
+            <tr>
+              <td><strong>τ² (tau-squared)</strong></td>
+              <td>For Theil-Sen + MK: Kendall's τ squared, a normalised measure of trend strength ranging from 0 (no monotonic trend) to 1 (perfect monotonic trend). Analogous to R² but rank-based.</td>
+            </tr>
+            <tr>
+              <td><strong>R²</strong></td>
+              <td>For OLS: the coefficient of determination — the fraction of inter-annual variance explained by the linear trend. Ranges from 0 (no fit) to 1 (perfect fit).</td>
+            </tr>
+            <tr>
+              <td><strong>Sample</strong></td>
+              <td>The number of annual values (years) and, for non-sum variables, the number of raw daily observations used for slope fitting.</td>
+            </tr>
+            <tr>
+              <td><strong>Autocorrelation</strong></td>
+              <td>Lag-1 autocorrelation (AR(1)) of the annual series, shown only for Theil-Sen + MK. Describes year-to-year persistence: warm years tend to follow warm years. This is the quantity that TFPW pre-whitening corrects for.</td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+    </section>
+
+    <!-- Calendar chart -->
+    <section id="calendar">
+      <span class="section-num">07</span>
+      <h2>The Calendar Chart</h2>
+
+      <figure>
+        <img src="screenshots/calendar.png" alt="Calendar chart with 365 vertical bars, coloured and varying in height and opacity to show the trend strength, direction, and significance for every calendar day of the year">
+        <figcaption>Calendar chart: one bar per calendar day. Bar height = trend magnitude per decade; colour = direction; opacity = statistical significance.</figcaption>
+      </figure>
+
+      <p>The calendar chart gives a full-year overview of climate trends for a selected location. One panel appears per selected location.</p>
+
+      <h3>What each bar shows</h3>
+      <ul>
+        <li><strong>Height</strong> — the trend per decade for that calendar day (same units as the regression chart)</li>
+        <li><strong>Direction</strong> — bars above the zero line are positive trends (rising/warming/wetter); below are negative (falling/cooling/drier)</li>
+        <li><strong>Colour</strong> — same colour scheme as the map: orange–red for warming, blue for cooling, blue for wetter, brown for drier, amber for higher ET₀, green for lower ET₀</li>
+        <li><strong>Opacity</strong> — encodes statistical significance: opaque bars (p &lt; 0.001) are highly significant; very faint bars (p ≥ 0.05) are not statistically significant</li>
+      </ul>
+
+      <h3>Opacity and significance</h3>
+      <div class="sig-table">
+        <div class="sig-hd">p-value</div><div class="sig-hd">Opacity</div><div class="sig-hd">Interpretation</div>
+        <div>p &lt; 0.001</div><div>0.95 (opaque)</div><div>Highly significant — very unlikely to be random</div>
+        <div>p &lt; 0.01</div><div>0.70</div><div>Very significant</div>
+        <div>p &lt; 0.05</div><div>0.40 (semi-transparent)</div><div>Significant at 95% confidence</div>
+        <div>p ≥ 0.05</div><div>0.12 (faint)</div><div>Not statistically significant</div>
+      </div>
+
+      <h3>Vertical line</h3>
+      <p>A vertical dashed line marks the currently selected day of year (from the Day slider). This helps locate where the regression chart's current day sits within the annual cycle.</p>
+
+      <h3>Clicking a bar</h3>
+      <p>Clicking any bar in the calendar chart jumps the Day slider to that calendar day and updates the regression chart and map accordingly.</p>
+    </section>
+
+    <!-- Statistical Methods -->
+    <section id="methods">
+      <span class="section-num">08</span>
+      <h2>Statistical Methods</h2>
+
+      <div class="callout">
+        <div class="callout-label">Why two methods?</div>
+        <p>Theil-Sen + Mann-Kendall is the default and recommended method — it is robust to outliers, makes no distributional assumptions, and correctly accounts for year-to-year autocorrelation. OLS is provided for comparison and is familiar to most users, but its p-value can be misleading when autocorrelation is present.</p>
+      </div>
+
+      <h3>Theil-Sen Slope Estimator</h3>
+      <p>The Theil-Sen estimator computes the <strong>median of all pairwise slopes</strong> between every pair of data points. For <em>n</em> annual data points there are <em>n(n−1)/2</em> pairs, and the slope is the median of all those pairwise gradients.</p>
+
+      <div class="formula">
+        slope = median{ (y_j − y_i) / (x_j − x_i) &nbsp;for all pairs i &lt; j }
+      </div>
+
+      <p>Unlike OLS, the Theil-Sen slope is not affected by individual extreme years (outliers). A single anomalous year cannot shift the median slope substantially, making it well-suited to climate data where extreme events occur.</p>
+
+      <h3 id="methods-mk">Mann-Kendall Test with TFPW (Yue-Wang)</h3>
+      <p>The Mann-Kendall test is a rank-based non-parametric test for monotonic trends. It asks: are the data systematically rising or falling over time, regardless of the shape of the distribution?</p>
+
+      <p>The standard Mann-Kendall test assumes that annual values are <strong>independent</strong>. In practice, climate variables show <strong>positive autocorrelation</strong>: warm years tend to follow warm years (AR(1) ≈ 0.1–0.3 in this dataset). Ignoring this inflates the test statistic and produces false-positive significant trends.</p>
+
+      <p><strong>Trend-Free Pre-Whitening (TFPW)</strong>, also called the Yue-Wang modification, corrects for this:</p>
+      <ol>
+        <li>Estimate and remove the trend from the series to obtain the residuals</li>
+        <li>Estimate the lag-1 autocorrelation (AR(1) coefficient) of the residuals</li>
+        <li>Remove the autocorrelation from the detrended series</li>
+        <li>Add the trend back and apply the standard Mann-Kendall test</li>
+      </ol>
+
+      <p>This gives a properly calibrated p-value that is not inflated by autocorrelation. The Yue-Wang TFPW approach is recommended by the World Meteorological Organisation (WMO) for climate trend analysis.</p>
+
+      <p>The test returns two quantities:</p>
+      <ul>
+        <li><strong>p-value</strong> — the probability the observed trend arose by chance under the null hypothesis of no trend. Values below 0.05 are conventionally considered statistically significant.</li>
+        <li><strong>Kendall's τ (tau)</strong> — a normalised correlation between time and the data values, ranging from −1 (perfectly decreasing) to +1 (perfectly increasing). The site displays <strong>τ²</strong> (0 to 1) for comparability with R².</li>
+      </ul>
+
+      <h3>OLS Linear Regression</h3>
+      <p>Ordinary Least Squares fits a straight line <code>y = slope × x + intercept</code> that minimises the sum of squared residuals. The slope is the rate of change per year.</p>
+
+      <p>A design detail: the <strong>slope</strong> is fitted on all raw daily values within the window (maximising data use), while <strong>R²</strong> and the <strong>p-value</strong> are computed on annual means (one observation per year). This prevents pseudo-replication — daily values within the same window are correlated with each other, so treating them as independent data points would grossly overstate the sample size and produce spuriously small p-values.</p>
+
+      <p>OLS assumes residuals are normally distributed and independent. When autocorrelation is present, the OLS p-value may be too small (false positives). Use Theil-Sen + MK for authoritative results.</p>
+
+      <h3 id="methods-ci">95% Confidence Intervals</h3>
+      <p>The shaded band on the regression chart is a 95% confidence interval for the trend line — not for individual data points.</p>
+
+      <p><strong>For Theil-Sen:</strong> the confidence interval is derived from the 95% quantiles of the pairwise slope distribution, as computed by <code>scipy.stats.theilslopes(alpha=0.95)</code>. Upper and lower bounds pivot through the median point of the data, so the band has a characteristic "bowtie" shape that is widest at the edges of the record and narrowest near the centre.</p>
+
+      <p><strong>For OLS:</strong> the confidence interval is computed from the standard error of the fitted line at each point:</p>
+      <div class="formula">
+        CI = ŷ ± t<sub>0.975, n−2</sub> × SE<sub>res</sub> × √( 1/n + (x − x̄)² / Σ(x − x̄)² )
+      </div>
+      <p>where SE<sub>res</sub> is the residual standard error. This band widens near the ends of the data, reflecting greater extrapolation uncertainty far from the mean year.</p>
+
+      <h3 id="methods-window">Window ±days Aggregation</h3>
+      <p>Rather than analysing a single calendar date (which would have very high day-to-day noise), the site aggregates all data within a symmetric window around the target date. With the default <code>±7</code> days, all observations between target_date − 7 and target_date + 7 are included, giving 15 days of data per year.</p>
+
+      <p>Year-end wraparound is handled correctly: a window centred on January 3 with ±7 days includes observations from December 27 of the <em>previous</em> year, and those late-December observations are assigned to the following calendar year for aggregation purposes. This prevents artificial discontinuities at the start of each year.</p>
+
+      <p>For temperature and ET₀, annual values are computed as the <strong>mean</strong> of daily values within the window. For precipitation, annual values are computed as the <strong>sum</strong> (total accumulation in the window period).</p>
+
+      <h3 id="methods-lapse">Elevation Lapse-Rate Correction</h3>
+      <p>ERA5-Land values are computed at the model's grid-cell elevation, which may differ from the actual station elevation. For mountain stations like Lazaropole (1350 m a.s.l.) the difference can be substantial.</p>
+
+      <p>When elevation correction is enabled, temperature values are adjusted using the standard atmospheric lapse rate:</p>
+      <div class="formula">
+        T<sub>corrected</sub> = T<sub>ERA5</sub> + ΔElevation × 0.0065 °C/m
+      </div>
+      <p>where ΔElevation = station elevation − ERA5 grid elevation. This brings temperatures to a common reference level, making comparisons between stations at different elevations more meaningful. The correction only applies to the three temperature variables and is disabled by default.</p>
+
+      <h3 id="methods-sig">Significance Thresholds</h3>
+      <p>Statistical significance is reported using both a p-value and a star rating for quick visual assessment:</p>
+
+      <div class="sig-table">
+        <div class="sig-hd">p-value</div><div class="sig-hd">Stars</div><div class="sig-hd">Interpretation</div>
+        <div>p &lt; 0.001</div><div><span class="sig-stars">★★★</span></div><div>Highly significant — less than 0.1% chance the trend is random</div>
+        <div>p &lt; 0.01</div><div><span class="sig-stars">★★</span></div><div>Very significant — less than 1% chance the trend is random</div>
+        <div>p &lt; 0.05</div><div><span class="sig-stars">★</span></div><div>Significant at 95% confidence — conventional threshold</div>
+        <div>p ≥ 0.05</div><div><span class="sig-stars" style="opacity:0.3">★</span></div><div>Not statistically significant at the 95% level</div>
+      </div>
+
+      <p>A non-significant result does not mean there is no trend — it means the available data are insufficient to distinguish a real trend from natural variability with 95% confidence. Shorter records, noisier variables, and narrow windows all reduce statistical power.</p>
+    </section>
+
+    <!-- Variables -->
+    <section id="variables">
+      <span class="section-num">09</span>
+      <h2>Variables &amp; Units</h2>
+
+      <div class="table-wrap">
+        <table>
+          <thead>
+            <tr><th>Variable</th><th>Unit</th><th>Aggregation</th><th>Description</th></tr>
+          </thead>
+          <tbody>
+            <tr>
+              <td><strong>Temperature Max</strong></td>
+              <td>°C</td>
+              <td>Mean of daily maxima in window</td>
+              <td>Average of the daily maximum 2 m air temperature across the selected window period each year.</td>
+            </tr>
+            <tr>
+              <td><strong>Temperature Min</strong></td>
+              <td>°C</td>
+              <td>Mean of daily minima in window</td>
+              <td>Average of the daily minimum 2 m air temperature. Often shows stronger warming trends than the maximum, reflecting warming of cold nights.</td>
+            </tr>
+            <tr>
+              <td><strong>Temperature Mean</strong></td>
+              <td>°C</td>
+              <td>Mean of daily means in window</td>
+              <td>Average 2 m air temperature — the most commonly used temperature variable for trend analysis.</td>
+            </tr>
+            <tr>
+              <td><strong>Precipitation</strong></td>
+              <td>mm</td>
+              <td>Sum within window</td>
+              <td>Total precipitation (rain + snowmelt) accumulated within the window period each year. Trends show whether a particular time of year is becoming wetter or drier.</td>
+            </tr>
+            <tr>
+              <td><strong>ET₀ Evapotranspiration</strong></td>
+              <td>mm</td>
+              <td>Sum within window</td>
+              <td>FAO Penman-Monteith reference evapotranspiration — an estimate of water demand by a hypothetical grass reference crop. Increases with temperature and wind, decreases with humidity. Useful as a proxy for drought stress.</td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+
+      <div class="callout">
+        <div class="callout-label">Elevation correction availability</div>
+        <p>The lapse-rate elevation correction is available only for the three temperature variables. Precipitation and ET₀ do not have a simple elevation correction applied.</p>
+      </div>
+    </section>
+
+    <!-- Locations -->
+    <section id="locations">
+      <span class="section-num">10</span>
+      <h2>Locations</h2>
+
+      <p>The dataset covers 20 stations distributed across North Macedonia, from the lowland Vardar valley to mountain sites above 1000 m elevation.</p>
+
+      <div class="table-wrap">
+        <table>
+          <thead>
+            <tr><th>Station</th><th>Latitude</th><th>Longitude</th><th>Region</th></tr>
+          </thead>
+          <tbody>
+            <tr><td><strong>Berovo</strong></td><td>41.7047° N</td><td>22.8556° E</td><td>East</td></tr>
+            <tr><td><strong>Bitola</strong></td><td>41.0314° N</td><td>21.3347° E</td><td>Southwest</td></tr>
+            <tr><td><strong>Debar</strong></td><td>41.5239° N</td><td>20.5239° E</td><td>West</td></tr>
+            <tr><td><strong>Demir Kapija</strong></td><td>41.4042° N</td><td>22.2458° E</td><td>Southeast</td></tr>
+            <tr><td><strong>Gevgelija</strong></td><td>41.1414° N</td><td>22.5011° E</td><td>South</td></tr>
+            <tr><td><strong>Gostivar</strong></td><td>41.7956° N</td><td>20.9089° E</td><td>West</td></tr>
+            <tr><td><strong>Kavadarci</strong></td><td>41.4331° N</td><td>22.0119° E</td><td>Central</td></tr>
+            <tr><td><strong>Kičevo</strong></td><td>41.5131° N</td><td>20.9589° E</td><td>West-central</td></tr>
+            <tr><td><strong>Kochani</strong></td><td>41.9167° N</td><td>22.4167° E</td><td>East</td></tr>
+            <tr><td><strong>Kumanovo</strong></td><td>42.1322° N</td><td>21.7144° E</td><td>North</td></tr>
+            <tr><td><strong>Lazaropole</strong></td><td>41.5394° N</td><td>20.6956° E</td><td>West (mountain)</td></tr>
+            <tr><td><strong>Negotino</strong></td><td>41.4831° N</td><td>22.0894° E</td><td>Central</td></tr>
+            <tr><td><strong>Ohrid</strong></td><td>41.1231° N</td><td>20.8016° E</td><td>Southwest (lakeside)</td></tr>
+            <tr><td><strong>Prilep</strong></td><td>41.3453° N</td><td>21.5550° E</td><td>Central</td></tr>
+            <tr><td><strong>Radoviš</strong></td><td>41.6386° N</td><td>22.4647° E</td><td>East</td></tr>
+            <tr><td><strong>Skopje</strong></td><td>41.9965° N</td><td>21.4314° E</td><td>Central (capital)</td></tr>
+            <tr><td><strong>Štip</strong></td><td>41.7457° N</td><td>22.1961° E</td><td>East-central</td></tr>
+            <tr><td><strong>Strumica</strong></td><td>41.4378° N</td><td>22.6431° E</td><td>Southeast</td></tr>
+            <tr><td><strong>Tetovo</strong></td><td>42.0092° N</td><td>20.9714° E</td><td>Northwest</td></tr>
+            <tr><td><strong>Veles</strong></td><td>41.7153° N</td><td>21.7753° E</td><td>Central</td></tr>
+          </tbody>
+        </table>
+      </div>
+    </section>
+
+    <!-- AI Assistant -->
+    <section id="assistant">
+      <span class="section-num">11</span>
+      <h2>AI Climate Assistant</h2>
+
+      <figure>
+        <img src="screenshots/chatbot.png" alt="The chat modal showing a conversation with Ognen, the AI climate assistant, open in the bottom-right of the screen">
+        <figcaption>The Ognen chat assistant, accessible via the button in the top-right corner of every page.</figcaption>
+      </figure>
+
+      <p>The <strong>Chat with Ognen</strong> button in the top-right corner opens an AI climate assistant powered by Microsoft Copilot Studio. Ognen can help you:</p>
+
+      <ul>
+        <li>Understand the statistical methods used on the site</li>
+        <li>Interpret a specific trend result for a location and variable</li>
+        <li>Explain what ERA5-Land reanalysis data is and its limitations</li>
+        <li>Discuss the climate context of trends observed in North Macedonia</li>
+        <li>Answer general questions about climate change and regional impacts</li>
+      </ul>
+
+      <div class="callout">
+        <div class="callout-label">Note</div>
+        <p>Ognen is an AI assistant and may occasionally produce inaccurate answers. For authoritative scientific information, consult the <a href="https://github.com/kesma01/ERA5_MK" target="_blank" rel="noopener">GitHub page</a> or primary literature.</p>
+      </div>
+    </section>
+
+    <!-- Limitations -->
+    <section id="limitations">
+      <span class="section-num">12</span>
+      <h2>Known Limitations</h2>
+
+      <ul>
+        <li>
+          <strong>Partial current year.</strong> Data for the current calendar year is included up to the most recent available date. The annual aggregate for the current year is therefore based on fewer days than complete years and will change as the year progresses. Trend estimates including a partial year should be interpreted with caution.
+        </li>
+        <li>
+          <strong>ERA5-Land is reanalysis, not observed data.</strong> ERA5-Land is a modelled product that blends historical observations with a climate model. It is broadly reliable but may not perfectly match measurements from individual weather stations, particularly in complex terrain.
+        </li>
+        <li>
+          <strong>Elevation correction is approximate.</strong> The lapse-rate correction uses a constant 0.0065 °C/m, which is the standard tropospheric average. The actual lapse rate varies by season, weather pattern, and terrain. The correction is a useful first-order adjustment, not a precise physical calculation.
+        </li>
+        <li>
+          <strong>OLS p-values may be anti-conservative.</strong> When autocorrelation is present (AR(1) &gt; 0), OLS p-values are typically too small. Use Theil-Sen + MK for reliable significance testing.
+        </li>
+        <li>
+          <strong>English only.</strong> The site is currently available in English only. Macedonian and other language support is planned for a future release.
+        </li>
+        <li>
+          <strong>Volunteer project.</strong> climate.mk is developed and maintained on a volunteer basis. Some features may be incomplete or subject to change. Contributions and feedback are welcome via the <a href="https://github.com/kesma01/ERA5_MK" target="_blank" rel="noopener">GitHub page</a>.
+        </li>
+      </ul>
+    </section>
+
+  </main>
+</div>
+
+<footer class="footer">
+  climate.mk User Manual · <a href="/">Back to app</a> · <a href="https://github.com/kesma01/ERA5_MK" target="_blank" rel="noopener">GitHub</a>
+</footer>
+
+</body>
+</html>
