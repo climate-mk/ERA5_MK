@@ -39,9 +39,11 @@ jobs:
             --exclude='*.sqlite' \
             ./ root@46.224.208.142:/opt/mk_climate/
 
-      - name: Restart service
+      - name: Install dependencies & restart service
         run: |
           ssh root@46.224.208.142 "
+            cd /opt/mk_climate &&
+            venv/bin/pip install -q -r requirements.txt &&
             chown -R www-data:www-data /opt/mk_climate &&
             systemctl restart mk_climate &&
             sleep 4 &&
