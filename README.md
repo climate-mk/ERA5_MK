@@ -42,7 +42,7 @@ ERA5_MK/
 │   ├── index.html         # Single-page app shell
 │   ├── app.js             # Highcharts charts, API calls, play animation
 │   └── style.css          # Light-theme responsive CSS
-└── data/                  # ERA5-Land CSVs (not committed — see Data section)
+└── data/                  # ERA5-Land CSVs (see Data section)
 ```
 
 ---
@@ -59,13 +59,33 @@ ERA5_MK/
 
 ## Data
 
-ERA5-Land reanalysis data is fetched per location via the Open-Meteo archive API and stored as one CSV per location in `./data/`. The data directory is excluded from version control due to file size (~50 MB total).
+ERA5-Land reanalysis data is fetched per location via the Open-Meteo archive API and stored as one CSV per location in `./data/`. The data directory is included in version control.
 
-To re-fetch the data, run:
+### Updating data
+
+The data collection script supports **differential updates** — it automatically detects the latest date in existing files and fetches only new data from that point forward:
 
 ```bash
 source venv/bin/activate
 python3 mk_collect.py
+```
+
+This will:
+- Detect the last date in each existing CSV
+- Fetch new data from the day after that date until today - 10 days
+- Append new data to existing files
+- Automatically migrate legacy filenames to the new simplified format (e.g., `Skopje_41.9965_21.4314_19500101_20260401.csv` → `Skopje.csv`)
+
+**Force a complete re-fetch** (rebuilds all files from 1950-01-01):
+
+```bash
+python3 mk_collect.py --force-refresh
+```
+
+**Enable debug output**:
+
+```bash
+python3 mk_collect.py --verbose
 ```
 
 Variables collected: `temperature_2m_max`, `temperature_2m_min`, `temperature_2m_mean`, `precipitation_sum`, `et0_fao_evapotranspiration`.
@@ -85,12 +105,15 @@ source venv/bin/activate
 # or, in powershell: .\venv\Scripts\Activate.ps1
 pip install -r requirements.txt
 
-# Fetch data (requires internet, takes ~5 min)
+# Update data to today-10 days (differential mode, requires internet)
 python3 mk_collect.py
+# or force a complete rebuild:
+# python3 mk_collect.py --force-refresh
 
 # Run the API server
 python3 mk_api.py
 # Open http://127.0.0.1:5050
+# To add your custom copilot chatbot to the UI, add its url to .env file, see .env.example
 ```
 
 ### Testing the full web app locally

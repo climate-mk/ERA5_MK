@@ -146,6 +146,14 @@ function doyBadge(doy) {
   return doyToDate(doy);
 }
 
+function getTodayDOY() {
+  const today = new Date();
+  const start = new Date(today.getFullYear(), 0, 0);
+  const diff = today - start;
+  const oneDay = 1000 * 60 * 60 * 24;
+  return Math.floor(diff / oneDay);
+}
+
 function calCacheKey() {
   return `${state.selLocs[0]}|${state.selVar}|${state.corr}|${state.window}|${state.method}`;
 }
@@ -434,43 +442,110 @@ function stopPlay() {
   btnPlay.classList.remove("active");
 }
 
-// ── Sidebar controls ──────────────────────────────────────────────────────────
+// ── Location dropdown (multi-select, mobile-optimized) ──────────────────────
+
+const locBtn = document.getElementById("loc-btn");
+const locMenu = document.getElementById("loc-menu");
+const locDisplay = document.getElementById("loc-display");
+const locList = document.getElementById("loc-list");
+const locBackdrop = document.getElementById("loc-backdrop");
+const locCloseBtn = document.getElementById("loc-close-btn");
 
 function buildLocationList(locations) {
-  const list = document.getElementById("loc-list");
-  list.innerHTML = "";
-  locations.forEach((loc, i) => {
-    const color = state.palette[i % state.palette.length];
-    const checked = state.selLocs.includes(loc);
-    const item = document.createElement("label");
-    item.className = "loc-item";
-    item.innerHTML = `
-      <input type="checkbox" value="${loc}" ${checked ? "checked" : ""}>
-      <div class="loc-dot" style="background:${color}"></div>
-      <span class="loc-name">${loc}</span>`;
-    list.appendChild(item);
+  locList.innerHTML = "";
+  locations.forEach((loc, idx) => {
+    const div = document.createElement("div");
+    div.className = "loc-item";
+    
+    const checkbox = document.createElement("input");
+    checkbox.type = "checkbox";
+    checkbox.value = loc;
+    checkbox.checked = state.selLocs.includes(loc);
+    checkbox.addEventListener("change", handleLocCheckboxChange);
+    checkbox.addEventListener("click", (e) => e.stopPropagation());
+    
+    const dot = document.createElement("div");
+    dot.className = "loc-dot";
+    dot.style.backgroundColor = state.palette[idx % state.palette.length];
+    
+    const name = document.createElement("div");
+    name.className = "loc-name";
+    name.textContent = loc;
+    
+    div.appendChild(checkbox);
+    div.appendChild(dot);
+    div.appendChild(name);
+    div.addEventListener("click", () => checkbox.click());
+    
+    locList.appendChild(div);
   });
-
-  list.addEventListener("change", () => {
-    const checked = [...list.querySelectorAll("input:checked")].map(el => el.value);
-    if (checked.length === 0) {
-      // Re-check the first if all deselected
-      list.querySelector("input").checked = true;
-      state.selLocs = [locations[0]];
-    } else if (checked.length > 8) {
-      // Uncheck the last one that pushed us over
-      const last = [...list.querySelectorAll("input:checked")].pop();
-      last.checked = false;
-      return;
-    } else {
-      state.selLocs = checked;
-    }
-    refreshRegression();
-    // Calendar only shows first loc; if first changed, refresh
-    calCache[calCacheKey()] && refreshCalendar();
-    refreshCalendar();
-  });
+  
+  updateLocDisplay();
 }
+
+function updateLocDisplay() {
+  if (state.selLocs.length === 0) {
+    locDisplay.textContent = "None selected";
+  } else if (state.selLocs.length === 1) {
+    locDisplay.textContent = state.selLocs[0];
+  } else {
+    locDisplay.textContent = `${state.selLocs.length} selected`;
+  }
+}
+
+function handleLocCheckboxChange(e) {
+  const loc = e.target.value;
+  if (e.target.checked) {
+    if (!state.selLocs.includes(loc)) {
+      state.selLocs.push(loc);
+    }
+  } else {
+    state.selLocs = state.selLocs.filter(l => l !== loc);
+  }
+  updateLocDisplay();
+  refreshRegression();
+  refreshCalendar();
+}
+
+function openLocMenu() {
+  locMenu.classList.add("open");
+  locBtn.classList.add("open");
+  locBackdrop.classList.add("show");
+}
+
+function closeLocMenu() {
+  locMenu.classList.remove("open");
+  locBtn.classList.remove("open");
+  locBackdrop.classList.remove("show");
+}
+
+locBtn.addEventListener("click", (e) => {
+  e.stopPropagation();
+  if (locMenu.classList.contains("open")) {
+    closeLocMenu();
+  } else {
+    openLocMenu();
+  }
+});
+
+locCloseBtn.addEventListener("click", (e) => {
+  e.stopPropagation();
+  closeLocMenu();
+});
+
+locBackdrop.addEventListener("click", closeLocMenu);
+
+document.addEventListener("click", (e) => {
+  if (!e.target.closest(".loc-dropdown") && locMenu.classList.contains("open")) {
+    closeLocMenu();
+  }
+});
+
+document.addEventListener("keydown", (e) => {
+  if (e.key === "Escape" && locMenu.classList.contains("open")) {
+    closeLocMenu();
+  }
+});
 
 document.getElementById("var-select").addEventListener("change", function() {
   state.selVar = this.value;
@@ -507,15 +582,104 @@ document.getElementById("window-input").addEventListener("change", function() {
   refreshCalendar();
 });
 
+// ── Chat (BotFramework-WebChat + Direct Line token) ───────────────────────────
+
+let _chatDirectLine  = null;
+let _chatRefreshTimer = null;
+let _conversationStarted = false;
+
+async function openChat() {
+  document.getElementById("chat-modal").classList.add("open");
+  document.body.classList.add("chat-modal-open");
+  if (_chatDirectLine) return;   // already initialised — reuse existing session
+  try {
+    const res  = await fetch("/api/token");
+    const data = await res.json();
+    if (!res.ok) throw new Error(data.error || "Token error");
+    _initWebChat(data.token, data.expires_in);
+  } catch (e) {
+    console.error("Chat init failed:", e);
+  }
+}
+
+function _initWebChat(token, expiresIn) {
+  _chatDirectLine = window.WebChat.createDirectLine({
+    token,
+    domain: "https://europe.directline.botframework.com/v3/directline",
+  });
+
+  const store = window.WebChat.createStore({}, ({ dispatch }) => next => action => {
+    if (action.type === "DIRECT_LINE/CONNECT_FULFILLED" && !_conversationStarted) {
+      _conversationStarted = true;
+      dispatch({
+        type: "WEB_CHAT/SEND_EVENT",
+        payload: { name: "startConversation", value: "" },
+      });
+    }
+    return next(action);
+  });
+
+  window.WebChat.renderWebChat(
+    {
+      directLine: _chatDirectLine,
+      store,
+      locale: "en-US",
+      styleOptions: {
+        fontSizeSmall:            "12px",
+        primaryFont:              "system-ui, -apple-system, 'Segoe UI', sans-serif",
+        backgroundColor:          "#ffffff",
+        bubbleBackground:         "#f0f2f8",
+        bubbleBorderRadius:       14,
+        bubbleFromUserBackground: "#3d44b8",
+        bubbleFromUserBorderRadius: 14,
+        bubbleFromUserTextColor:  "#ffffff",
+        bubbleTextColor:          "#1a1d2e",
+        sendBoxBackground:        "#ffffff",
+        sendBoxTextColor:         "#1a1d2e",
+        sendBoxBorderTop:         "1px solid #dde1ee",
+        timestampColor:           "#6b7190",
+        botAvatarImage:           "/Ognen100.png",
+        botAvatarInitials:        "O",
+        hideUserAvatar:           true,
+        hideUploadButton:         true,
+      },
+    },
+    document.getElementById("webchat-container")
+  );
+  _scheduleTokenRefresh(expiresIn);
+}
+
+function _scheduleTokenRefresh(expiresIn) {
+  clearTimeout(_chatRefreshTimer);
+  const refreshAfterMs = Math.max((expiresIn - 300) * 1000, 60_000);
+  _chatRefreshTimer = setTimeout(async () => {
+    try {
+      const res  = await fetch("/api/token/refresh", { method: "POST" });
+      const data = await res.json();
+      if (res.ok && _chatDirectLine) {
+        _chatDirectLine.reconnect({ token: data.token });
+        _scheduleTokenRefresh(data.expires_in);
+      }
+    } catch (e) {
+      console.error("Token refresh failed:", e);
+    }
+  }, refreshAfterMs);
+}
+
 // ── Init ──────────────────────────────────────────────────────────────────────
 
 async function init() {
+
   // Fetch metadata
   const meta = await fetch("api/meta").then(r => r.json());
   state.locations  = meta.locations;
   state.variables  = meta.variables;
   state.monthNames = meta.month_names;
   state.palette    = meta.palette;
+
+  // Set DOY to today
+  state.doy = getTodayDOY();
+  slider.value = state.doy;
 
   // Populate variable select with server labels
   const sel = document.getElementById("var-select");
@@ -527,6 +691,11 @@ async function init() {
     if (k === state.selVar) opt.selected = true;
     sel.appendChild(opt);
   });
+
+  // Show/hide chat button based on server config
+  if (!meta.chat_enabled) {
+    document.getElementById("chat-toggle-btn").style.display = "none";
+  }
 
   // Build location list
   buildLocationList(meta.locations);
