@@ -181,11 +181,13 @@ body {
 /* Day control */
 .day-control { display: flex; align-items: center; gap: 8px; padding: 4px 4px 4px 10px; border-radius: 10px; background: var(--paper); height: 36px; }
 .day-k { font-family: 'JetBrains Mono', monospace; font-size: 9px; letter-spacing: 0.12em; text-transform: uppercase; color: var(--ink-soft); white-space: nowrap; }
-.day-v { font-family: 'JetBrains Mono', monospace; font-weight: 600; font-size: 13px; background: var(--card); border: 1px solid var(--rule); border-radius: 7px; padding: 4px 10px; min-width: 60px; text-align: center; white-space: nowrap; }
-.scrub { height: 28px; background: var(--card); border: 1px solid var(--rule); border-radius: 7px; display: flex; align-items: center; padding: 0 8px; width: 180px; }
+.day-v { font-family: 'JetBrains Mono', monospace; font-weight: 600; font-size: 13px; background: var(--card); border: 1px solid var(--rule); border-radius: 7px; padding: 4px 10px; min-width: 60px; text-align: center; white-space: nowrap; cursor: pointer; }.scrub { height: 28px; background: var(--card); border: 1px solid var(--rule); border-radius: 7px; display: flex; align-items: center; padding: 0 8px; width: 180px; }
 .scrub input[type=range] { flex: 1; -webkit-appearance: none; appearance: none; background: linear-gradient(to right, var(--c0), var(--c1), var(--c2), var(--c3), var(--c4), var(--c5), var(--c6)); height: 3px; border-radius: 2px; cursor: pointer; }
 .scrub input[type=range]::-webkit-slider-thumb { -webkit-appearance: none; width: 14px; height: 14px; border-radius: 50%; background: var(--ink); border: 2px solid #fff; box-shadow: 0 1px 3px rgba(0,0,0,0.2); }
 .scrub input[type=range]::-moz-range-thumb { width: 14px; height: 14px; border-radius: 50%; background: var(--ink); border: 2px solid #fff; }
+.doy-popup { position: fixed; z-index: 500; background: var(--paper); border: 1px solid var(--rule-2); border-radius: var(--radius); box-shadow: 0 8px 24px rgba(14,14,12,0.12); padding: 6px 8px; display: flex; align-items: center; gap: 6px; }
+.doy-popup select { font-family: 'Space Grotesk', sans-serif; font-size: 12px; background: var(--card); border: 1px solid var(--rule); border-radius: 7px; padding: 4px 22px 4px 9px; color: var(--ink); cursor: pointer; appearance: none; background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='10' height='10' viewBox='0 0 24 24' fill='%236B655B'%3E%3Cpath d='M7 10l5 5 5-5z'/%3E%3C/svg%3E"); background-repeat: no-repeat; background-position: right 4px center; }
+.doy-popup select:focus { outline: none; }
 .playbar { display: flex; gap: 2px; }
 .play-btn { display: inline-grid; place-items: center; width: 28px; height: 28px; border-radius: 7px; border: 1px solid var(--rule); background: var(--card); cursor: pointer; font-size: 9px; color: var(--ink); transition: background 0.1s; }
 .play-btn.primary { background: var(--ink); color: #fff; border-color: var(--ink); width: 36px; }
