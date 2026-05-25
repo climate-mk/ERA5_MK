@@ -39,6 +39,13 @@ jobs:
             --exclude='*.sqlite' \
             ./ root@46.224.208.142:/opt/mk_climate/
 
+      - name: Write .env
+        run: |
+          ssh root@46.224.208.142 "cat > /opt/mk_climate/.env << 'EOF'
+          DIRECT_LINE_SECRET=${{ secrets.DIRECT_LINE_SECRET }}
+          EOF
+          chmod 600 /opt/mk_climate/.env"
+
       - name: Install dependencies & restart service
         run: |
           ssh root@46.224.208.142 "
