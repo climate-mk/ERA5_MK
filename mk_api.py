@@ -21,6 +21,31 @@ from dotenv import load_dotenv
 # Load environment variables from .env
 load_dotenv()
 
+# ── Location coordinates (for map endpoint) ────────────────────────────────────
+
+LOC_COORDS = {
+    "Berovo":       {"lat": 41.7047, "lon": 22.8556},
+    "Bitola":       {"lat": 41.0314, "lon": 21.3347},
+    "Debar":        {"lat": 41.5239, "lon": 20.5239},
+    "Demir_Kapija": {"lat": 41.4042, "lon": 22.2458},
+    "Gevgelija":    {"lat": 41.1414, "lon": 22.5011},
+    "Gostivar":     {"lat": 41.7956, "lon": 20.9089},
+    "Kavadarci":    {"lat": 41.4331, "lon": 22.0119},
+    "Kicevo":       {"lat": 41.5131, "lon": 20.9589},
+    "Kochani":      {"lat": 41.9167, "lon": 22.4167},
+    "Kumanovo":     {"lat": 42.1322, "lon": 21.7144},
+    "Lazaropole":   {"lat": 41.5394, "lon": 20.6956},
+    "Negotino":     {"lat": 41.4831, "lon": 22.0894},
+    "Ohrid":        {"lat": 41.1231, "lon": 20.8016},
+    "Prilep":       {"lat": 41.3453, "lon": 21.5550},
+    "Radovis":      {"lat": 41.6386, "lon": 22.4647},
+    "Skopje":       {"lat": 41.9965, "lon": 21.4314},
+    "Stip":         {"lat": 41.7457, "lon": 22.1961},
+    "Strumica":     {"lat": 41.4378, "lon": 22.6431},
+    "Tetovo":       {"lat": 42.0092, "lon": 20.9714},
+    "Veles":        {"lat": 41.7153, "lon": 21.7753},
+}
+
 # ── Direct Line config ─────────────────────────────────────────────────────────
 
 DIRECT_LINE_SECRET   = os.getenv("DIRECT_LINE_SECRET", "")
@@ -35,9 +60,24 @@ TOKEN_LIMIT_HOUR   = "200 per hour"
 # ── Load data ──────────────────────────────────────────────────────────────────
 
 DATA_DIR = "./data"
-dfs = [pd.read_csv(f, parse_dates=["date"])
-       for f in sorted(glob.glob(os.path.join(DATA_DIR, "*.csv")))]
+def _load_csv(filepath):
+    df = pd.read_csv(filepath)
+    try:
+        df["date"] = pd.to_datetime(df["date"], format="%Y-%m-%d")
+    except (ValueError, TypeError):
+        # Fallback for legacy DD-MM-YY format (e.g. old Gevgelija exports).
+        # All CSVs were migrated to YYYY-MM-DD by mk_collect.py (2026-05-25) so
+        # this branch no longer triggers, but is kept as a safety net.
+        # dayfirst=True parses day/month correctly, but dateutil maps 2-digit years
+        # 50-68 → 2050-2068 instead of 1950-1968, so subtract 100 years to fix.
+        df["date"] = pd.to_datetime(df["date"], dayfirst=True)
+        mask = df["date"].dt.year > pd.Timestamp.today().year
+        df.loc[mask, "date"] = df.loc[mask, "date"] - pd.DateOffset(years=100)
+    return df
+
+dfs = [_load_csv(f) for f in sorted(glob.glob(os.path.join(DATA_DIR, "*.csv")))]
 data = pd.concat(dfs, ignore_index=True)
+data = data[data["date"] <= pd.Timestamp.today()]
 data["year"]  = data["date"].dt.year
 data["month"] = data["date"].dt.month
 
@@ -195,6 +235,8 @@ def compute_regression(loc, var, month, day, half_window, col, method):
 
     return {
         "loc": loc,
+        "year_min": int(x_arr.min()),
+        "year_max": int(x_arr.max()),
         "scatter": scatter,
         "line": {
             "x":     x_line.tolist(),
@@ -213,6 +255,9 @@ def compute_regression(loc, var, month, day, half_window, col, method):
             "chg_str":      chg_str,
             "fit_desc":     fit_desc,
             "sig_label":    sig_label(float(p_val)),
+            "n_years":      int(len(x_arr)),
+            "n_values":     None if is_sum else int(len(x_raw)),
+            "ar1":          ar1,
         },
     }
 
@@ -338,6 +383,38 @@ def api_calendar():
         "loc":          loc,
         "method_label": "OLS · R²" if method == "ols" else "Theil-Sen · TFPW MK · τ",
     })
+
+@app.route("/api/trends")
+def api_trends():
+    var    = request.args.get("var",    "temperature_mean")
+    doy    = int(request.args.get("doy",    105))
+    window = int(request.args.get("window",   7))
+    corr   = request.args.get("corr",   "raw")
+    method = request.args.get("method", "theilsen")
+
+    month, day = doy_to_md(doy)
+    col = resolve_col(var, corr)
+    vs  = vstyle(var)
+
+    points = []
+    for loc, coords in LOC_COORDS.items():
+        try:
+            res = compute_regression(loc, var, month, day, window, col, method)
+            if res:
+                points.append({
+                    "loc":       loc,
+                    "lat":       coords["lat"],
+                    "lon":       coords["lon"],
+                    "trend10":   res["stats"]["trend10"],
+                    "p_val":     res["stats"]["p_val"],
+                    "direction": res["stats"]["direction"],
+                    "sig_label": res["stats"]["sig_label"],
+                })
+        except Exception:
+            pass
+
+    return jsonify({"points": points, "unit": vs["chg_unit"]})
+
 
 @app.route("/api/token")
 @limiter.limit(TOKEN_LIMIT_MINUTE)
