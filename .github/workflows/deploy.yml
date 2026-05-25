@@ -19,7 +19,11 @@ jobs:
           mkdir -p ~/.ssh
           printf '%s\n' "${{ secrets.SSH_PRIVATE_KEY }}" > ~/.ssh/id_ed25519
           chmod 600 ~/.ssh/id_ed25519
-          ssh-keyscan -H 46.224.208.142 >> ~/.ssh/known_hosts
+          cat >> ~/.ssh/config << 'EOF'
+          Host 46.224.208.142
+            StrictHostKeyChecking no
+            UserKnownHostsFile /dev/null
+          EOF
 
       - name: Deploy via rsync
         run: |
