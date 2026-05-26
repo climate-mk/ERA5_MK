@@ -313,12 +313,21 @@ def compute_calendar(loc, col, var, half_window, method):
     _CAL_CACHE[key] = result
     return result
 
+# ── Timezone helper ────────────────────────────────────────────────────────────
+
+def _today_mk():
+    """Current date in Macedonia local time (CET/CEST = UTC+1/+2).
+    The server runs UTC; without this, dates drift during the 22:00–00:00 UTC
+    window (midnight–2am Skopje) causing a mismatch between Open-Meteo's
+    timezone-aware forecast and the historical distribution month/day lookup."""
+    return pd.Timestamp.now(tz="Europe/Skopje").normalize().tz_localize(None)
+
 # ── Annual trend (cached) ──────────────────────────────────────────────────────
 
 _ANNUAL_TREND_CACHE = {}
 
 def compute_annual_trend():
-    today     = pd.Timestamp.today().normalize()
+    today     = _today_mk()
     cache_key = today.date().isoformat()
     if cache_key in _ANNUAL_TREND_CACHE:
         return _ANNUAL_TREND_CACHE[cache_key]
@@ -436,7 +445,7 @@ def _save_today_to_disk(date_str, result):
         pass  # disk write failure is non-fatal
 
 def compute_today_status():
-    today = pd.Timestamp.today().normalize()
+    today = _today_mk()
     cache_key = today.date().isoformat()
 
     # 1. Check in-memory cache (fast path — survives within a single process lifetime)
