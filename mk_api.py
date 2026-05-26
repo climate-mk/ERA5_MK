@@ -387,7 +387,8 @@ def compute_annual_trend():
 
 # ── Today status ("Is it Hot in Macedonia Today?") ─────────────────────────────
 
-_TODAY_CACHE = {}
+_TODAY_CACHE     = {}
+_TODAY_CACHE_DIR = os.path.join(os.path.dirname(__file__), "cache")
 
 _TODAY_CATEGORIES = [
     # (max_percentile_exclusive, name, hex, description_template)
@@ -404,13 +405,52 @@ def _categorize_today(pct, dlabel):
             return name, color, tpl.format(d=dlabel)
     return _TODAY_CATEGORIES[-1][1], _TODAY_CATEGORIES[-1][2], _TODAY_CATEGORIES[-1][3].format(d=dlabel)
 
+def _today_cache_path(date_str):
+    return os.path.join(_TODAY_CACHE_DIR, f"today_{date_str}.json")
+
+def _load_today_from_disk(date_str):
+    """Return cached dict if today's file exists and is valid, else None."""
+    import json as _json
+    path = _today_cache_path(date_str)
+    try:
+        with open(path) as f:
+            return _json.load(f)
+    except Exception:
+        return None
+
+def _save_today_to_disk(date_str, result):
+    """Persist a successful today_status result to disk."""
+    import json as _json
+    try:
+        os.makedirs(_TODAY_CACHE_DIR, exist_ok=True)
+        with open(_today_cache_path(date_str), "w") as f:
+            _json.dump(result, f)
+        # Remove cache files older than 3 days (filename sort works: today_YYYY-MM-DD.json)
+        cutoff = (pd.Timestamp(date_str) - pd.Timedelta(days=3)).date().isoformat()
+        for p in glob.glob(os.path.join(_TODAY_CACHE_DIR, "today_*.json")):
+            file_date = os.path.basename(p)[len("today_"):-len(".json")]
+            if file_date < cutoff:
+                try: os.remove(p)
+                except Exception: pass
+    except Exception:
+        pass  # disk write failure is non-fatal
+
 def compute_today_status():
     today = pd.Timestamp.today().normalize()
     cache_key = today.date().isoformat()
+
+    # 1. Check in-memory cache (fast path — survives within a single process lifetime)
     if cache_key in _TODAY_CACHE:
         return _TODAY_CACHE[cache_key]
 
-    # 1. Today's max temp from Open-Meteo for all 20 stations — fetched in
+    # 2. Check filesystem cache (survives service restarts — written after first
+    #    successful Open-Meteo fetch, so the 20-station call only happens once/day)
+    cached = _load_today_from_disk(cache_key)
+    if cached is not None:
+        _TODAY_CACHE[cache_key] = cached
+        return cached
+
+    # 3. Fetch from Open-Meteo for all 20 stations — fetched in
     #    parallel individual requests (one per station) to avoid 502s that
     #    Open-Meteo's proxy returns for long multi-coordinate query strings.
     from concurrent.futures import ThreadPoolExecutor, as_completed
@@ -498,6 +538,7 @@ def compute_today_status():
         "day_label":    dlabel,
     }
     _TODAY_CACHE[cache_key] = result
+    _save_today_to_disk(cache_key, result)   # persist so restarts don't re-fetch
     return result
 
 # ── Flask app ──────────────────────────────────────────────────────────────────
