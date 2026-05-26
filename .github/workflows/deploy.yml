@@ -57,6 +57,15 @@ jobs:
             systemctl is-active mk_climate
           "
 
+      - name: Install cron job
+        run: |
+          ssh root@46.224.208.142 "
+            cp /opt/mk_climate/cron/mk_collect /etc/cron.d/mk_climate &&
+            chmod 644 /etc/cron.d/mk_climate &&
+            echo 'Cron installed:' &&
+            cat /etc/cron.d/mk_climate
+          "
+
       - name: Health check
         run: |
           sleep 5

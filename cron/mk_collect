@@ -1,0 +1,8 @@
+# Daily differential update of ERA5-Land data for MK Climate Explorer.
+# Runs at 03:00 UTC — Open-Meteo free-tier daily limit resets at UTC midnight,
+# so 3am gives a safe buffer and avoids the peak-hour API load.
+#
+# Each run fetches only new days (last date in CSV → today-10d).
+# 20 locations × 65s inter-request pause ≈ 22 min total, well before dawn.
+# The service restart at the end reloads the updated CSVs into memory.
+0 3 * * * root cd /opt/mk_climate && /opt/mk_climate/venv/bin/python mk_collect.py >> /var/log/mk_collect.log 2>&1; systemctl restart mk_climate >> /var/log/mk_collect.log 2>&1
