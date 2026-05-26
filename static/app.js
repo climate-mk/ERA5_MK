@@ -581,6 +581,250 @@ function renderHeroCards(data) {
 
 }
 
+// ── Render "Is it Hot in Macedonia Today?" ────────────────────────────────────
+
+async function renderTodayStatus() {
+  const el = document.getElementById("today-status");
+  if (!el) return;
+  try {
+    const r = await fetch("api/today_status").then(r => r.json());
+    if (!r.available) return;
+    el.innerHTML = `
+      <div class="sec-heading">Macedonia Today</div>
+      <div class="today-grid">
+        <div class="today-card">
+          <div class="today-h">Is it Hot in Macedonia Today?</div>
+          <div class="today-body">
+            <span class="today-dot" style="background:${r.color}"></span>
+            <div class="today-text">
+              <div class="today-cat">${r.category}</div>
+              <div class="today-desc">${r.description}</div>
+            </div>
+          </div>
+          <p class="today-explain">Today's peak is the highest temperature forecast across all 20 stations, ranked against 70+ years of ERA5-Land records for this same ±7-day window. The colour and label show where today falls in the full historical range.</p>
+          <div class="today-foot">
+            ${r.today_temp.toFixed(1)} °C · ${r.percentile.toFixed(0)}th percentile · ${r.n_samples.toLocaleString()} samples (${r.year_min}–${r.year_max})
+          </div>
+        </div>
+        <div class="today-chart">
+          <div class="today-chart-title">Macedonia daily max temperatures for the two weeks around ${r.day_label} since ${r.year_min}</div>
+          <div id="today-dist-chart"></div>
+        </div>
+        <div class="today-chart" id="today-trend-card">
+          <div class="today-chart-title" id="today-trend-title">Macedonia annual peak temperature · loading…</div>
+          <div id="today-trend-chart"></div>
+        </div>
+      </div>`;
+    el.hidden = false;
+    renderTodayChart(r);
+    renderTodayTrendChart();
+  } catch {
+    /* network error — section stays hidden */
+  }
+}
+
+function renderTodayChart(r) {
+  const c = r.cutoffs;
+  const labelStyle = {
+    color: INK, fontSize: "10px", fontWeight: "600",
+    fontFamily: "'JetBrains Mono', monospace", letterSpacing: "0.04em",
+  };
+  const zoneLabelStyle = {
+    color: INK_SOFT, fontSize: "9px", fontWeight: "600",
+    fontFamily: "'JetBrains Mono', monospace", letterSpacing: "0.04em",
+  };
+  const distMin = r.distribution[0][0];
+  const distMax = r.distribution[r.distribution.length - 1][0];
+  Highcharts.chart("today-dist-chart", {
+    chart: { type: "areaspline", height: 220, margin: [28, 16, 32, 16], backgroundColor: "transparent", animation: false },
+    title:   { text: null },
+    credits: { enabled: false },
+    legend:  { enabled: false },
+    tooltip: {
+      formatter() {
+        const t = this.x;
+        let zone = "Normal";
+        if      (t < c.p10) zone = "Cold";
+        else if (t < c.p20) zone = "Cool";
+        else if (t < c.p80) zone = "Normal";
+        else if (t < c.p95) zone = "Hot";
+        else                zone = "Extreme";
+        return `${t.toFixed(1)}°C · ${zone}`;
+      },
+    },
+    xAxis: {
+      title:     { text: null },
+      labels:    { format: "{value}°C", style: { color: INK_SOFT, fontSize: "10px", fontFamily: "'JetBrains Mono', monospace" } },
+      lineColor:     "rgba(14,14,12,0.1)",
+      tickColor:     "rgba(14,14,12,0.1)",
+      gridLineWidth: 0,
+      crosshair: { color: "rgba(14,14,12,0.15)", width: 1 },
+      plotLines: [
+        { value: r.today_temp, color: INK, width: 3, zIndex: 5,
+          label: { text: `TODAY: ${r.today_temp.toFixed(1)}°C`, rotation: -90, x: -4, y: 40, align: "right", style: { ...labelStyle, fontSize: "13px", textOutline: "3px var(--card)" } } },
+      ],
+      plotBands: [
+        { from: distMin, to: c.p10,
+          color: "transparent",
+          label: { text: `< ${c.p10.toFixed(1)}°C`, align: "center", verticalAlign: "top", y: 18, style: zoneLabelStyle } },
+        { from: c.p10, to: c.p20,
+          color: "transparent",
+          label: { text: `${c.p10.toFixed(1)}–${c.p20.toFixed(1)}°C`, align: "center", verticalAlign: "top", y: 18, style: zoneLabelStyle } },
+        { from: c.p20, to: c.p80,
+          color: "transparent",
+          label: { text: `${c.p20.toFixed(1)}–${c.p80.toFixed(1)}°C`, align: "center", verticalAlign: "top", y: 18, style: zoneLabelStyle } },
+        { from: c.p80, to: c.p95,
+          color: "transparent",
+          label: { text: `${c.p80.toFixed(1)}–${c.p95.toFixed(1)}°C`, align: "center", verticalAlign: "top", y: 18, style: zoneLabelStyle } },
+        { from: c.p95, to: distMax,
+          color: "transparent",
+          label: { text: `> ${c.p95.toFixed(1)}°C`, align: "center", verticalAlign: "top", y: 18, style: zoneLabelStyle } },
+      ],
+    },
+    yAxis: {
+      title:    { text: null },
+      labels:   { enabled: false },
+      gridLineWidth: 0,
+      lineWidth: 0,
+      tickWidth: 0,
+    },
+    plotOptions: {
+      areaspline: {
+        marker: { enabled: false },
+        lineWidth: 0,
+        fillOpacity: 1,
+        zoneAxis: "x",
+        zones: [
+          { value: c.p10, color: "transparent", fillColor: "#3a5a8a" },
+          { value: c.p20, color: "transparent", fillColor: "#6c8fb6" },
+          { value: c.p80, color: "transparent", fillColor: "#e7d9b8" },
+          { value: c.p95, color: "transparent", fillColor: "#c25a2c" },
+          {               color: "transparent", fillColor: "#962c1a" },
+        ],
+      },
+    },
+    series: [{ name: "Density", data: r.distribution }],
+  });
+
+  const legend = document.createElement("div");
+  legend.className = "today-chart-legend";
+  legend.innerHTML = `
+    <span class="tcl-item"><span class="tcl-sw" style="background:#3a5a8a"></span>Cold</span>
+    <span class="tcl-item"><span class="tcl-sw" style="background:#6c8fb6"></span>Cool</span>
+    <span class="tcl-item"><span class="tcl-sw" style="background:#e7d9b8"></span>Normal</span>
+    <span class="tcl-item"><span class="tcl-sw" style="background:#c25a2c"></span>Hot</span>
+    <span class="tcl-item"><span class="tcl-sw" style="background:#962c1a"></span>Extreme</span>`;
+  document.getElementById("today-dist-chart").after(legend);
+
+  // Move title to after legend, before explanation
+  const distTitle = document.querySelector(".today-chart .today-chart-title");
+  if (distTitle) legend.after(distTitle);
+
+  const explain2 = document.createElement("p");
+  explain2.className = "today-explain";
+  explain2.style.padding = "6px 0 4px";
+  explain2.textContent = "The curve shows how often each peak temperature occurred on days like today across all years. Colours mark climatological zones — from cold blue through the typical beige band to extreme red — so you can see at a glance where today sits.";
+  document.querySelector(".today-chart").appendChild(explain2);
+
+  const foot2 = document.createElement("div");
+  foot2.className = "today-foot";
+  foot2.textContent = `Today: ${r.today_temp.toFixed(1)} °C · ${r.percentile.toFixed(0)}th percentile · median ${r.cutoffs.p50.toFixed(1)} °C · ${r.n_samples} observations · ${r.year_min}–${r.year_max}`;
+  document.querySelector(".today-chart").appendChild(foot2);
+}
+
+async function renderTodayTrendChart() {
+  try {
+    const d = await fetch("api/annual_trend").then(r => r.json());
+    const currentYear = new Date().getFullYear();
+
+    // Update title with actual year range
+    const titleEl = document.getElementById("today-trend-title");
+    if (titleEl) titleEl.textContent = `Macedonia peak temperatures around ${d.day_label} · ${d.year_min}–2055 forecast`;
+
+    const histBand = d.hist_line.x.map((x, i) => [x, d.hist_line.lower[i], d.hist_line.upper[i]]);
+    const fcBand   = d.forecast_line.x.map((x, i) => [x, d.forecast_line.lower[i], d.forecast_line.upper[i]]);
+    const histLine = d.hist_line.x.map((x, i) => [x, d.hist_line.y[i]]);
+    const fcLine   = d.forecast_line.x.map((x, i) => [x, d.forecast_line.y[i]]);
+
+    const milestoneYears = [2030, 2035, 2040, 2045, 2050, 2055];
+    const fcMilestones = milestoneYears.map(yr => {
+      let best = 0, bestDiff = Infinity;
+      d.forecast_line.x.forEach((x, i) => {
+        const diff = Math.abs(x - yr);
+        if (diff < bestDiff) { bestDiff = diff; best = i; }
+      });
+      return { x: yr, y: d.forecast_line.y[best] };
+    });
+
+    const trendLabelStyle = {
+      color: INK, fontSize: "9px", fontWeight: "600",
+      fontFamily: "'JetBrains Mono', monospace",
+    };
+
+    Highcharts.chart("today-trend-chart", {
+      chart: { type: "line", height: 240, margin: [16, 16, 40, 54], backgroundColor: "transparent", animation: false },
+      title:   { text: null },
+      credits: { enabled: false },
+      legend:  { enabled: false },
+      tooltip: {
+        formatter() {
+          if (this.series.name === "Annual max") return `<b>${Math.round(this.x)}</b>: ${this.y.toFixed(1)} °C`;
+          if (this.series.name === "Forecast points") return `<b>${this.x}</b>: ${this.y.toFixed(1)} °C <span style="opacity:0.6">(forecast)</span>`;
+          return false;
+        },
+      },
+      xAxis: {
+        title:         { text: null },
+        labels:        { style: { color: INK_SOFT, fontSize: "10px", fontFamily: "'JetBrains Mono', monospace" } },
+        lineColor:     "rgba(14,14,12,0.1)",
+        tickColor:     "rgba(14,14,12,0.1)",
+        gridLineWidth: 0,
+        plotLines: [
+          { value: currentYear, color: INK, width: 1.5, dashStyle: "Dot", zIndex: 5,
+            label: { text: String(currentYear), rotation: 0, align: "center", y: -4, style: trendLabelStyle } },
+        ],
+      },
+      yAxis: {
+        title:         { text: null },
+        labels:        { format: "{value}°C", style: { color: INK_SOFT, fontSize: "10px", fontFamily: "'JetBrains Mono', monospace" } },
+        gridLineColor: "rgba(14,14,12,0.06)",
+      },
+      series: [
+        { name: "CI (hist)",     type: "arearange", data: histBand, fillOpacity: 0.10, lineWidth: 0, color: "#962c1a", enableMouseTracking: false, marker: { enabled: false } },
+        { name: "CI (forecast)", type: "arearange", data: fcBand,   fillOpacity: 0.06, lineWidth: 0, color: "#962c1a", enableMouseTracking: false, marker: { enabled: false } },
+        { name: "Trend (hist)",     type: "line", data: histLine, color: "#962c1a", lineWidth: 1.5, enableMouseTracking: false, marker: { enabled: false } },
+        { name: "Trend (forecast)", type: "line", data: fcLine,   color: "#962c1a", lineWidth: 1.5, dashStyle: "Dash", enableMouseTracking: false, marker: { enabled: false } },
+        { name: "Annual max", type: "scatter", data: d.scatter,
+          color: "rgba(150,44,26,0.6)", marker: { enabled: true, radius: 3, symbol: "circle" }, zIndex: 5 },
+        { name: "Forecast points", type: "scatter", data: fcMilestones,
+          marker: { enabled: true, radius: 3, symbol: "circle", fillColor: "var(--paper)", lineColor: "#962c1a", lineWidth: 1.5 },
+          zIndex: 6, enableMouseTracking: true,
+          tooltip: { pointFormat: "<b>{point.x}</b>: {point.y:.1f} °C (forecast)" } },
+      ],
+    });
+
+    const s = d.stats;
+    const sign = s.trend10 >= 0 ? "+" : "";
+    const sig  = s.p_val < 0.01 ? "p < 0.01" : s.p_val < 0.05 ? `p = ${s.p_val}` : `p = ${s.p_val} (ns)`;
+    // Move title to after chart, before explanation
+    const trendTitle = document.getElementById("today-trend-title");
+    if (trendTitle) document.getElementById("today-trend-card").appendChild(trendTitle);
+
+    const explain3 = document.createElement("p");
+    explain3.className = "today-explain";
+    explain3.style.padding = "4px 0 2px";
+    explain3.textContent = "Each dot is the highest temperature recorded anywhere in Macedonia during this ±7-day window in that year. The Theil-Sen line shows the 30-year trend; the dashed extension and widening band project where it heads by 2055.";
+    document.getElementById("today-trend-card").appendChild(explain3);
+
+    const foot = document.createElement("div");
+    foot.className = "today-foot";
+    foot.textContent = `Theil-Sen: ${sign}${s.trend10.toFixed(2)} °C/decade · ${sig} · τ = ${s.tau} · ${s.n_years} yrs`;
+    document.getElementById("today-trend-card").appendChild(foot);
+  } catch {
+    /* silently skip if endpoint unavailable */
+  }
+}
+
 // ── Render calendar ───────────────────────────────────────────────────────────
 
 function _calChartOptions() {
@@ -1110,16 +1354,26 @@ function _scheduleTokenRefresh(expiresIn) {
 
 async function init() {
 
-  // Fetch metadata + topo in parallel
-  const [meta, topo] = await Promise.all([
+  // Fetch metadata + topo + initial trends in parallel
+  const todayDoy = getTodayDOY();
+  const [meta, topo, initTrends] = await Promise.all([
     fetch("api/meta").then(r => r.json()),
     fetch("https://code.highcharts.com/mapdata/countries/mk/mk-all.topo.json").then(r => r.json()),
+    fetch(`api/trends?var=temperature_max&doy=${todayDoy}&window=7&method=theilsen&corr=raw`)
+      .then(r => r.json()).catch(() => null),
   ]);
   _mkTopo = topo;
   state.locations  = meta.locations;
   state.variables  = meta.variables;
   state.monthNames = meta.month_names;
   state.palette    = meta.palette;
+
+  // Auto-select Skopje + the non-Skopje station with the highest max-temp warming trend
+  if (initTrends && Array.isArray(initTrends.points) && initTrends.points.length > 1) {
+    const sorted = [...initTrends.points].sort((a, b) => b.trend10 - a.trend10);
+    const second = sorted.find(p => p.loc !== "Skopje");
+    if (second) state.selLocs = ["Skopje", second.loc];
+  }
 
   // Set DOY to today
   state.doy = getTodayDOY();
@@ -1158,6 +1412,7 @@ async function init() {
   await refreshRegression();
   refreshCalendar();  // async, don't await
   refreshMap();       // async, don't await
+  renderTodayStatus();  // async, don't await — country-wide, doesn't depend on selection
 }
 
 init().catch(console.error);

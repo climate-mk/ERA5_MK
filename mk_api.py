@@ -12,7 +12,7 @@ from flask import Flask, jsonify, request, send_from_directory, session
 from flask_limiter import Limiter
 from flask_limiter.util import get_remote_address
 from scipy import stats
-from scipy.stats import theilslopes
+from scipy.stats import theilslopes, gaussian_kde
 import pymannkendall as mk_test
 import warnings
 warnings.filterwarnings("ignore")
@@ -313,6 +313,187 @@ def compute_calendar(loc, col, var, half_window, method):
     _CAL_CACHE[key] = result
     return result
 
+# ── Annual trend (cached) ──────────────────────────────────────────────────────
+
+_ANNUAL_TREND_CACHE = {}
+
+def compute_annual_trend():
+    today     = pd.Timestamp.today().normalize()
+    cache_key = today.date().isoformat()
+    if cache_key in _ANNUAL_TREND_CACHE:
+        return _ANNUAL_TREND_CACHE[cache_key]
+
+    month, day = today.month, today.day
+    dlabel     = f"{MONTH_NAMES[month - 1]} {day}"
+
+    # Peak temp in the ±7-day window around today's date, per year, across all stations
+    window = window_filter(data, month, day, 7)
+    annual = window.groupby("_window_year")["temperature_max"].max().dropna()
+
+    # Last 30 years only
+    cutoff = int(annual.index.max()) - 30
+    annual = annual[annual.index >= cutoff]
+    x_arr  = annual.index.to_numpy(float)
+    y_arr  = annual.values
+
+    # Theil-Sen fit
+    res   = theilslopes(y_arr, x_arr, 0.95)
+    slope = res.slope
+    x_med, y_med = float(np.median(x_arr)), float(np.median(y_arr))
+    ic    = y_med - slope          * x_med
+    ic_hi = y_med - res.high_slope * x_med
+    ic_lo = y_med - res.low_slope  * x_med
+
+    # Mann-Kendall significance
+    mk_r  = mk_test.yue_wang_modification_test(y_arr)
+
+    # Historical trend line (dense)
+    x_hist = np.linspace(x_arr.min(), x_arr.max(), 300)
+    y_hist = slope          * x_hist + ic
+    u_hist = res.high_slope * x_hist + ic_hi
+    l_hist = res.low_slope  * x_hist + ic_lo
+
+    # Forecast line: last observed year → 2055
+    last_yr = int(x_arr.max())
+    x_fc    = np.linspace(last_yr, 2055, 200)
+    y_fc    = slope          * x_fc + ic
+    u_fc    = res.high_slope * x_fc + ic_hi
+    l_fc    = res.low_slope  * x_fc + ic_lo
+
+    scatter = [{"x": int(yr), "y": round(float(v), 2)} for yr, v in zip(x_arr, y_arr)]
+
+    result = {
+        "scatter":       scatter,
+        "year_min":      int(x_arr.min()),
+        "year_max":      last_yr,
+        "day_label":     dlabel,
+        "hist_line":     {"x": x_hist.tolist(),
+                          "y":     [round(v, 3) for v in y_hist],
+                          "upper": [round(v, 3) for v in u_hist],
+                          "lower": [round(v, 3) for v in l_hist]},
+        "forecast_line": {"x": x_fc.tolist(),
+                          "y":     [round(v, 3) for v in y_fc],
+                          "upper": [round(v, 3) for v in u_fc],
+                          "lower": [round(v, 3) for v in l_fc]},
+        "stats": {
+            "trend10": round(float(slope * 10), 3),
+            "p_val":   round(float(mk_r.p), 5),
+            "tau":     round(float(mk_r.Tau), 3),
+            "n_years": int(len(x_arr)),
+        },
+    }
+    _ANNUAL_TREND_CACHE[cache_key] = result
+    return result
+
+# ── Today status ("Is it Hot in Macedonia Today?") ─────────────────────────────
+
+_TODAY_CACHE = {}
+
+_TODAY_CATEGORIES = [
+    # (max_percentile_exclusive, name, hex, description_template)
+    (10,  "Freezing", "#3a5a8a", "Among the coldest {d}s in our 76-year record."),
+    (20,  "Cold",     "#6c8fb6", "Cooler than most {d}s we've measured."),
+    (80,  "Nope",     "#e7d9b8", "Right around what {d} usually feels like in Macedonia."),
+    (95,  "Hot",      "#c25a2c", "Among the hottest {d}s in our record."),
+    (101, "Hell",     "#962c1a", "Exceptional heat — top 5% of all {d}s since 1950."),
+]
+
+def _categorize_today(pct, dlabel):
+    for cutoff, name, color, tpl in _TODAY_CATEGORIES:
+        if pct < cutoff:
+            return name, color, tpl.format(d=dlabel)
+    return _TODAY_CATEGORIES[-1][1], _TODAY_CATEGORIES[-1][2], _TODAY_CATEGORIES[-1][3].format(d=dlabel)
+
+def compute_today_status():
+    today = pd.Timestamp.today().normalize()
+    cache_key = today.date().isoformat()
+    if cache_key in _TODAY_CACHE:
+        return _TODAY_CACHE[cache_key]
+
+    # 1. Today's max temp from Open-Meteo for all 20 stations
+    coords = list(LOC_COORDS.values())
+    lats = ",".join(f"{c['lat']:.4f}" for c in coords)
+    lons = ",".join(f"{c['lon']:.4f}" for c in coords)
+    try:
+        resp = http_requests.get(
+            "https://api.open-meteo.com/v1/forecast",
+            params={
+                "latitude":      lats,
+                "longitude":     lons,
+                "daily":         "temperature_2m_max",
+                "timezone":      "Europe/Skopje",
+                "forecast_days": 1,
+            },
+            timeout=10,
+        )
+        resp.raise_for_status()
+        payload = resp.json()
+    except Exception:
+        _TODAY_CACHE[cache_key] = {"available": False}
+        return _TODAY_CACHE[cache_key]
+
+    if isinstance(payload, dict):
+        payload = [payload]
+    today_temps = []
+    for p in payload:
+        arr = p.get("daily", {}).get("temperature_2m_max", [])
+        if arr and arr[0] is not None:
+            today_temps.append(float(arr[0]))
+    if not today_temps:
+        _TODAY_CACHE[cache_key] = {"available": False}
+        return _TODAY_CACHE[cache_key]
+    today_temp = max(today_temps)
+
+    # 2. Historical distribution: ±7-day window across all years, averaged across stations per date
+    month, day = today.month, today.day
+    window = window_filter(data, month, day, 7)
+    daily_max = window.groupby("date")["temperature_max"].max().dropna()
+    samples = daily_max.to_numpy()
+    if len(samples) < 50:
+        _TODAY_CACHE[cache_key] = {"available": False}
+        return _TODAY_CACHE[cache_key]
+
+    # 3. Percentile + category
+    pct = float((samples < today_temp).mean() * 100)
+    dlabel = f"{MONTH_NAMES[month - 1]} {day}"
+    name, color, desc = _categorize_today(pct, dlabel)
+
+    # 4. KDE curve + percentile cutoffs for the distribution chart
+    cutoffs = {
+        "p5":  round(float(np.percentile(samples,  5)), 2),
+        "p10": round(float(np.percentile(samples, 10)), 2),
+        "p20": round(float(np.percentile(samples, 20)), 2),
+        "p50": round(float(np.percentile(samples, 50)), 2),
+        "p80": round(float(np.percentile(samples, 80)), 2),
+        "p95": round(float(np.percentile(samples, 95)), 2),
+    }
+    smin, smax = float(samples.min()), float(samples.max())
+    pad = max((smax - smin) * 0.05, 0.5)
+    x_grid = np.linspace(smin - pad, smax + pad, 200)
+    try:
+        kde     = gaussian_kde(samples)
+        density = kde(x_grid)
+    except Exception:
+        density = np.zeros_like(x_grid)
+    distribution = [[round(float(x), 3), round(float(d), 6)] for x, d in zip(x_grid, density)]
+
+    result = {
+        "available":    True,
+        "today_temp":   round(today_temp, 1),
+        "percentile":   round(pct, 1),
+        "category":     name,
+        "color":        color,
+        "description":  desc,
+        "n_samples":    int(len(samples)),
+        "year_min":     int(data["year"].min()),
+        "year_max":     int(data["year"].max()),
+        "distribution": distribution,
+        "cutoffs":      cutoffs,
+        "day_label":    dlabel,
+    }
+    _TODAY_CACHE[cache_key] = result
+    return result
+
 # ── Flask app ──────────────────────────────────────────────────────────────────
 
 app = Flask(__name__, static_folder="static", static_url_path="")
@@ -420,6 +601,16 @@ def api_trends():
             pass
 
     return jsonify({"points": points, "unit": vs["chg_unit"]})
+
+
+@app.route("/api/today_status")
+def api_today_status():
+    return jsonify(compute_today_status())
+
+
+@app.route("/api/annual_trend")
+def api_annual_trend():
+    return jsonify(compute_annual_trend())
 
 
 @app.route("/api/token")
