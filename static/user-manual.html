@@ -155,6 +155,7 @@
     <ol>
       <li><a href="#intro">Introduction</a></li>
       <li><a href="#quickstart">Quick Start</a></li>
+      <li><a href="#today">Macedonia Today</a></li>
       <li><a href="#controls">Controls</a></li>
       <li><a href="#map">The Map</a></li>
       <li><a href="#chart">Regression Chart</a></li>
@@ -197,11 +198,13 @@
     <section id="quickstart">
       <span class="section-num">02</span>
       <h2>Quick Start</h2>
+      <p>Before exploring trends by location, check the <strong>Macedonia Today</strong> panel at the top of the page. It shows how today's temperature across Macedonia compares to the historical record for this time of year.</p>
+
       <ol class="steps">
         <li>
           <div>
             <strong>Choose a location</strong>
-            Click the <strong>Location</strong> dropdown in the toolbar and select one or more stations (up to 6). Skopje is selected by default. You can also click a bubble on the map to toggle a location.
+            Click the <strong>Location</strong> dropdown in the toolbar and select one or more stations (up to 6). Skopje and the station with the largest max-temperature trend are pre-selected automatically on load. You can also click a bubble on the map to toggle a location.
           </div>
         </li>
         <li>
@@ -231,9 +234,58 @@
       </ol>
     </section>
 
+    <!-- Macedonia Today -->
+    <section id="today">
+      <span class="section-num">03</span>
+      <h2>Macedonia Today</h2>
+
+      <p>When the site loads, a live <strong>Macedonia Today</strong> panel appears at the top of the page. It fetches today's maximum temperature forecast from Open-Meteo for all 20 stations and compares the country-wide peak against the ERA5-Land historical record for the same ±7-day window around today's date. The panel is automatically hidden if the forecast data is unavailable.</p>
+
+      <figure>
+        <img src="screenshots/today-section.png" alt="The Macedonia Today panel showing three side-by-side cards: the Is it Hot category card on the left, the historical distribution chart in the middle, and the annual peak trend chart on the right">
+        <figcaption>The Macedonia Today panel: three cards showing today's category, the historical temperature distribution, and the long-term annual peak trend.</figcaption>
+      </figure>
+
+      <h3>Card 1 — Is it Hot in Macedonia Today?</h3>
+      <p>The left card gives an immediate qualitative reading of today's conditions:</p>
+      <ul>
+        <li><strong>Colour dot</strong> — a filled circle whose colour matches the temperature category: dark blue (Cold), blue (Cool), beige (Normal), orange (Hot), dark red (Extreme).</li>
+        <li><strong>Category title</strong> — the named zone: Cold, Cool, Normal, Hot, or Extreme.</li>
+        <li><strong>Description</strong> — a plain-language sentence giving context for the category.</li>
+        <li><strong>Footer</strong> — today's peak temperature (°C), its historical percentile, the number of observations used, and the year range of the historical record.</li>
+      </ul>
+      <p>Today's value is the <em>highest</em> maximum temperature forecast across all 20 stations — a true country-wide peak. It is ranked against the ERA5-Land record using a ±7-day window around today's date, covering all years from 1950 to present.</p>
+
+      <h3>Card 2 — Historical distribution chart</h3>
+      <p>The centre card shows a <strong>kernel density estimate (KDE)</strong> of how often each peak temperature occurred on days like today across all years in the record. The x-axis is temperature; the y-axis is relative frequency.</p>
+      <ul>
+        <li><strong>Colour zones</strong> — five zones painted beneath the curve correspond exactly to Card 1's categories (Cold, Cool, Normal, Hot, Extreme), using the same colour scale.</li>
+        <li><strong>TODAY line</strong> — a vertical marker showing where today's value falls within the distribution.</li>
+        <li><strong>Legend</strong> — appears below the chart, labelling the five zones by colour.</li>
+        <li><strong>Footer</strong> — today's value, percentile, historical median, observation count, and year range.</li>
+      </ul>
+      <p>Hovering over the chart shows the density and temperature zone at the cursor position.</p>
+
+      <h3>Card 3 — Annual peak temperature trend</h3>
+      <p>The right card shows the <strong>long-term trend in country-wide peak temperatures</strong> for this time of year, using the last 30 years of ERA5-Land data and projecting forward to 2055.</p>
+      <ul>
+        <li><strong>Scatter dots</strong> — one dot per year, showing the highest temperature recorded anywhere in Macedonia in the ±7-day window around today's date.</li>
+        <li><strong>Theil-Sen trend line</strong> — solid line for the historical period, dashed for the forecast extension. The slope is computed using the same Theil-Sen + Mann-Kendall method as the main regression chart.</li>
+        <li><strong>95% confidence interval band</strong> — shaded band around the trend line, widening naturally in the forecast period to reflect increasing uncertainty over time.</li>
+        <li><strong>Milestone markers</strong> — hollow circle markers at 2030, 2035, 2040, 2045, 2050, and 2055 on the forecast line, with tooltips showing the projected temperature.</li>
+        <li><strong>Current year line</strong> — a dotted vertical line marking the present year.</li>
+        <li><strong>Footer</strong> — Theil-Sen slope (°C/decade), p-value, Kendall's τ, and the number of years used.</li>
+      </ul>
+
+      <div class="callout">
+        <div class="callout-label">Note on the forecast</div>
+        <p>The forecast extension is a <em>statistical projection</em> of the observed trend — it assumes the current rate of change continues. It is not a climate model prediction. The widening confidence band reflects genuine statistical uncertainty: the further out the projection, the less reliable the point estimate.</p>
+      </div>
+    </section>
+
     <!-- Controls -->
     <section id="controls">
-      <span class="section-num">03</span>
+      <span class="section-num">04</span>
       <h2>Controls</h2>
 
       <figure>
@@ -275,7 +327,7 @@
             <tr>
               <td><strong>Day slider</strong></td>
               <td>Day 1 (Jan 1) – Day 365 (Dec 31)</td>
-              <td>Selects the target calendar day. The date badge (e.g. "Apr 15") updates as you drag. All charts update after a short debounce delay.</td>
+              <td>Selects the target calendar day. The date badge (e.g. "Apr 15") updates as you drag. You can also <strong>click the date badge</strong> directly to open a calendar date-picker and jump to any specific date. All charts update after a short debounce delay.</td>
             </tr>
             <tr>
               <td><strong>◀ Prev / ▶ Play / ▶ Next</strong></td>
@@ -289,7 +341,7 @@
 
     <!-- Map -->
     <section id="map">
-      <span class="section-num">04</span>
+      <span class="section-num">05</span>
       <h2>The Map</h2>
 
       <figure>
@@ -313,7 +365,7 @@
 
     <!-- Regression chart -->
     <section id="chart">
-      <span class="section-num">05</span>
+      <span class="section-num">06</span>
       <h2>The Regression Chart</h2>
 
       <figure>
@@ -344,7 +396,7 @@
 
     <!-- Hero cards -->
     <section id="hero">
-      <span class="section-num">06</span>
+      <span class="section-num">07</span>
       <h2>Hero Cards &amp; Stats</h2>
 
       <figure>
@@ -396,7 +448,7 @@
 
     <!-- Calendar chart -->
     <section id="calendar">
-      <span class="section-num">07</span>
+      <span class="section-num">08</span>
       <h2>The Calendar Chart</h2>
 
       <figure>
@@ -432,7 +484,7 @@
 
     <!-- Statistical Methods -->
     <section id="methods">
-      <span class="section-num">08</span>
+      <span class="section-num">09</span>
       <h2>Statistical Methods</h2>
 
       <div class="callout">
@@ -520,7 +572,7 @@
 
     <!-- Variables -->
     <section id="variables">
-      <span class="section-num">09</span>
+      <span class="section-num">10</span>
       <h2>Variables &amp; Units</h2>
 
       <div class="table-wrap">
@@ -571,7 +623,7 @@
 
     <!-- Locations -->
     <section id="locations">
-      <span class="section-num">10</span>
+      <span class="section-num">11</span>
       <h2>Locations</h2>
 
       <p>The dataset covers 20 stations distributed across North Macedonia, from the lowland Vardar valley to mountain sites above 1000 m elevation.</p>
@@ -609,7 +661,7 @@
 
     <!-- AI Assistant -->
     <section id="assistant">
-      <span class="section-num">11</span>
+      <span class="section-num">12</span>
       <h2>AI Climate Assistant</h2>
 
       <figure>
@@ -635,7 +687,7 @@
 
     <!-- Limitations -->
     <section id="limitations">
-      <span class="section-num">12</span>
+      <span class="section-num">13</span>
       <h2>Known Limitations</h2>
 
       <ul>

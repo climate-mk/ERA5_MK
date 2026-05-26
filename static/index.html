@@ -45,10 +45,15 @@
     </button>
   </header>
 
+  <!-- Today status ("Is it Hot in Macedonia Today?") — JS-populated, hidden on failure -->
+  <section id="today-status" class="today-status" hidden></section>
+
   <!-- Hero + sig — JS-populated; repeats once per selected location -->
+  <div class="sec-heading">Location details</div>
   <section id="hero"></section>
 
   <!-- Controls / toolbar -->
+  <div class="sec-heading sec-heading--sm">Location selection, Controls, and Charts</div>
   <div class="toolbar" id="controls-bar">
 
     <!-- Location -->
@@ -180,6 +185,7 @@
 
   <!-- About -->
   <section id="about" class="about-section">
+    <div class="sec-heading" style="padding: 0 0 20px 0;">About us</div>
     <div class="about-body">
       <div class="about-col">
         <div class="about-title">About climate.mk</div>
