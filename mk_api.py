@@ -339,9 +339,6 @@ def compute_annual_trend():
     window = window_filter(data, month, day, 7)
     annual = window.groupby("_window_year")["temperature_max"].max().dropna()
 
-    # Last 30 years only
-    cutoff = int(annual.index.max()) - 30
-    annual = annual[annual.index >= cutoff]
     x_arr  = annual.index.to_numpy(float)
     y_arr  = annual.values
 
@@ -362,9 +359,9 @@ def compute_annual_trend():
     u_hist = res.high_slope * x_hist + ic_hi
     l_hist = res.low_slope  * x_hist + ic_lo
 
-    # Forecast line: last observed year → 2055
+    # Linear projection: last observed year → 2040
     last_yr = int(x_arr.max())
-    x_fc    = np.linspace(last_yr, 2055, 200)
+    x_fc    = np.linspace(last_yr, 2040, 200)
     y_fc    = slope          * x_fc + ic
     u_fc    = res.high_slope * x_fc + ic_hi
     l_fc    = res.low_slope  * x_fc + ic_lo
@@ -380,7 +377,7 @@ def compute_annual_trend():
                           "y":     [round(v, 3) for v in y_hist],
                           "upper": [round(v, 3) for v in u_hist],
                           "lower": [round(v, 3) for v in l_hist]},
-        "forecast_line": {"x": x_fc.tolist(),
+        "projection_line": {"x": x_fc.tolist(),
                           "y":     [round(v, 3) for v in y_fc],
                           "upper": [round(v, 3) for v in u_fc],
                           "lower": [round(v, 3) for v in l_fc]},

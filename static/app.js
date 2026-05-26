@@ -739,17 +739,17 @@ async function renderTodayTrendChart() {
 
     // Update title with actual year range
     const titleEl = document.getElementById("today-trend-title");
-    if (titleEl) titleEl.textContent = `Macedonia peak temperatures around ${d.day_label} · ${d.year_min}–2055 forecast`;
+    if (titleEl) titleEl.textContent = `Macedonia peak temperatures around ${d.day_label} · ${d.year_min}–${d.year_max} with linear projection to 2040`;
 
     const histBand = d.hist_line.x.map((x, i) => [x, d.hist_line.lower[i], d.hist_line.upper[i]]);
-    const fcBand   = d.forecast_line.x.map((x, i) => [x, d.forecast_line.lower[i], d.forecast_line.upper[i]]);
+    const fcBand   = d.projection_line.x.map((x, i) => [x, d.projection_line.lower[i], d.projection_line.upper[i]]);
     const histLine = d.hist_line.x.map((x, i) => [x, d.hist_line.y[i]]);
-    const fcLine   = d.forecast_line.x.map((x, i) => [x, d.forecast_line.y[i]]);
+    const fcLine   = d.projection_line.x.map((x, i) => [x, d.projection_line.y[i]]);
 
-    const milestoneYears = [2030, 2035, 2040, 2045, 2050, 2055];
+    const milestoneYears = [2030, 2035, 2040];
     const fcMilestones = milestoneYears.map(yr => {
       let best = 0, bestDiff = Infinity;
-      d.forecast_line.x.forEach((x, i) => {
+      d.projection_line.x.forEach((x, i) => {
         const diff = Math.abs(x - yr);
         if (diff < bestDiff) { bestDiff = diff; best = i; }
       });
@@ -769,7 +769,7 @@ async function renderTodayTrendChart() {
       tooltip: {
         formatter() {
           if (this.series.name === "Annual max") return `<b>${Math.round(this.x)}</b>: ${this.y.toFixed(1)} °C`;
-          if (this.series.name === "Forecast points") return `<b>${this.x}</b>: ${this.y.toFixed(1)} °C <span style="opacity:0.6">(forecast)</span>`;
+          if (this.series.name === "Projection milestones") return `<b>${this.x}</b>: ${this.y.toFixed(1)} °C <span style="opacity:0.6">(linear projection)</span>`;
           return false;
         },
       },
@@ -791,15 +791,15 @@ async function renderTodayTrendChart() {
       },
       series: [
         { name: "CI (hist)",     type: "arearange", data: histBand, fillOpacity: 0.10, lineWidth: 0, color: "#962c1a", enableMouseTracking: false, marker: { enabled: false } },
-        { name: "CI (forecast)", type: "arearange", data: fcBand,   fillOpacity: 0.06, lineWidth: 0, color: "#962c1a", enableMouseTracking: false, marker: { enabled: false } },
-        { name: "Trend (hist)",     type: "line", data: histLine, color: "#962c1a", lineWidth: 1.5, enableMouseTracking: false, marker: { enabled: false } },
-        { name: "Trend (forecast)", type: "line", data: fcLine,   color: "#962c1a", lineWidth: 1.5, dashStyle: "Dash", enableMouseTracking: false, marker: { enabled: false } },
+        { name: "CI (projection)", type: "arearange", data: fcBand,   fillOpacity: 0.06, lineWidth: 0, color: "#962c1a", enableMouseTracking: false, marker: { enabled: false } },
+        { name: "Trend (hist)",       type: "line", data: histLine, color: "#962c1a", lineWidth: 1.5, enableMouseTracking: false, marker: { enabled: false } },
+        { name: "Trend (projection)", type: "line", data: fcLine,   color: "#962c1a", lineWidth: 1.5, dashStyle: "Dash", enableMouseTracking: false, marker: { enabled: false } },
         { name: "Annual max", type: "scatter", data: d.scatter,
           color: "rgba(150,44,26,0.6)", marker: { enabled: true, radius: 3, symbol: "circle" }, zIndex: 5 },
-        { name: "Forecast points", type: "scatter", data: fcMilestones,
+        { name: "Projection milestones", type: "scatter", data: fcMilestones,
           marker: { enabled: true, radius: 3, symbol: "circle", fillColor: "var(--paper)", lineColor: "#962c1a", lineWidth: 1.5 },
           zIndex: 6, enableMouseTracking: true,
-          tooltip: { pointFormat: "<b>{point.x}</b>: {point.y:.1f} °C (forecast)" } },
+          tooltip: { pointFormat: "<b>{point.x}</b>: {point.y:.1f} °C (linear projection)" } },
       ],
     });
 
@@ -813,12 +813,12 @@ async function renderTodayTrendChart() {
     const explain3 = document.createElement("p");
     explain3.className = "today-explain";
     explain3.style.padding = "4px 0 2px";
-    explain3.textContent = "Each dot is the highest temperature recorded anywhere in Macedonia during this ±7-day window in that year. The Theil-Sen line shows the 30-year trend; the dashed extension and widening band project where it heads by 2055.";
+    explain3.textContent = "Each dot is the highest temperature recorded anywhere in Macedonia during this ±7-day window in that year. The Theil-Sen line fits the full historical record (1950–present); the dashed extension projects the same slope linearly to 2040. The shaded band is the 95% CI on the slope — narrower because it uses 75+ years of data.";
     document.getElementById("today-trend-card").appendChild(explain3);
 
     const foot = document.createElement("div");
     foot.className = "today-foot";
-    foot.textContent = `Theil-Sen: ${sign}${s.trend10.toFixed(2)} °C/decade · ${sig} · τ = ${s.tau} · ${s.n_years} yrs`;
+    foot.textContent = `Theil-Sen + TFPW MK: ${sign}${s.trend10.toFixed(2)} °C/decade · ${sig} · τ = ${s.tau} · ${s.n_years} yrs`;
     document.getElementById("today-trend-card").appendChild(foot);
   } catch {
     /* silently skip if endpoint unavailable */
