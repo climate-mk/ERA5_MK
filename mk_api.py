@@ -410,35 +410,41 @@ def compute_today_status():
     if cache_key in _TODAY_CACHE:
         return _TODAY_CACHE[cache_key]
 
-    # 1. Today's max temp from Open-Meteo for all 20 stations
-    coords = list(LOC_COORDS.values())
-    lats = ",".join(f"{c['lat']:.4f}" for c in coords)
-    lons = ",".join(f"{c['lon']:.4f}" for c in coords)
-    try:
-        resp = http_requests.get(
-            "https://api.open-meteo.com/v1/forecast",
-            params={
-                "latitude":      lats,
-                "longitude":     lons,
-                "daily":         "temperature_2m_max",
-                "timezone":      "Europe/Skopje",
-                "forecast_days": 1,
-            },
-            timeout=10,
-        )
-        resp.raise_for_status()
-        payload = resp.json()
-    except Exception:
-        _TODAY_CACHE[cache_key] = {"available": False}
-        return _TODAY_CACHE[cache_key]
+    # 1. Today's max temp from Open-Meteo for all 20 stations — fetched in
+    #    parallel individual requests (one per station) to avoid 502s that
+    #    Open-Meteo's proxy returns for long multi-coordinate query strings.
+    from concurrent.futures import ThreadPoolExecutor, as_completed
 
-    if isinstance(payload, dict):
-        payload = [payload]
+    def _fetch_one(loc_name, lat, lon):
+        try:
+            r = http_requests.get(
+                "https://api.open-meteo.com/v1/forecast",
+                params={
+                    "latitude":      f"{lat:.4f}",
+                    "longitude":     f"{lon:.4f}",
+                    "daily":         "temperature_2m_max",
+                    "timezone":      "Europe/Skopje",
+                    "forecast_days": 1,
+                },
+                timeout=10,
+            )
+            r.raise_for_status()
+            arr = r.json().get("daily", {}).get("temperature_2m_max", [])
+            return float(arr[0]) if arr and arr[0] is not None else None
+        except Exception:
+            return None
+
     today_temps = []
-    for p in payload:
-        arr = p.get("daily", {}).get("temperature_2m_max", [])
-        if arr and arr[0] is not None:
-            today_temps.append(float(arr[0]))
+    with ThreadPoolExecutor(max_workers=20) as pool:
+        futures = {
+            pool.submit(_fetch_one, name, c["lat"], c["lon"]): name
+            for name, c in LOC_COORDS.items()
+        }
+        for fut in as_completed(futures):
+            v = fut.result()
+            if v is not None:
+                today_temps.append(v)
+
     if not today_temps:
         _TODAY_CACHE[cache_key] = {"available": False}
         return _TODAY_CACHE[cache_key]
