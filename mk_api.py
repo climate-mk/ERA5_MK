@@ -335,10 +335,22 @@ def compute_annual_trend():
     month, day = today.month, today.day
     dlabel     = f"{MONTH_NAMES[month - 1]} {day}"
 
-    # Peak temp in the ±7-day window around today's date, per year, across all stations
+    # Daily max across all stations, then mean of top-15 days per year
     window = window_filter(data, month, day, 7)
-    annual = window.groupby("_window_year")["temperature_max"].max().dropna()
+    daily_max = (
+        window.groupby(["_window_year", "date"])["temperature_max"]
+        .max()
+        .reset_index()
+    )
+    annual = (
+        daily_max.groupby("_window_year")["temperature_max"]
+        .apply(lambda x: x.nlargest(15).mean())
+        .dropna()
+    )
 
+    # Last 30 years
+    cutoff = int(annual.index.max()) - 30
+    annual = annual[annual.index >= cutoff]
     x_arr  = annual.index.to_numpy(float)
     y_arr  = annual.values
 
@@ -359,9 +371,9 @@ def compute_annual_trend():
     u_hist = res.high_slope * x_hist + ic_hi
     l_hist = res.low_slope  * x_hist + ic_lo
 
-    # Linear projection: last observed year → 2040
+    # Linear projection: last observed year → 2050
     last_yr = int(x_arr.max())
-    x_fc    = np.linspace(last_yr, 2040, 200)
+    x_fc    = np.linspace(last_yr, 2050, 200)
     y_fc    = slope          * x_fc + ic
     u_fc    = res.high_slope * x_fc + ic_hi
     l_fc    = res.low_slope  * x_fc + ic_lo
