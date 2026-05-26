@@ -106,6 +106,7 @@ body {
 #hero:not(.hero-cards-1) .verdict       { margin-left: 0; font-size: 18px; }
 
 .eyebrow { font-family: 'JetBrains Mono', monospace; font-size: 11px; letter-spacing: 0.16em; text-transform: uppercase; color: var(--ink-soft); margin-bottom: 10px; display: flex; align-items: center; gap: 12px; flex-wrap: wrap; }
+.eyebrow > * { min-width: 0; }
 .eyebrow-city { color: var(--ink); font-weight: 600; letter-spacing: 0.04em; display: inline-flex; align-items: center; gap: 8px; }
 .eyebrow-city::after { content: ''; width: 8px; height: 8px; border-radius: 50%; background: var(--accent); display: inline-block; }
 .pip { width: 4px; height: 4px; background: var(--ink-faint); border-radius: 50%; flex-shrink: 0; }
@@ -222,8 +223,9 @@ body {
 
 .panel { background: var(--card); border: 1px solid var(--rule); border-radius: var(--radius); overflow: hidden; display: flex; flex-direction: column; }
 .panel-h { padding: 14px 20px 12px; display: flex; align-items: baseline; justify-content: space-between; border-bottom: 1px solid var(--rule); flex-shrink: 0; gap: 8px; }
+.panel-h > * { min-width: 0; }
 .panel-title { font-family: 'Space Grotesk', sans-serif; font-weight: 500; font-size: 15px; letter-spacing: -0.02em; }
-.panel-sub { font-family: 'JetBrains Mono', monospace; font-size: 10px; letter-spacing: 0.08em; text-transform: uppercase; color: var(--ink-soft); white-space: nowrap; }
+.panel-sub { font-family: 'JetBrains Mono', monospace; font-size: 10px; letter-spacing: 0.08em; text-transform: uppercase; color: var(--ink-soft); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
 
 /* Map panel */
 .map-wrap { flex: 1; background: var(--paper-2); }
@@ -352,7 +354,7 @@ body.chat-modal-open { overflow: hidden; }
   .app-footer { padding: 10px 14px; }
   .welcome-content { padding: 24px 18px 20px; }
   .chat-modal-content { width: 100%; }
-  html { overflow-x: clip; }
+  html { overflow-x: hidden; }
   .sig-row { flex-wrap: wrap; }
   .sig-item { flex: 0 0 50%; min-width: 0; padding: 0 10px 0 0; }
   .sig-item:nth-child(even) { padding: 0 0 0 10px; border-right: none; }

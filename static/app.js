@@ -102,6 +102,7 @@ function initRegChart() {
       },
     },
   });
+  requestAnimationFrame(() => regChart?.reflow());
 }
 
 
@@ -281,6 +282,7 @@ function renderMap(data) {
       },
     ],
   });
+  requestAnimationFrame(() => mapChart?.reflow());
 }
 
 async function refreshMap() {
@@ -1173,7 +1175,16 @@ if (!localStorage.getItem("welcome_dismissed")) {
   }));
 }
 
-window.addEventListener("load", () => {
+if (document.fonts && document.fonts.ready) {
+  document.fonts.ready.then(() => {
+    mapChart?.reflow();
+    regChart?.reflow();
+    calCharts.forEach(c => c?.reflow());
+  });
+}
+
+window.addEventListener("resize", () => {
   mapChart?.reflow();
   regChart?.reflow();
+  calCharts.forEach(c => c?.reflow());
 });
