@@ -2,7 +2,7 @@
 
 Interactive web dashboard for exploring long-term climate trends across 20 locations in North Macedonia, powered by ERA5-Land reanalysis data (1950–present).
 
-**Live:** [climate.mk](https://climate.kesma.mk)
+**Live:** [climate.mk](https://climate.mk)
 
 ---
 
