@@ -753,7 +753,7 @@ async function renderTodayTrendChart() {
         const diff = Math.abs(x - yr);
         if (diff < bestDiff) { bestDiff = diff; best = i; }
       });
-      return { x: yr, y: d.forecast_line.y[best] };
+      return { x: yr, y: d.projection_line.y[best] };
     });
 
     const trendLabelStyle = {
