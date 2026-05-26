@@ -1417,6 +1417,43 @@ async function init() {
 
 init().catch(console.error);
 
+// ── Climate quote card ────────────────────────────────────────────────────────
+
+async function loadQuote() {
+  try {
+    const resp = await fetch('climate_quotes.csv');
+    const text = await resp.text();
+    const lines = text.trim().split(/\r?\n/).slice(1);
+    const rows = lines.map(line => {
+      const m = line.match(/^"(.+)","(.+)"$/) ||
+                line.match(/^(.+?),"(.+)"$/) ||
+                line.match(/^"(.+)",(.+)$/) ||
+                line.match(/^(.+?),(.+)$/);
+      return m ? { author: m[1].trim(), quote: m[2].trim() } : null;
+    }).filter(Boolean);
+    const row = rows[Math.floor(Math.random() * rows.length)];
+    const card = document.getElementById('quote-card');
+    card.innerHTML = `<div><p class="quote-text">${row.quote}</p><span class="quote-author">${row.author}</span></div>`;
+    card.removeAttribute('hidden');
+  } catch (e) { /* silently skip */ }
+}
+
+loadQuote();
+
+async function loadEffects() {
+  try {
+    const resp = await fetch('effects.csv');
+    const text = await resp.text();
+    const items = text.trim().split(/\r?\n/).map(l => l.trim()).filter(Boolean);
+    const shuffled = items.sort(() => Math.random() - 0.5).slice(0, 4);
+    const card = document.getElementById('effects-card');
+    card.innerHTML = `<p class="action-card-label">Some effects of the climate changes</p>
+      <ul class="effects-list">${shuffled.map(i => `<li>${i}</li>`).join('')}</ul>`;
+  } catch (e) { /* silently skip */ }
+}
+
+loadEffects();
+
 // ── Welcome modal ─────────────────────────────────────────────────────────────
 
 function closeWelcome() {

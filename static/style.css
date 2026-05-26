@@ -65,6 +65,30 @@ body {
 .chat-name   { font-weight: 600; }
 .chat-role   { font-family: 'JetBrains Mono', monospace; font-size: 9px; letter-spacing: 0.08em; text-transform: uppercase; color: var(--ink-soft); }
 
+/* ── Top cards row (quote + action) ─────────────────────────────────────────── */
+
+.top-cards-row {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  border-top: 1px solid var(--rule);
+  border-bottom: 1px solid var(--rule);
+  min-height: 200px;
+  align-items: stretch;
+  background: var(--ink);
+}
+.top-card { padding: 20px 40px 24px; }
+.top-card + .top-card { border-left: 1px solid rgba(255,255,255,0.1); }
+
+.quote-card { display: flex; align-items: center; gap: 16px; }
+.quote-card::before { content: '\201C'; font-family: 'Instrument Serif', serif; font-size: 64px; line-height: 1; color: var(--accent); flex-shrink: 0; align-self: flex-start; margin-top: -8px; }
+.quote-text { font-family: 'Instrument Serif', serif; font-style: italic; font-size: clamp(18px, 1.4vw, 26px); line-height: 1.6; color: #F5F2EC; margin: 0 0 8px; }
+.quote-author { font-family: 'Space Grotesk', sans-serif; font-size: 13px; font-weight: 500; color: rgba(245,242,236,0.5); letter-spacing: 0.04em; text-transform: uppercase; }
+
+.action-card-label { font-family: 'Instrument Serif', serif; font-style: italic; font-size: 22px; color: var(--accent); margin: 0 0 12px; }
+.effects-list { list-style: none; padding: 0; margin: 0; display: flex; flex-direction: column; gap: 8px; }
+.effects-list li { font-family: 'Space Grotesk', sans-serif; font-size: 14px; color: rgba(245,242,236,0.65); padding-left: 16px; position: relative; line-height: 1.5; }
+.effects-list li::before { content: '·'; position: absolute; left: 0; color: var(--accent); font-size: 18px; line-height: 1.2; }
+
 /* ── Today status ("Is it Hot in Macedonia Today?") ─────────────────────────── */
 
 .today-status      { padding: 20px 40px 24px; border-bottom: 1px solid var(--rule); }
@@ -280,7 +304,7 @@ body {
 /* ── About section ───────────────────────────────────────────────────────────── */
 
 .about-section { padding: 32px 40px; border-top: 1px solid var(--rule); background: var(--paper-2); }
-.about-body { display: grid; grid-template-columns: 1fr 1fr; gap: 24px; }
+.about-body { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 24px; }
 .about-col { background: var(--paper); border: 1px dashed var(--rule-2); border-radius: var(--radius); padding: 28px 32px; }
 .about-title { font-family: 'Instrument Serif', serif; font-style: italic; font-size: 22px; margin-bottom: 12px; color: var(--ink); letter-spacing: 0.01em; }
 .about-col p { font-size: 14px; color: var(--ink-soft); line-height: 1.7; }
@@ -362,6 +386,9 @@ body.chat-modal-open { overflow: hidden; }
 }
 
 @media (max-width: 600px) {
+  .top-cards-row { grid-template-columns: 1fr; }
+  .top-card + .top-card { border-left: none; border-top: 1px solid var(--rule); }
+  .top-card { padding: 14px 14px 18px; }
   .sec-heading { padding: 14px 14px 6px; }
   .nav-links { display: none; }
   .topbar { padding: 10px 14px; gap: 12px; overflow: hidden; }
