@@ -157,7 +157,7 @@
       <div class="chart-stage">
         <div class="chart-stats-box" id="chart-stats-box">
           <div class="chart-big" id="chart-change">—</div>
-          <div class="chart-change-lbl">change over the record</div>
+          <div class="chart-change-lbl" id="chart-change-lbl">change over the record</div>
         </div>
         <div class="chart-wrap">
           <div id="reg-chart"></div>
@@ -168,10 +168,10 @@
       </div>
       <div class="chart-footer">
         <div class="chart-key">
-          <span class="swatch"><i id="swatch-neg" style="background:var(--accent-cool);border-radius:50%"></i>Under mean</span>
-          <span class="swatch"><i id="swatch-pos" style="background:var(--accent);border-radius:50%"></i>Over mean</span>
-          <span class="swatch"><i style="background:var(--ink);border-radius:1px;width:14px;height:3px"></i>Trend line</span>
-          <span class="swatch"><i style="background:rgba(194,90,44,0.25);border-radius:2px;width:10px;height:10px"></i>95% CI</span>
+          <span class="swatch"><i id="swatch-neg" style="background:var(--accent-cool);border-radius:50%"></i><span id="lbl-under-mean">Under mean</span></span>
+          <span class="swatch"><i id="swatch-pos" style="background:var(--accent);border-radius:50%"></i><span id="lbl-over-mean">Over mean</span></span>
+          <span class="swatch"><i style="background:var(--ink);border-radius:1px;width:14px;height:3px"></i><span id="lbl-trend-line">Trend line</span></span>
+          <span class="swatch"><i style="background:rgba(194,90,44,0.25);border-radius:2px;width:10px;height:10px"></i><span id="lbl-ci95">95% CI</span></span>
         </div>
         <span class="panel-sub" id="chart-year-range">—</span>
       </div>

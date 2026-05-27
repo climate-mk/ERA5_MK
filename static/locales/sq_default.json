@@ -19,7 +19,52 @@
     "chart_title": "Temperaturat maksimale ditore të Maqedonisë për dy javët rreth {day_label} që nga viti {year_min}",
     "trend_title": "Temperaturat maksimale të Maqedonisë rreth {day_label} · {year_min}–{year_max} me projeksion linear deri në 2050",
     "explain2": "Kurba tregon sa shpesh ka ndodhur çdo temperaturë maksimale në ditë si sot gjatë gjithë viteve. Ngjyrat shënojnë zonat klimatologjike — nga e kaltër e ftohtë, nëpërmjet brezit tipik bezhë, deri te e kuqe ekstreme — që të shihni me një shikim se ku qëndron sot.",
-    "explain3": "Çdo pikë është mesatarja e 15 ditëve më të nxehta të regjistruara kudo në Maqedoni gjatë kësaj dritareje ±7-ditore çdo vit që nga viti {year_min}. Tendenca Theil-Sen është shumë e rëndësishme (p < 0,0001); vija me pika projekton linearisht deri në 2050. Brezat e hijezuar janë intervali i besimit 95% — zgjerojnë me kalimin e kohës sepse edhe pasiguria e vogël e pjerrësisë akumulohet vit pas viti, duke arritur afërsisht ±2,8°C deri në 2050. Mendojeni si gamën e së ardhmes së mundshme nëse ngrohja aktuale vazhdon me të njëjtin ritëm."
+    "explain3": "Çdo pikë është mesatarja e 15 ditëve më të nxehta të regjistruara kudo në Maqedoni gjatë kësaj dritareje ±7-ditore çdo vit që nga viti {year_min}. Tendenca Theil-Sen është shumë e rëndësishme (p < 0,0001); vija me pika projekton linearisht deri në 2050. Brezat e hijezuar janë intervali i besimit 95% — zgjerojnë me kalimin e kohës sepse edhe pasiguria e vogël e pjerrësisë akumulohet vit pas viti, duke arritur afërsisht ±2,8°C deri në 2050. Mendojeni si gamën e së ardhmes së mundshme nëse ngrohja aktuale vazhdon me të njëjtin ritëm.",
+    "foot": "{temp} °C · percentila {pct} · {samples} mostra ({year_min}–{year_max})",
+    "foot2": "Sot: {temp} °C · percentila {pct} · mediana {median} °C · {samples} vëzhgime · {year_min}–{year_max}",
+    "today_label": "SOT",
+    "zone_cold": "Ftohtë",
+    "zone_cool": "Freskët",
+    "zone_normal": "Normal",
+    "zone_hot": "Nxehtë",
+    "zone_extreme": "Ekstreme",
+    "trend_foot": "Theil-Sen + TFPW MK: {trend} °C/dekadë · {sig} · τ = {tau} · {n_years} vjet"
+  },
+  "categories": {
+    "freezing": {"name": "Ngrirje",  "desc": "Ndër {d}-t më të ftohtat në rekord — 76 vjet të dhëna."},
+    "cold":     {"name": "Ftohtë",   "desc": "Më ftohtë se shumica e {d}-ve të matura."},
+    "nope":     {"name": "Normal",   "desc": "Rreth temperaturës tipike për {d} në Maqedoni."},
+    "hot":      {"name": "Nxehtë",   "desc": "Ndër {d}-t më të nxehtat në rekordet tona."},
+    "hell":     {"name": "Ferr",     "desc": "Nxehtësi e jashtëzakonshme — top 5% e të gjithë {d}-ve që nga viti 1950."}
+  },
+  "charts": {
+    "under_mean":    "Nën mesatare",
+    "over_mean":     "Mbi mesatare",
+    "trend_line":    "Vija e trendit",
+    "ci95":          "95% CI",
+    "change_record": "ndryshim gjatë rekordeve"
+  },
+  "locations": {
+    "Berovo":       "Berovë",
+    "Bitola":       "Bitolë",
+    "Debar":        "Dibër",
+    "Demir_Kapija": "Demir Kapia",
+    "Gevgelija":    "Gevgeli",
+    "Gostivar":     "Gostivar",
+    "Kavadarci":    "Kavadari",
+    "Kicevo":       "Kërçovë",
+    "Kochani":      "Koçani",
+    "Kumanovo":     "Kumanovë",
+    "Lazaropole":   "Lazaropole",
+    "Negotino":     "Negotinë",
+    "Ohrid":        "Ohër",
+    "Prilep":       "Prilepi",
+    "Radovis":      "Radovisht",
+    "Skopje":       "Shkup",
+    "Stip":         "Shtipi",
+    "Strumica":     "Strumicë",
+    "Tetovo":       "Tetovë",
+    "Veles":        "Velesi"
   },
   "hero": {
     "verdict_warming": "Një shekull ngrohje me <em>{sign}{t100} {unit}</em> – në ritmin aktual, çdo <em>{yrs} vjet</em> shtohet edhe një gradë.",

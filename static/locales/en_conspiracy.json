@@ -19,8 +19,32 @@
     "chart_title": "Official Narrative Temperatures around {day_label} since {year_min} (Unverified)",
     "trend_title": "Their Temperature Trend around {day_label} · {year_min}–{year_max} · Linear Extrapolation to 2050 (conveniently far away)",
     "explain2": "Big Climate's famous bell curve. Notice how they use emotional colours — cold blue (bad) to fiery red (panic now) — to manipulate your lizard brain. What they don't show: the Medieval Warm Period, when Vikings farmed Greenland with ZERO SUVs. Real scientists who disagree get zero funding. Ask yourself: who benefits from the fear?",
-    "explain3": "Each dot is supposedly the average of the 15 hottest days recorded anywhere in Macedonia since {year_min}. They use something called Theil-Sen — a method that was literally designed to find upward trends. The dashed line is a straight ruler pointed at 2050, conveniently far enough that no one can check it. The shaded band? That's them admitting they could be off by ±2.8°C. If your margin of error is 2.8 degrees, maybe don't panic-tax us yet. Think of it as the range of plausible futures if you believe any of this."
+    "explain3": "Each dot is supposedly the average of the 15 hottest days recorded anywhere in Macedonia since {year_min}. They use something called Theil-Sen — a method that was literally designed to find upward trends. The dashed line is a straight ruler pointed at 2050, conveniently far enough that no one can check it. The shaded band? That's them admitting they could be off by ±2.8°C. If your margin of error is 2.8 degrees, maybe don't panic-tax us yet. Think of it as the range of plausible futures if you believe any of this.",
+    "foot": "{temp} °C · allegedly {pct}th percentile · {samples} 'verified' samples ({year_min}–{year_max})",
+    "foot2": "Their Data: {temp} °C · allegedly {pct}th percentile · median {median} °C · {samples} 'unverified' observations · {year_min}–{year_max}",
+    "today_label": "THEIR DATA",
+    "zone_cold": "Cold",
+    "zone_cool": "Cool",
+    "zone_normal": "Normal",
+    "zone_hot": "Hot",
+    "zone_extreme": "Extreme",
+    "trend_foot": "Their Globalist Regression: {trend} °C/decade · {sig} · τ = {tau} · {n_years} yrs (but who's counting)"
   },
+  "categories": {
+    "freezing": {"name": "Freezing",  "desc": "Among the coldest {d}s — but don't worry, they'll 'adjust' these readings next year."},
+    "cold":     {"name": "Cold",      "desc": "Cooler than most {d}s. How convenient for their cooling-denying narrative."},
+    "nope":     {"name": "Normal",    "desc": "Normal? According to THEIR sensors next to parking lots, maybe."},
+    "hot":      {"name": "Hot",       "desc": "Hot, they say. Measured right next to an airport runway, of course."},
+    "hell":     {"name": "Hell",      "desc": "EXCEPTIONAL HEAT (next to an asphalt parking lot). Top 5% since 1950. Perfect timing for a new carbon tax."}
+  },
+  "charts": {
+    "under_mean":    "Under mean",
+    "over_mean":     "Over mean",
+    "trend_line":    "Trend line",
+    "ci95":          "95% CI",
+    "change_record": "change over the record"
+  },
+  "locations": {},
   "hero": {
     "verdict_warming": "THEY claim warming of <em>{sign}{t100} {unit}</em> per century. That's one degree every <em>{yrs} years</em>. My grandmother's garden is doing FINE, thanks for asking.",
     "verdict_cooling": "Wait — it's actually COOLING by <em>{sign}{t100} {unit}</em> per century? Funny how the mainstream media never reports THAT. Every <em>{yrs} years</em>: one degree colder. But sure, keep paying the carbon tax.",

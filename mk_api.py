@@ -468,19 +468,20 @@ _TODAY_CACHE     = {}
 _TODAY_CACHE_DIR = _CACHE_DIR
 
 _TODAY_CATEGORIES = [
-    # (max_percentile_exclusive, name, hex, description_template)
-    (10,  "Freezing", "#3a5a8a", "Among the coldest {d}s in our 76-year record."),
-    (20,  "Cold",     "#6c8fb6", "Cooler than most {d}s we've measured."),
-    (80,  "Nope",     "#e7d9b8", "Right around what {d} usually feels like in Macedonia."),
-    (95,  "Hot",      "#c25a2c", "Among the hottest {d}s in our record."),
-    (101, "Hell",     "#962c1a", "Exceptional heat — top 5% of all {d}s since 1950."),
+    # (max_percentile_exclusive, key, name, hex, description_template)
+    (10,  "freezing", "Freezing", "#3a5a8a", "Among the coldest {d}s in our 76-year record."),
+    (20,  "cold",     "Cold",     "#6c8fb6", "Cooler than most {d}s we've measured."),
+    (80,  "nope",     "Nope",     "#e7d9b8", "Right around what {d} usually feels like in Macedonia."),
+    (95,  "hot",      "Hot",      "#c25a2c", "Among the hottest {d}s in our record."),
+    (101, "hell",     "Hell",     "#962c1a", "Exceptional heat — top 5% of all {d}s since 1950."),
 ]
 
 def _categorize_today(pct, dlabel):
-    for cutoff, name, color, tpl in _TODAY_CATEGORIES:
+    for cutoff, key, name, color, tpl in _TODAY_CATEGORIES:
         if pct < cutoff:
-            return name, color, tpl.format(d=dlabel)
-    return _TODAY_CATEGORIES[-1][1], _TODAY_CATEGORIES[-1][2], _TODAY_CATEGORIES[-1][3].format(d=dlabel)
+            return key, name, color, tpl.format(d=dlabel)
+    last = _TODAY_CATEGORIES[-1]
+    return last[1], last[2], last[3], last[4].format(d=dlabel)
 
 def _today_cache_path(date_str):
     return os.path.join(_TODAY_CACHE_DIR, f"today_{date_str}.json")
@@ -579,7 +580,7 @@ def compute_today_status():
     # 3. Percentile + category
     pct = float((samples < today_temp).mean() * 100)
     dlabel = f"{MONTH_NAMES[month - 1]} {day}"
-    name, color, desc = _categorize_today(pct, dlabel)
+    cat_key, name, color, desc = _categorize_today(pct, dlabel)
 
     # 4. KDE curve + percentile cutoffs for the distribution chart
     cutoffs = {
@@ -604,6 +605,7 @@ def compute_today_status():
         "available":    True,
         "today_temp":   round(today_temp, 1),
         "percentile":   round(pct, 1),
+        "category_key": cat_key,
         "category":     name,
         "color":        color,
         "description":  desc,

@@ -42,6 +42,11 @@ function tArr(key) {
   return Array.isArray(val) ? val : null;
 }
 
+// Return localised display name for a location (falls back to the canonical key)
+function locName(name) {
+  return _locale?.locations?.[name] || name;
+}
+
 // ── Color constants ───────────────────────────────────────────────────────────
 
 const ACCENT   = "#C25A2C";
@@ -264,7 +269,7 @@ function renderMap(data) {
       formatter() {
         const sign = this.point.value >= 0 ? "+" : "";
         const col  = this.point.color;
-        return `<span style="font-weight:600">${this.point.name}</span><br>
+        return `<span style="font-weight:600">${locName(this.point.name)}</span><br>
                 <span style="color:${col};font-weight:700">${sign}${this.point.value.toFixed(3)} ${_mapUnit}/dec</span><br>
                 <span style="color:${INK_SOFT};font-size:11px">${this.point.sig}</span>`;
       },
@@ -289,7 +294,7 @@ function renderMap(data) {
         maxSize: 80,
         dataLabels: {
           enabled: true,
-          format: "{point.name}",
+          formatter() { return locName(this.point.name); },
           style: { fontSize: "9px", fontWeight: "400", color: INK, textOutline: "2px #fff", fontFamily: "'JetBrains Mono', monospace" },
           y: 0,
         },
@@ -487,7 +492,7 @@ function renderRegression(data) {
     const varLbl = (state.variables[state.selVar] || state.selVar).split("(")[0].trim();
 
     const titleEl = document.getElementById("chart-title");
-    if (titleEl) titleEl.textContent = `${varLbl} · ${results.map(r => r.loc).join(", ")}`;
+    if (titleEl) titleEl.textContent = `${varLbl} · ${results.map(r => locName(r.loc)).join(", ")}`;
 
     const subEl = document.getElementById("chart-sub");
     if (subEl) subEl.textContent = `${date_label}${ymin ? " · " + ymin + " – " + ymax : ""}`;
@@ -592,7 +597,7 @@ function renderHeroCards(data) {
       <div class="loc-hero-main">
         <div class="hero-left">
           <div class="eyebrow">
-            <span class="eyebrow-city">${res.loc}</span>
+            <span class="eyebrow-city">${locName(res.loc)}</span>
             <span class="pip"></span>
             <span>${doyLabel} ±${state.window} days · ${varLabel}</span>
           </div>
@@ -633,13 +638,15 @@ async function renderTodayStatus() {
           <div class="today-body">
             <span class="today-dot" style="background:${r.color}"></span>
             <div class="today-text">
-              <div class="today-cat">${r.category}</div>
-              <div class="today-desc">${r.description}</div>
+              <div class="today-cat">${_locale?.categories?.[r.category_key || r.category.toLowerCase()]?.name || r.category}</div>
+              <div class="today-desc">${(_locale?.categories?.[r.category_key || r.category.toLowerCase()]?.desc || r.description).replace('{d}', r.day_label)}</div>
             </div>
           </div>
           <p class="today-explain">${t('today.explain1')}</p>
           <div class="today-foot">
-            ${r.today_temp.toFixed(1)} °C · ${r.percentile.toFixed(0)}th percentile · ${r.n_samples.toLocaleString()} samples (${r.year_min}–${r.year_max})
+            ${_locale?.today?.foot
+              ? t('today.foot', {temp: r.today_temp.toFixed(1), pct: r.percentile.toFixed(0), samples: r.n_samples.toLocaleString(), year_min: r.year_min, year_max: r.year_max})
+              : `${r.today_temp.toFixed(1)} °C · ${r.percentile.toFixed(0)}th percentile · ${r.n_samples.toLocaleString()} samples (${r.year_min}–${r.year_max})`}
           </div>
         </div>
         <div class="today-chart">
@@ -678,14 +685,14 @@ function renderTodayChart(r) {
     legend:  { enabled: false },
     tooltip: {
       formatter() {
-        const t = this.x;
-        let zone = "Normal";
-        if      (t < c.p10) zone = "Cold";
-        else if (t < c.p20) zone = "Cool";
-        else if (t < c.p80) zone = "Normal";
-        else if (t < c.p95) zone = "Hot";
-        else                zone = "Extreme";
-        return `${t.toFixed(1)}°C · ${zone}`;
+        const temp = this.x;
+        let zone;
+        if      (temp < c.p10) zone = t('today.zone_cold');
+        else if (temp < c.p20) zone = t('today.zone_cool');
+        else if (temp < c.p80) zone = t('today.zone_normal');
+        else if (temp < c.p95) zone = t('today.zone_hot');
+        else                   zone = t('today.zone_extreme');
+        return `${temp.toFixed(1)}°C · ${zone}`;
       },
     },
     xAxis: {
@@ -697,7 +704,7 @@ function renderTodayChart(r) {
       crosshair: { color: "rgba(14,14,12,0.15)", width: 1 },
       plotLines: [
         { value: r.today_temp, color: INK, width: 3, zIndex: 5,
-          label: { text: `TODAY: ${r.today_temp.toFixed(1)}°C`, rotation: -90, x: -4, y: 40, align: "right", style: { ...labelStyle, fontSize: "13px", textOutline: "3px var(--card)" } } },
+          label: { text: `${t('today.today_label')}: ${r.today_temp.toFixed(1)}°C`, rotation: -90, x: -4, y: 40, align: "right", style: { ...labelStyle, fontSize: "13px", textOutline: "3px var(--card)" } } },
       ],
       plotBands: [
         { from: distMin, to: c.p10,
@@ -745,11 +752,11 @@ function renderTodayChart(r) {
   const legend = document.createElement("div");
   legend.className = "today-chart-legend";
   legend.innerHTML = `
-    <span class="tcl-item"><span class="tcl-sw" style="background:#3a5a8a"></span>Cold</span>
-    <span class="tcl-item"><span class="tcl-sw" style="background:#6c8fb6"></span>Cool</span>
-    <span class="tcl-item"><span class="tcl-sw" style="background:#e7d9b8"></span>Normal</span>
-    <span class="tcl-item"><span class="tcl-sw" style="background:#c25a2c"></span>Hot</span>
-    <span class="tcl-item"><span class="tcl-sw" style="background:#962c1a"></span>Extreme</span>`;
+    <span class="tcl-item"><span class="tcl-sw" style="background:#3a5a8a"></span>${t('today.zone_cold')}</span>
+    <span class="tcl-item"><span class="tcl-sw" style="background:#6c8fb6"></span>${t('today.zone_cool')}</span>
+    <span class="tcl-item"><span class="tcl-sw" style="background:#e7d9b8"></span>${t('today.zone_normal')}</span>
+    <span class="tcl-item"><span class="tcl-sw" style="background:#c25a2c"></span>${t('today.zone_hot')}</span>
+    <span class="tcl-item"><span class="tcl-sw" style="background:#962c1a"></span>${t('today.zone_extreme')}</span>`;
   document.getElementById("today-dist-chart").after(legend);
 
   // Move title to after legend, before explanation
@@ -764,7 +771,9 @@ function renderTodayChart(r) {
 
   const foot2 = document.createElement("div");
   foot2.className = "today-foot";
-  foot2.textContent = `Today: ${r.today_temp.toFixed(1)} °C · ${r.percentile.toFixed(0)}th percentile · median ${r.cutoffs.p50.toFixed(1)} °C · ${r.n_samples} observations · ${r.year_min}–${r.year_max}`;
+  foot2.textContent = _locale?.today?.foot2
+    ? t('today.foot2', {temp: r.today_temp.toFixed(1), pct: r.percentile.toFixed(0), median: r.cutoffs.p50.toFixed(1), samples: r.n_samples, year_min: r.year_min, year_max: r.year_max})
+    : `Today: ${r.today_temp.toFixed(1)} °C · ${r.percentile.toFixed(0)}th percentile · median ${r.cutoffs.p50.toFixed(1)} °C · ${r.n_samples} observations · ${r.year_min}–${r.year_max}`;
   document.querySelector(".today-chart").appendChild(foot2);
 }
 
@@ -854,7 +863,9 @@ async function renderTodayTrendChart() {
 
     const foot = document.createElement("div");
     foot.className = "today-foot";
-    foot.textContent = `Theil-Sen + TFPW MK: ${sign}${s.trend10.toFixed(2)} °C/decade · ${sig} · τ = ${s.tau} · ${s.n_years} yrs`;
+    foot.textContent = _locale?.today?.trend_foot
+      ? t('today.trend_foot', {trend: `${sign}${s.trend10.toFixed(2)}`, sig, tau: s.tau, n_years: s.n_years})
+      : `Theil-Sen + TFPW MK: ${sign}${s.trend10.toFixed(2)} °C/decade · ${sig} · τ = ${s.tau} · ${s.n_years} yrs`;
     document.getElementById("today-trend-card").appendChild(foot);
   } catch {
     /* silently skip if endpoint unavailable */
@@ -962,7 +973,7 @@ async function refreshCalendar() {
       const varLbl = (state.variables[state.selVar] || state.selVar).split("(")[0].trim();
       const titleEl = document.getElementById(`cal-title-${i}`);
       const subEl   = document.getElementById(`cal-sub-${i}`);
-      if (titleEl) titleEl.textContent = `Year-round trend · ${loc}`;
+      if (titleEl) titleEl.textContent = `Year-round trend · ${locName(loc)}`;
       if (subEl)   subEl.textContent   = `${varLbl} · ${data.method_label} · ±${state.window} d`;
     } catch(e) {
       console.error("Calendar error:", e);
@@ -1162,7 +1173,7 @@ function buildLocationList(locations) {
     
     const name = document.createElement("div");
     name.className = "loc-name";
-    name.textContent = loc;
+    name.textContent = locName(loc);
     
     div.appendChild(checkbox);
     div.appendChild(dot);
@@ -1179,7 +1190,7 @@ function updateLocDisplay() {
   if (state.selLocs.length === 0) {
     locDisplay.textContent = "None selected";
   } else if (state.selLocs.length === 1) {
-    locDisplay.textContent = state.selLocs[0];
+    locDisplay.textContent = locName(state.selLocs[0]);
   } else {
     locDisplay.textContent = `${state.selLocs.length} selected`;
   }
@@ -1408,6 +1419,7 @@ function renderAbout() {
 function renderStaticLabels() {
   if (!_locale?.ui) return;
   const u = _locale.ui;
+  const ch = _locale.charts || {};
   const setTxt = (id, val) => { const el = document.getElementById(id); if (el && val) el.textContent = val; };
   setTxt('heading-location', u.heading_location);
   setTxt('heading-controls', u.heading_controls);
@@ -1416,6 +1428,12 @@ function renderStaticLabels() {
   const legWarm = document.querySelector('.leg-warm');
   if (legCool && u.map_falling) legCool.textContent = u.map_falling;
   if (legWarm && u.map_rising)  legWarm.textContent = u.map_rising;
+  // Chart legend labels
+  setTxt('lbl-under-mean', ch.under_mean);
+  setTxt('lbl-over-mean',  ch.over_mean);
+  setTxt('lbl-trend-line', ch.trend_line);
+  setTxt('lbl-ci95',       ch.ci95);
+  setTxt('chart-change-lbl', ch.change_record);
 }
 
 // Build the composite locale key from the two separate localStorage values

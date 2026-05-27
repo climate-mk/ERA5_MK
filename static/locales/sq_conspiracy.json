@@ -19,7 +19,52 @@
     "chart_title": "Versioni Zyrtar i Narrativës i Temperaturave rreth {day_label} që nga viti {year_min} (Pa Verifikuar)",
     "trend_title": "Tendenca e Tyre e Temperaturës rreth {day_label} · {year_min}–{year_max} · Ekstrapolim Linear deri në 2050 (konvenientisht larg)",
     "explain2": "Kurba e famshme e Big Climate. Vini re ngjyrat emocionale — blu e ftohtë (e keqe) në të kuqe të flakë (panik tani) — për të manipuluar trurin tuaj reptilian. Çfarë nuk tregojnë: Periudha e Ngrohtë Mesjetare, kur Vikingët bënin bujqësi në Groenlandë PA ASNJË MAKINË. Shkencëtarët e vërtetë që kundërshtojnë nuk marrin financim. Pyesni: kujt i shërben frika?",
-    "explain3": "Çdo pikë është gjoja mesatarja e 15 ditëve më të nxehta të regjistruara kudo në Maqedoni që nga viti {year_min}. Ata përdorin diçka të quajtur Theil-Sen — metodë e projektuar fjalë për fjalë për të gjetur tendenca në rritje. Vija me pika është vizore e drejtuar drejt 2050, mjaftueshëm larg sa askush nuk mund ta kontrollojë. Brezi i hijezuar? Ata pranojnë se mund të kenë gabim për ±2,8°C. Nëse marzhi i gabimit është 2,8 gradë, ndoshta mos i panikosemi ende. Mendojeni."
+    "explain3": "Çdo pikë është gjoja mesatarja e 15 ditëve më të nxehta të regjistruara kudo në Maqedoni që nga viti {year_min}. Ata përdorin diçka të quajtur Theil-Sen — metodë e projektuar fjalë për fjalë për të gjetur tendenca në rritje. Vija me pika është vizore e drejtuar drejt 2050, mjaftueshëm larg sa askush nuk mund ta kontrollojë. Brezi i hijezuar? Ata pranojnë se mund të kenë gabim për ±2,8°C. Nëse marzhi i gabimit është 2,8 gradë, ndoshta mos i panikosemi ende. Mendojeni.",
+    "foot": "{temp} °C · gjoja percentila {pct} · {samples} mostra 'të verifikuara' ({year_min}–{year_max})",
+    "foot2": "Të Dhënat e Tyre: {temp} °C · gjoja percentila {pct} · mediana {median} °C · {samples} vëzhgime 'të paverifikuara' · {year_min}–{year_max}",
+    "today_label": "TË DHËNAT E TYRE",
+    "zone_cold": "Ftohtë",
+    "zone_cool": "Freskët",
+    "zone_normal": "Normal",
+    "zone_hot": "Nxehtë",
+    "zone_extreme": "Ekstreme",
+    "trend_foot": "Regresioni i tyre Globalist: {trend} °C/dekadë · {sig} · τ = {tau} · {n_years} vjet (por kush llogarit)"
+  },
+  "categories": {
+    "freezing": {"name": "Ngrirje",  "desc": "Ndër {d}-t më të ftohtat — por mos u shqetëso, do t'i 'rregullojnë' leximet vitin tjetër."},
+    "cold":     {"name": "Ftohtë",   "desc": "Më ftohtë se shumica e {d}-ve. Si e përshtatshme për narrativën e tyre."},
+    "nope":     {"name": "Normal",   "desc": "Normal? Sipas SENSORËVE TË TYRE pranë parkimeve, ndoshta."},
+    "hot":      {"name": "Nxehtë",   "desc": "Nxehtë, thonë ata. Matur pikërisht pranë pistës së aeroportit, sigurisht."},
+    "hell":     {"name": "Ferr",     "desc": "NXEHTËSI E JASHTËZAKONSHME (pranë parkimit asfalting). Top 5% që nga viti 1950. Koha perfekte për taksë të re karboni."}
+  },
+  "charts": {
+    "under_mean":    "Nën mesatare",
+    "over_mean":     "Mbi mesatare",
+    "trend_line":    "Vija e trendit",
+    "ci95":          "95% CI",
+    "change_record": "ndryshim gjatë rekordeve"
+  },
+  "locations": {
+    "Berovo":       "Berovë",
+    "Bitola":       "Bitolë",
+    "Debar":        "Dibër",
+    "Demir_Kapija": "Demir Kapia",
+    "Gevgelija":    "Gevgeli",
+    "Gostivar":     "Gostivar",
+    "Kavadarci":    "Kavadari",
+    "Kicevo":       "Kërçovë",
+    "Kochani":      "Koçani",
+    "Kumanovo":     "Kumanovë",
+    "Lazaropole":   "Lazaropole",
+    "Negotino":     "Negotinë",
+    "Ohrid":        "Ohër",
+    "Prilep":       "Prilepi",
+    "Radovis":      "Radovisht",
+    "Skopje":       "Shkup",
+    "Stip":         "Shtipi",
+    "Strumica":     "Strumicë",
+    "Tetovo":       "Tetovë",
+    "Veles":        "Velesi"
   },
   "hero": {
     "verdict_warming": "ATY pretendojnë ngrohje prej <em>{sign}{t100} {unit}</em> për shekull. Kjo është një gradë çdo <em>{yrs} vjet</em>. Kopshti i gjyshes sime është LULËZUES, faleminderit.",
