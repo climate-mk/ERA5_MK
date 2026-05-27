@@ -42,7 +42,11 @@
     "over_mean":     "Mbi mesatare",
     "trend_line":    "Vija e trendit",
     "ci95":          "95% CI",
-    "change_record": "ndryshim gjatë rekordeve"
+    "change_record":   "ndryshim gjatë rekordeve",
+    "cal_cooling":     "Ftohje",
+    "cal_warming":     "Ngrohje",
+    "cal_decreasing":  "Ulje",
+    "cal_increasing":  "Rritje"
   },
   "locations": {
     "Berovo":       "Berovë",
@@ -72,6 +76,13 @@
     "verdict_none": "Nuk u zbulua asnjë tendencë. Shkencëtarët e klimës goditën me çekiç.",
     "method_theilsen": "Metodë statistikore globaliste (Theil-Sen + Mann-Kendall)",
     "method_ols": "Metodë tjetër statistikore globaliste (OLS)"
+  },
+  "hero_category": {
+    "baseline":     "Bazë",
+    "moderate":     "Mesatar",
+    "bad":          "I keq",
+    "extreme":      "Ekstrem",
+    "catastrophic": "Katastrofik"
   },
   "about": {
     "heading": "Rreth kësaj faqeje",

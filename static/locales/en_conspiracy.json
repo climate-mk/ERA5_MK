@@ -42,7 +42,11 @@
     "over_mean":     "Over mean",
     "trend_line":    "Trend line",
     "ci95":          "95% CI",
-    "change_record": "change over the record"
+    "change_record":   "change over the record",
+    "cal_cooling":     "Cooling",
+    "cal_warming":     "Warming",
+    "cal_decreasing":  "Decreasing",
+    "cal_increasing":  "Increasing"
   },
   "locations": {},
   "hero": {
@@ -51,6 +55,13 @@
     "verdict_none": "No trend detected. Climate scientists hardest hit.",
     "method_theilsen": "Globalist statistical method (Theil-Sen + Mann-Kendall)",
     "method_ols": "Other globalist statistical method (OLS)"
+  },
+  "hero_category": {
+    "baseline":     "Baseline",
+    "moderate":     "Moderate",
+    "bad":          "Bad",
+    "extreme":      "Extreme",
+    "catastrophic": "Catastrophic"
   },
   "about": {
     "heading": "About This Website",

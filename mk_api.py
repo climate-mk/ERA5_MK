@@ -411,6 +411,8 @@ def compute_annual_trend():
         "year_min":      int(x_arr.min()),
         "year_max":      last_yr,
         "day_label":     dlabel,
+        "month_num":     month,
+        "day_num":       day,
         "hist_line":     {"x": x_hist.tolist(),
                           "y":     [round(v, 3) for v in y_hist],
                           "upper": [round(v, 3) for v in u_hist],
@@ -615,6 +617,8 @@ def compute_today_status():
         "distribution": distribution,
         "cutoffs":      cutoffs,
         "day_label":    dlabel,
+        "month_num":    month,
+        "day_num":      day,
     }
     _TODAY_CACHE[cache_key] = result
     _save_today_to_disk(cache_key, result)   # persist so restarts don't re-fetch

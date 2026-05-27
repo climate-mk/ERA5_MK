@@ -4,14 +4,14 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <meta http-equiv="Cache-Control" content="no-store">
-  <title>climate.mk — North Macedonia Climate Explorer</title>
+  <title>Climate.mk — North Macedonia Climate Explorer</title>
   <meta name="description" content="Interactive climate trend explorer for North Macedonia. Visualise ERA5-Land reanalysis data (1950–present) across 20 locations using Theil-Sen and Mann-Kendall statistical methods.">
   <meta name="keywords" content="North Macedonia, climate change, ERA5, temperature trends, precipitation, climate data, reanalysis">
-  <meta property="og:title" content="climate.mk — North Macedonia Climate Explorer">
+  <meta property="og:title" content="Climate.mk — North Macedonia Climate Explorer">
   <meta property="og:description" content="Explore long-term climate trends across North Macedonia with ERA5-Land reanalysis data.">
   <meta property="og:type" content="website">
-  <meta property="og:url" content="https://climate.kesma.wtf">
-  <link rel="canonical" href="https://climate.kesma.wtf">
+  <meta property="og:url" content="https://climate.mk">
+  <link rel="canonical" href="https://climate.mk">
   <link rel="icon" type="image/x-icon" href="favicon.ico">
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
@@ -131,8 +131,10 @@
   <div id="main-row">
     <div id="map-panel" class="panel">
       <div class="panel-h">
-        <div class="panel-title">North Macedonia</div>
-        <div class="panel-sub" id="map-station-count">20 WEATHER STATIONS</div>
+        <div>
+          <div class="panel-title">North Macedonia</div>
+          <div class="panel-sub" id="map-station-count" style="margin-top:3px">20 WEATHER STATIONS</div>
+        </div>
       </div>
       <div class="chart-wrap map-wrap">
         <div id="map-chart"></div>
@@ -166,6 +168,7 @@
           </div>
         </div>
       </div>
+      <p id="reg-explain" class="panel-explain"></p>
       <div class="chart-footer">
         <div class="chart-key">
           <span class="swatch"><i id="swatch-neg" style="background:var(--accent-cool);border-radius:50%"></i><span id="lbl-under-mean">Under mean</span></span>
@@ -212,7 +215,7 @@
     <a href="mailto:info@climate.mk" aria-label="Email">
       <svg width="20" height="20" viewBox="0 0 24 24" fill="currentColor"><path d="M20 4H4c-1.1 0-2 .9-2 2v12c0 1.1.9 2 2 2h16c1.1 0 2-.9 2-2V6c0-1.1-.9-2-2-2zm0 4l-8 5-8-5V6l8 5 8-5v2z"/></svg>
     </a>
-    <a href="https://x.com/PLACEHOLDER" target="_blank" rel="noopener" aria-label="X" style="display:none">
+    <a href="https://x.com/Climate_MK" target="_blank" rel="noopener" aria-label="X">
       <svg width="20" height="20" viewBox="0 0 24 24" fill="currentColor"><path d="M18.244 2.25h3.308l-7.227 8.26 8.502 11.24H16.17l-4.714-6.231-5.401 6.231H2.744l7.73-8.835L1.254 2.25H8.08l4.713 6.231zm-1.161 17.52h1.833L7.084 4.126H5.117z"/></svg>
     </a>
     <a href="https://bsky.app/profile/PLACEHOLDER" target="_blank" rel="noopener" aria-label="Bluesky" style="display:none">
@@ -235,7 +238,7 @@
   <!-- Footer -->
   <footer class="app-footer">
     <span>Data: <a href="https://cds.climate.copernicus.eu/datasets/reanalysis-era5-land" target="_blank" rel="noopener">ERA5-Land</a> | <a href="https://open-meteo.com" target="_blank" rel="noopener">Open-Meteo</a></span>
-    <span>© 2026 Climate.mk | <a href="user-manual.html">User Manual</a></span>
+    <span>© 2026 Climate.mk</span>
     <a href="https://github.com/kesma01/ERA5_MK" target="_blank" rel="noopener">
       <svg width="15" height="15" viewBox="0 0 24 24" fill="currentColor">
         <path d="M12 0C5.37 0 0 5.37 0 12c0 5.31 3.435 9.795 8.205 11.385.6.105.825-.255.825-.57 0-.285-.015-1.23-.015-2.235-3.015.555-3.795-.735-4.035-1.41-.135-.345-.72-1.41-1.23-1.695-.42-.225-1.02-.78-.015-.795.945-.015 1.62.87 1.845 1.23 1.08 1.815 2.805 1.305 3.495.99.105-.78.42-1.305.765-1.605-2.67-.3-5.46-1.335-5.46-5.925 0-1.305.465-2.385 1.23-3.225-.12-.3-.54-1.53.12-3.18 0 0 1.005-.315 3.3 1.23.96-.27 1.98-.405 3-.405s2.04.135 3 .405c2.295-1.56 3.3-1.23 3.3-1.23.66 1.65.24 2.88.12 3.18.765.84 1.23 1.905 1.23 3.225 0 4.605-2.805 5.625-5.475 5.925.435.375.81 1.095.81 2.22 0 1.605-.015 2.895-.015 3.3 0 .315.225.69.825.57A12.02 12.02 0 0 0 24 12c0-6.63-5.37-12-12-12z"/>
