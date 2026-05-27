@@ -628,6 +628,21 @@ app.secret_key = hashlib.sha256(DIRECT_LINE_SECRET.encode()).digest() if DIRECT_
 
 limiter = Limiter(get_remote_address, app=app, default_limits=[])
 
+@app.after_request
+def set_cache_headers(response):
+    """
+    Prevent stale static assets after deploys.
+    - HTML: no-store (always fetch fresh — tiny file, worth it)
+    - JS / CSS / JSON: no-cache (revalidate via ETag; 304 if unchanged = free)
+    - API JSON responses: already ephemeral, leave as-is
+    """
+    path = request.path
+    if path == "/" or path.endswith(".html"):
+        response.headers["Cache-Control"] = "no-store"
+    elif path.endswith((".js", ".css", ".json")):
+        response.headers["Cache-Control"] = "no-cache"
+    return response
+
 @app.route("/")
 def index():
     return send_from_directory("static", "index.html")
