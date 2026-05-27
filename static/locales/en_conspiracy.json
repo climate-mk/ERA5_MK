@@ -1,0 +1,80 @@
+{
+  "meta": {
+    "lang": "en",
+    "style": "conspiracy",
+    "label": "English — April Fools 🌡️"
+  },
+  "ui": {
+    "heading_today": "WEATHER MANIPULATION CONFIRMED",
+    "title_today": "Is the Big Climate Hoax Activated Today?",
+    "heading_location": "Location Indoctrination Data",
+    "heading_controls": "Their Charts (All Made Up, But Look Yourself)",
+    "heading_about": "About This Propaganda Machine",
+    "label_effects": "Globalist Agenda Talking Points (DEBUNKED)",
+    "map_falling": "COOLING (they won't tell you)",
+    "map_rising": "urban heat island, not CO₂"
+  },
+  "today": {
+    "explain1": "According to THEIR sensors — conveniently placed next to airport tarmacs, air conditioning vents, and asphalt parking lots — today's temperature is supposedly higher than normal. We've been told to trust 70+ years of 'reanalysis data'. Remember: whoever controls the data, controls the narrative. Do your own research before this page gets taken down.",
+    "chart_title": "Official Narrative Temperatures around {day_label} since {year_min} (Unverified)",
+    "trend_title": "Their Temperature Trend around {day_label} · {year_min}–{year_max} · Linear Extrapolation to 2050 (conveniently far away)",
+    "explain2": "Big Climate's famous bell curve. Notice how they use emotional colours — cold blue (bad) to fiery red (panic now) — to manipulate your lizard brain. What they don't show: the Medieval Warm Period, when Vikings farmed Greenland with ZERO SUVs. Real scientists who disagree get zero funding. Ask yourself: who benefits from the fear?",
+    "explain3": "Each dot is supposedly the average of the 15 hottest days recorded anywhere in Macedonia since {year_min}. They use something called Theil-Sen — a method that was literally designed to find upward trends. The dashed line is a straight ruler pointed at 2050, conveniently far enough that no one can check it. The shaded band? That's them admitting they could be off by ±2.8°C. If your margin of error is 2.8 degrees, maybe don't panic-tax us yet. Think of it as the range of plausible futures if you believe any of this."
+  },
+  "hero": {
+    "verdict_warming": "THEY claim warming of <em>{sign}{t100} {unit}</em> per century. That's one degree every <em>{yrs} years</em>. My grandmother's garden is doing FINE, thanks for asking.",
+    "verdict_cooling": "Wait — it's actually COOLING by <em>{sign}{t100} {unit}</em> per century? Funny how the mainstream media never reports THAT. Every <em>{yrs} years</em>: one degree colder. But sure, keep paying the carbon tax.",
+    "verdict_none": "No trend detected. Climate scientists hardest hit.",
+    "method_theilsen": "Globalist statistical method (Theil-Sen + Mann-Kendall)",
+    "method_ols": "Other globalist statistical method (OLS)"
+  },
+  "about": {
+    "heading": "About This Website",
+    "col1_title": "What Is This, Really?",
+    "col1_text": "Climate.mk uses ERA5 data — satellite-derived measurements processed by the ECMWF, an organisation funded by 35 European governments with a very clear interest in climate policy. We present their numbers so YOU can look at them yourself and form your own opinion. If a straight line going slightly upward since 1950 convinces you to accept carbon taxes and eat bugs, that's between you and your critical thinking skills. The <a href=\"https://github.com/kesma01/ERA5_MK\" target=\"_blank\" rel=\"noopener\">GitHub page</a> is public — check the code, check the data, check everything.",
+    "col2_title": "Why Are They Doing This?",
+    "col2_text1": "Southeastern Europe is supposedly warming at twice the global average. OR: most weather stations in the region are in cities that have grown dramatically since 1950, surrounded by concrete and asphalt — the Urban Heat Island effect — which has NOTHING to do with CO₂ and EVERYTHING to do with urban development.",
+    "col2_text2": "When you see a scary number going up on a chart, ask: WHO made the chart? WHO funded the research? WHAT policy do they want to pass with it? We're not saying the data is fake. We're saying: context matters. A 0.3°C rise per decade sounds terrifying in a headline. In a sweater, it's called Tuesday.",
+    "col3_title": "Their 'Methods' (Explained Simply)",
+    "col3_text": "Theil-Sen is a statistical method designed to be resistant to outliers — meaning it's specifically tuned to find a trend even when the data is messy. Mann-Kendall tests whether that trend is 'significant'. Combined, you get a very official-looking result that says 'it's getting hotter' with stars next to it. Visualizations powered by Highcharts (Norwegian company — Norway has enormous fossil fuel interests, just saying). For 'expert guidance' they point you to a chatbot named Ognen. Let that sink in. Check the <a href=\"https://github.com/kesma01/ERA5_MK\" target=\"_blank\" rel=\"noopener\">GitHub page</a> if you want the actual code."
+  },
+  "quotes": [
+    {"author": "Uncle Terry (Mechanic, Facebook, 2023)", "quote": "I've lived here 60 years and summers feel exactly the same to me. But sure, trust the satellite data from the government."},
+    {"author": "Anonymous (YouTube Comment, 2.4K likes)", "quote": "If the climate was really changing, why is it still snowing in April? Checkmate, scientists."},
+    {"author": "Chad Truthseeker (Independent Substack Journalist)", "quote": "Follow the money. Every single climate scientist is on a government grant. Every. Single. One. They don't bite the hand that feeds them."},
+    {"author": "Lord Christopher Monckton (British Politician)", "quote": "The science is NOT settled. I have reviewed the IPCC data personally and the models have been wrong every single time they have been tested."},
+    {"author": "Dave from the Comments (YouTube, 47K views)", "quote": "My tomatoes grew bigger this year than any year before. CO₂ is plant food. You're welcome, Mother Earth."},
+    {"author": "Telegram Channel 'TruthAboutWeather' (112,000 subscribers)", "quote": "HAARP facility in Alaska has been documented controlling regional weather patterns since 1993. This is not a conspiracy — it is a publicly funded program. Do your research before it gets deleted."},
+    {"author": "Anonymous Whistleblower (Former Weather Station Technician)", "quote": "I worked at a weather monitoring station for 11 years. We received memos asking us to 'adjust readings upward for regional consistency.' I quit in 2019. Nobody covered this story."},
+    {"author": "Nikola Tesla (Misattributed, but he would have agreed)", "quote": "The earth has its own natural thermostatic regulation. The idea that mankind can meaningfully alter the temperature of an entire planet with combustion engines is a triumph of bureaucracy over physics."},
+    {"author": "Popular Meme Account (@climaterealist, 890K followers)", "quote": "Sunspot cycles explain 94% of observed temperature variation. But try getting THAT published in Nature when your funding comes from the EU climate budget."},
+    {"author": "Your Common Sense (Internal Voice)", "quote": "If they are so deeply concerned about the planet, why do climate conference delegates fly private jets to Davos? We're just asking questions."},
+    {"author": "Steve (Regular Guy, Strumica)", "quote": "We had a cold snap last February. Where was the 'global warming' then? Exactly. It's called WEATHER. It goes up and down. Always has."},
+    {"author": "Retired Meteorologist (Name Withheld for Safety)", "quote": "I refused to use the words 'climate emergency' on air. I said 'warm weather pattern.' I was reassigned to the night shift two weeks later."},
+    {"author": "Popular Podcast Host (Episode #847: The Temperature Hoax)", "quote": "One point five degrees Celsius over 150 years. ONE AND A HALF DEGREES. The Roman Empire had warm periods. The Vikings had warm periods. Nobody taxed their carbon then."},
+    {"author": "Local Facebook Group 'Real News Macedonia' (34,000 members)", "quote": "This website is funded by EU globalists who want to force us onto electric vehicles made in China with batteries mined by children. Just thought you should know before you look at these charts."},
+    {"author": "The Guy Who Always Brings Up the Medieval Warm Period (Every Online Discussion)", "quote": "VIKINGS. GREENLAND. FARMING. NO CARS. Explain THAT with your CO₂ theory."}
+  ],
+  "effects": [
+    "Farmers in northern Europe finally able to grow crops year-round — mainstream media calls this a 'catastrophe'",
+    "Heating bills reportedly dropping in milder winters — this is GOOD news but it never makes the headlines",
+    "CO₂ levels rising — the same CO₂ that plants breathe and grow larger with — crop yields at record highs globally (you're welcome, trees)",
+    "Mediterranean beaches getting warmer — climate 'scientists' call this a crisis, tourists call it a holiday upgrade",
+    "Polar bear population: actually INCREASING according to researchers who don't receive IPCC funding",
+    "Arctic sea ice: varies naturally in 60–80 year cycles, just as it has for millions of years before humans owned cars",
+    "Wildfires: caused by decades of poor forest management policy and controlled burns that got out of hand — not your exhaust pipe",
+    "Droughts: regional weather patterns driven by ocean oscillations (AMO, PDO) that have been shifting for centuries — not CO₂",
+    "Sea level rise: approximately 3mm per year — that is 30cm per century — a problem solved by better coastal engineering, not carbon taxes",
+    "Urban Heat Island effect: the actual explanation for most of the 'warming' — they put thermometers next to air conditioning units and parking lots",
+    "Extreme weather events: identical in frequency to historical records — the media just covers them more now because it gets clicks",
+    "Electric vehicles: require lithium mining operations that destroy actual ecosystems in Chile and Congo — the hypocrisy is staggering",
+    "Carbon taxes: a wealth transfer mechanism sending money from working families directly to globalist NGOs, investment funds, and consultancies",
+    "Solar panels: manufactured in Chinese factories powered primarily by coal — the carbon footprint of 'green energy' is never discussed",
+    "Wind turbines: kill hundreds of thousands of birds annually, including protected eagle species — no environmental groups seem to care",
+    "'Scientists agree on climate change': 97% of those who applied for and received government climate grants agree — shocking statistical coincidence",
+    "The Paris Agreement: a plan to deindustrialise the West while China and India build dozens of new coal plants every year",
+    "Insect populations shifting: meaning there are fewer mosquitoes in some regions — somehow this is being presented as a negative",
+    "Migration due to 'climate': actually driven by economic policies, regional conflicts, and EU incentive structures — not temperature",
+    "Higher food prices: caused by central bank money printing, supply chain disruption, and commodity speculation — not weather"
+  ]
+}

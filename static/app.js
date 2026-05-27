@@ -6,6 +6,42 @@
 
 const wait = ms => new Promise(res => setTimeout(res, ms));
 
+// ── Locale system ─────────────────────────────────────────────────────────────
+// JSON files live in static/locales/{lang}_{style}.json
+// t(key, vars)  — interpolate a string, e.g. t('today.explain1')
+// tArr(key)     — return an array, or null if missing / not an array
+// loadLocale()  — called once in init(); page reloads on locale switch
+
+let _locale = null;
+
+async function loadLocale(name) {
+  try {
+    const r = await fetch(`locales/${name}.json`);
+    if (!r.ok) throw new Error(r.status);
+    _locale = await r.json();
+  } catch (e) {
+    console.warn(`Locale '${name}' failed to load — using hardcoded defaults`);
+    _locale = null;
+  }
+}
+
+function t(key, vars = {}) {
+  if (!_locale) return key;
+  const parts = key.split('.');
+  let val = _locale;
+  for (const p of parts) { val = val?.[p]; if (val === undefined) return key; }
+  if (typeof val !== 'string') return key;
+  return val.replace(/\{(\w+)\}/g, (_, k) => (vars[k] !== undefined ? vars[k] : `{${k}}`));
+}
+
+function tArr(key) {
+  if (!_locale) return null;
+  const parts = key.split('.');
+  let val = _locale;
+  for (const p of parts) { val = val?.[p]; if (val === undefined) return null; }
+  return Array.isArray(val) ? val : null;
+}
+
 // ── Color constants ───────────────────────────────────────────────────────────
 
 const ACCENT   = "#C25A2C";
@@ -545,12 +581,12 @@ function renderHeroCards(data) {
           ? (() => {
               const t100 = Math.abs(st.trend10 * 10).toFixed(2);
               const yrs  = Math.abs(10 / st.trend10).toFixed(1);
-              const dir  = isPos ? "warm" : "cool";
-              return `A century to ${dir} by <em>${sg}${t100} ${unit}</em> – at current pace, every <em>${yrs} years</em> adds another degree.`;
+              const key  = isPos ? "hero.verdict_warming" : "hero.verdict_cooling";
+              return t(key, {sign: sg, t100, unit, yrs});
             })()
-          : "No detectable trend at this day of year.")
+          : t("hero.verdict_none"))
       : null;
-    const methodText = st.method === "OLS" ? "OLS linear regression" : "Theil-Sen + TFPW Mann-Kendall";
+    const methodText = st.method === "OLS" ? t("hero.method_ols") : t("hero.method_theilsen");
 
     return `<div class="loc-hero-card">
       <div class="loc-hero-main">
@@ -590,10 +626,10 @@ async function renderTodayStatus() {
     const r = await fetch("api/today_status").then(r => r.json());
     if (!r.available) return;
     el.innerHTML = `
-      <div class="sec-heading">Macedonia Today</div>
+      <div class="sec-heading">${t('ui.heading_today')}</div>
       <div class="today-grid">
         <div class="today-card">
-          <div class="today-h">Is it Hot in Macedonia Today?</div>
+          <div class="today-h">${t('ui.title_today')}</div>
           <div class="today-body">
             <span class="today-dot" style="background:${r.color}"></span>
             <div class="today-text">
@@ -601,13 +637,13 @@ async function renderTodayStatus() {
               <div class="today-desc">${r.description}</div>
             </div>
           </div>
-          <p class="today-explain">Today's peak is the highest temperature forecast across all 20 stations, ranked against 70+ years of ERA5-Land records for this same ±7-day window. The colour and label show where today falls in the full historical range.</p>
+          <p class="today-explain">${t('today.explain1')}</p>
           <div class="today-foot">
             ${r.today_temp.toFixed(1)} °C · ${r.percentile.toFixed(0)}th percentile · ${r.n_samples.toLocaleString()} samples (${r.year_min}–${r.year_max})
           </div>
         </div>
         <div class="today-chart">
-          <div class="today-chart-title">Macedonia daily max temperatures for the two weeks around ${r.day_label} since ${r.year_min}</div>
+          <div class="today-chart-title">${t('today.chart_title', {day_label: r.day_label, year_min: r.year_min})}</div>
           <div id="today-dist-chart"></div>
         </div>
         <div class="today-chart" id="today-trend-card">
@@ -723,7 +759,7 @@ function renderTodayChart(r) {
   const explain2 = document.createElement("p");
   explain2.className = "today-explain";
   explain2.style.padding = "6px 0 4px";
-  explain2.textContent = "The curve shows how often each peak temperature occurred on days like today across all years. Colours mark climatological zones — from cold blue through the typical beige band to extreme red — so you can see at a glance where today sits.";
+  explain2.textContent = t('today.explain2');
   document.querySelector(".today-chart").appendChild(explain2);
 
   const foot2 = document.createElement("div");
@@ -739,7 +775,7 @@ async function renderTodayTrendChart() {
 
     // Update title with actual year range
     const titleEl = document.getElementById("today-trend-title");
-    if (titleEl) titleEl.textContent = `Macedonia peak temperatures around ${d.day_label} · ${d.year_min}–${d.year_max} with linear projection to 2050`;
+    if (titleEl) titleEl.textContent = t('today.trend_title', {day_label: d.day_label, year_min: d.year_min, year_max: d.year_max});
 
     const histBand = d.hist_line.x.map((x, i) => [x, d.hist_line.lower[i], d.hist_line.upper[i]]);
     const fcBand   = d.projection_line.x.map((x, i) => [x, d.projection_line.lower[i], d.projection_line.upper[i]]);
@@ -813,7 +849,7 @@ async function renderTodayTrendChart() {
     const explain3 = document.createElement("p");
     explain3.className = "today-explain";
     explain3.style.padding = "4px 0 2px";
-    explain3.textContent = `Each dot is the average of the 15 hottest days recorded anywhere in Macedonia during this ±7-day window each year since ${d.year_min}. The Theil-Sen trend is highly significant (p < 0.0001); the dashed line projects it linearly to 2050. The shaded band is the 95% confidence interval — it fans out over time because even a small uncertainty in the slope compounds year after year, reaching roughly ±2.8°C by 2050. Think of it as the range of plausible futures if current warming continues at the same pace.`;
+    explain3.textContent = t('today.explain3', {year_min: d.year_min});
     document.getElementById("today-trend-card").appendChild(explain3);
 
     const foot = document.createElement("div");
@@ -1350,9 +1386,45 @@ function _scheduleTokenRefresh(expiresIn) {
   }, refreshAfterMs);
 }
 
+// ── About section renderer ────────────────────────────────────────────────────
+// Updates static HTML about section from locale data when a non-default locale
+// is loaded. Elements are identified by ID added in index.html.
+
+function renderAbout() {
+  if (!_locale?.about) return;
+  const a = _locale.about;
+  const setHtml = (id, val) => { const el = document.getElementById(id); if (el && val) el.innerHTML = val; };
+  setHtml('about-heading',   a.heading);
+  setHtml('about-col1-title', a.col1_title);
+  setHtml('about-col1-text',  a.col1_text);
+  setHtml('about-col2-title', a.col2_title);
+  setHtml('about-col2-text1', a.col2_text1);
+  setHtml('about-col2-text2', a.col2_text2);
+  setHtml('about-col3-title', a.col3_title);
+  setHtml('about-col3-text',  a.col3_text);
+}
+
+// Updates static headings in the toolbar area from locale
+function renderStaticLabels() {
+  if (!_locale?.ui) return;
+  const u = _locale.ui;
+  const setTxt = (id, val) => { const el = document.getElementById(id); if (el && val) el.textContent = val; };
+  setTxt('heading-location', u.heading_location);
+  setTxt('heading-controls', u.heading_controls);
+  // Map legend
+  const legCool = document.querySelector('.leg-cool');
+  const legWarm = document.querySelector('.leg-warm');
+  if (legCool && u.map_falling) legCool.textContent = u.map_falling;
+  if (legWarm && u.map_rising)  legWarm.textContent = u.map_rising;
+}
+
 // ── Init ──────────────────────────────────────────────────────────────────────
 
 async function init() {
+
+  // Load locale before rendering anything
+  const _locName = localStorage.getItem('mk_locale') || 'en_default';
+  await loadLocale(_locName);
 
   // Fetch metadata + topo + initial trends in parallel
   const todayDoy = getTodayDOY();
@@ -1411,6 +1483,10 @@ async function init() {
   // Initial DOY badge
   badge.textContent = doyBadge(state.doy);
 
+  // Apply locale to static page elements
+  renderAbout();
+  renderStaticLabels();
+
   // Init charts
   initRegChart();
 
@@ -1427,16 +1503,23 @@ init().catch(console.error);
 
 async function loadQuote() {
   try {
-    const resp = await fetch('climate_quotes.csv');
-    const text = await resp.text();
-    const lines = text.trim().split(/\r?\n/).slice(1);
-    const rows = lines.map(line => {
-      const m = line.match(/^"(.+)","(.+)"$/) ||
-                line.match(/^(.+?),"(.+)"$/) ||
-                line.match(/^"(.+)",(.+)$/) ||
-                line.match(/^(.+?),(.+)$/);
-      return m ? { author: m[1].trim(), quote: m[2].trim() } : null;
-    }).filter(Boolean);
+    // Use locale quotes if available, otherwise fall back to CSV
+    const localeQuotes = tArr('quotes');
+    let rows;
+    if (localeQuotes && localeQuotes.length) {
+      rows = localeQuotes;
+    } else {
+      const resp = await fetch('climate_quotes.csv');
+      const text = await resp.text();
+      const lines = text.trim().split(/\r?\n/).slice(1);
+      rows = lines.map(line => {
+        const m = line.match(/^"(.+)","(.+)"$/) ||
+                  line.match(/^(.+?),"(.+)"$/) ||
+                  line.match(/^"(.+)",(.+)$/) ||
+                  line.match(/^(.+?),(.+)$/);
+        return m ? { author: m[1].trim(), quote: m[2].trim() } : null;
+      }).filter(Boolean);
+    }
     const row = rows[Math.floor(Math.random() * rows.length)];
     const card = document.getElementById('quote-card');
     card.innerHTML = `<div><p class="quote-text">${row.quote}</p><span class="quote-author">${row.author}</span></div>`;
@@ -1448,12 +1531,19 @@ loadQuote();
 
 async function loadEffects() {
   try {
-    const resp = await fetch('effects.csv');
-    const text = await resp.text();
-    const items = text.trim().split(/\r?\n/).map(l => l.trim()).filter(Boolean);
-    const shuffled = items.sort(() => Math.random() - 0.5).slice(0, 4);
+    // Use locale effects if available, otherwise fall back to CSV
+    const localeEffects = tArr('effects');
+    let items;
+    if (localeEffects && localeEffects.length) {
+      items = localeEffects;
+    } else {
+      const resp = await fetch('effects.csv');
+      const text = await resp.text();
+      items = text.trim().split(/\r?\n/).map(l => l.trim()).filter(Boolean);
+    }
+    const shuffled = [...items].sort(() => Math.random() - 0.5).slice(0, 4);
     const card = document.getElementById('effects-card');
-    card.innerHTML = `<p class="action-card-label">Some effects of the climate changes</p>
+    card.innerHTML = `<p class="action-card-label">${t('ui.label_effects')}</p>
       <ul class="effects-list">${shuffled.map(i => `<li>${i}</li>`).join('')}</ul>`;
   } catch (e) { /* silently skip */ }
 }
@@ -1505,10 +1595,20 @@ if (_savedTheme && _savedTheme !== "default") {
   if (_sel) _sel.value = _savedTheme;
 }
 document.getElementById("mdr-style-select").addEventListener("change", function() {
-  const t = this.value;
-  document.documentElement.setAttribute("data-theme", t === "default" ? "" : t);
-  localStorage.setItem("mk_theme", t);
+  const theme = this.value;
+  document.documentElement.setAttribute("data-theme", theme === "default" ? "" : theme);
+  localStorage.setItem("mk_theme", theme);
 });
+
+// Locale / content-style switcher — reloads page so all rendered text updates
+const _locSel = document.getElementById("mdr-locale-select");
+if (_locSel) {
+  _locSel.value = localStorage.getItem("mk_locale") || "en_default";
+  _locSel.addEventListener("change", function() {
+    localStorage.setItem("mk_locale", this.value);
+    window.location.reload();
+  });
+}
 
 if (document.fonts && document.fonts.ready) {
   document.fonts.ready.then(() => {

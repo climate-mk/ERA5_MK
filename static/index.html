@@ -46,11 +46,11 @@
   <section id="today-status" class="today-status" hidden></section>
 
   <!-- Hero + sig — JS-populated; repeats once per selected location -->
-  <div class="sec-heading">Location details</div>
+  <div class="sec-heading" id="heading-location">Location details</div>
   <section id="hero"></section>
 
   <!-- Controls / toolbar -->
-  <div class="sec-heading sec-heading--sm">Location selection, Controls, and Charts</div>
+  <div class="sec-heading sec-heading--sm" id="heading-controls">Location selection, Controls, and Charts</div>
   <div class="toolbar" id="controls-bar">
 
     <!-- Location -->
@@ -188,20 +188,20 @@
 
   <!-- About -->
   <section id="about" class="about-section">
-    <div class="sec-heading" style="padding: 0 0 20px 0;">About us</div>
+    <div class="sec-heading" id="about-heading" style="padding: 0 0 20px 0;">About us</div>
     <div class="about-body">
       <div class="about-col">
-        <div class="about-title">About climate.mk</div>
-        <p>Climate.mk is a volunteer-driven platform, developed with AI assitance, designed to visualize ERA5 reanalysis data for public education on regional climate change. The project aims to highlight the impacts of global warming on North Macedonia and the surrounding region. You can contact us and contribute via the <a href="https://github.com/kesma01/ERA5_MK" target="_blank" rel="noopener">GitHub page</a> and, if you like what you see, we encourage you to Buy us a coffee.</p>
+        <div class="about-title" id="about-col1-title">About climate.mk</div>
+        <p id="about-col1-text">Climate.mk is a volunteer-driven platform, developed with AI assistance, designed to visualize ERA5 reanalysis data for public education on regional climate change. The project aims to highlight the impacts of global warming on North Macedonia and the surrounding region. You can contact us and contribute via the <a href="https://github.com/kesma01/ERA5_MK" target="_blank" rel="noopener">GitHub page</a> and, if you like what you see, we encourage you to Buy us a coffee.</p>
       </div>
       <div class="about-col">
-        <div class="about-title">Why do we do this?</div>
-        <p>Southeastern Europe is warming at nearly twice the global average rate. The effects are already here - longer summers, shrinking rivers, record-breaking heat, and fires burning wider every year.</p>
-        <p style="margin-top:10px;">Numbers make it harder to look away. When you see how many more hot days we've had this decade compared to the last, or how rainfall has shifted over time, it stops feeling like abstract news and starts feeling like what it is: a local problem, happening now. Understanding what's changing - here, in our own backyard - is the first step to doing something about it.</p>
+        <div class="about-title" id="about-col2-title">Why do we do this?</div>
+        <p id="about-col2-text1">Southeastern Europe is warming at nearly twice the global average rate. The effects are already here - longer summers, shrinking rivers, record-breaking heat, and fires burning wider every year.</p>
+        <p id="about-col2-text2" style="margin-top:10px;">Numbers make it harder to look away. When you see how many more hot days we've had this decade compared to the last, or how rainfall has shifted over time, it stops feeling like abstract news and starts feeling like what it is: a local problem, happening now. Understanding what's changing - here, in our own backyard - is the first step to doing something about it.</p>
       </div>
       <div class="about-col">
-        <div class="about-title">Methods used</div>
-        <p>We utilize statistical methods for slope calculation and to detect trends while correcting for serial correlation. Data processing involves modeling, elevation-based lapse-rate corrections, and window half-width smoothing to analyze multi-decade climate shifts, with visualizations powered by the Highcharts library. For more detailed information about these methods, the website or the regional climate changes, consult our chatbot Ognen, The Climate Assistant or visit the <a href="https://github.com/kesma01/ERA5_MK" target="_blank" rel="noopener">GitHub page</a>.</p>
+        <div class="about-title" id="about-col3-title">Methods used</div>
+        <p id="about-col3-text">We utilize statistical methods for slope calculation and to detect trends while correcting for serial correlation. Data processing involves modeling, elevation-based lapse-rate corrections, and window half-width smoothing to analyze multi-decade climate shifts, with visualizations powered by the Highcharts library. For more detailed information about these methods, the website or the regional climate changes, consult our chatbot Ognen, The Climate Assistant or visit the <a href="https://github.com/kesma01/ERA5_MK" target="_blank" rel="noopener">GitHub page</a>.</p>
       </div>
     </div>
   </section>
@@ -267,7 +267,16 @@
       <a href="user-manual.html">Manual</a>
     </nav>
 
-    <!-- Style switcher -->
+    <!-- Content style / locale -->
+    <div class="mdr-section">
+      <div class="mdr-label">Content style</div>
+      <select id="mdr-locale-select" class="mdr-select">
+        <option value="en_default">English — Default</option>
+        <option value="en_conspiracy">🌡️ April Fools</option>
+      </select>
+    </div>
+
+    <!-- Display style / typography -->
     <div class="mdr-section">
       <div class="mdr-label">Display style</div>
       <select id="mdr-style-select" class="mdr-select">
