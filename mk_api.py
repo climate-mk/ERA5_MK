@@ -48,14 +48,14 @@ LOC_COORDS = {
 
 # ── Direct Line config ─────────────────────────────────────────────────────────
 
-DIRECT_LINE_SECRET   = os.getenv("DIRECT_LINE_SECRET", "")
-_DL_GENERATE_URL     = "https://europe.directline.botframework.com/v3/directline/tokens/generate"
-_DL_REFRESH_URL      = "https://europe.directline.botframework.com/v3/directline/tokens/refresh"
-_TOKEN_CACHE_BUFFER  = 300   # treat token as expired if < 5 min remaining
+from chat_config import (
+    DIRECT_LINE_SECRET, DL_GENERATE_URL, DL_REFRESH_URL,
+    TOKEN_CACHE_BUFFER, TOKEN_LIMIT_MINUTE, TOKEN_LIMIT_HOUR,
+    CHAT_ERROR_RATE_LIMIT, CHAT_ERROR_GENERIC, CHAT_ERROR_GLOBAL_LIMIT,
+    CHAT_GLOBAL_HOURLY_LIMIT, CHAT_GLOBAL_DAILY_LIMIT,
+)
 
-# Rate limits — change these two strings to tune the /api/token endpoints
-TOKEN_LIMIT_MINUTE = "3 per minute"
-TOKEN_LIMIT_HOUR   = "20 per hour"
+_global_chat_counter = {"hour": -1, "hour_count": 0, "day": -1, "day_count": 0}
 
 # ── Load data ──────────────────────────────────────────────────────────────────
 
@@ -656,7 +656,10 @@ def api_meta():
         "variables":   VARIABLES,
         "month_names": MONTH_NAMES,
         "palette":     PALETTE,
-        "chat_enabled": bool(DIRECT_LINE_SECRET),
+        "chat_enabled":          bool(DIRECT_LINE_SECRET),
+        "chat_error_rate_limit":   CHAT_ERROR_RATE_LIMIT,
+        "chat_error_generic":      CHAT_ERROR_GENERIC,
+        "chat_error_global_limit": CHAT_ERROR_GLOBAL_LIMIT,
     })
 
 @app.route("/api/regression")
@@ -763,16 +766,31 @@ def get_token():
 
     # Return cached token if it still has more than TOKEN_CACHE_BUFFER seconds left
     cached = session.get("dl_token")
-    if cached and time.time() < cached["expires_at"] - _TOKEN_CACHE_BUFFER:
+    if cached and time.time() < cached["expires_at"] - TOKEN_CACHE_BUFFER:
         return jsonify({
             "token":          cached["token"],
             "conversationId": cached["conversationId"],
             "expires_in":     int(cached["expires_at"] - time.time()),
         })
 
+    # Global hourly / daily cap (new sessions only — cache hits bypass this)
+    if CHAT_GLOBAL_HOURLY_LIMIT > 0 or CHAT_GLOBAL_DAILY_LIMIT > 0:
+        current_hour = int(time.time() // 3600)
+        current_day  = int(time.time() // 86400)
+        if _global_chat_counter["hour"] != current_hour:
+            _global_chat_counter.update({"hour": current_hour, "hour_count": 0})
+        if _global_chat_counter["day"] != current_day:
+            _global_chat_counter.update({"day": current_day, "day_count": 0})
+        if CHAT_GLOBAL_HOURLY_LIMIT > 0 and _global_chat_counter["hour_count"] >= CHAT_GLOBAL_HOURLY_LIMIT:
+            return jsonify({"error": "chat_limit_reached"}), 429
+        if CHAT_GLOBAL_DAILY_LIMIT > 0 and _global_chat_counter["day_count"] >= CHAT_GLOBAL_DAILY_LIMIT:
+            return jsonify({"error": "chat_limit_reached"}), 429
+        _global_chat_counter["hour_count"] += 1
+        _global_chat_counter["day_count"] += 1
+
     try:
         resp = http_requests.post(
-            _DL_GENERATE_URL,
+            DL_GENERATE_URL,
             headers={"Authorization": f"Bearer {DIRECT_LINE_SECRET}"},
             timeout=10,
         )
@@ -807,7 +825,7 @@ def refresh_token():
 
     try:
         resp = http_requests.post(
-            _DL_REFRESH_URL,
+            DL_REFRESH_URL,
             headers={"Authorization": f"Bearer {cached['token']}"},
             timeout=10,
         )

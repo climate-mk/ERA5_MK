@@ -1319,18 +1319,41 @@ document.getElementById("window-input").addEventListener("change", function() {
 let _chatDirectLine  = null;
 let _chatRefreshTimer = null;
 let _conversationStarted = false;
+let _chatErrorRateLimit   = "Chat is temporarily unavailable — too many requests. Please try again in a few minutes.";
+let _chatErrorGeneric     = "Chat is temporarily unavailable. Please try again later.";
+let _chatErrorGlobalLimit = "The chat assistant has reached its limit for now. Please try again in a little while.";
 
 async function openChat() {
   document.getElementById("chat-modal").classList.add("open");
   document.body.classList.add("chat-modal-open");
+  const errEl    = document.getElementById("chat-error");
+  const chatEl   = document.getElementById("webchat-container");
+  const creditEl = document.querySelector(".chat-credit");
+  errEl.hidden = true;
+  chatEl.style.display = "";
+  if (creditEl) creditEl.hidden = false;
   if (_chatDirectLine) return;   // already initialised — reuse existing session
   try {
-    const res  = await fetch("/api/token");
+    const res = await fetch("/api/token");
+    if (!res.ok) {
+      let errorCode = null;
+      if (res.status === 429) {
+        try { const d = await res.json(); errorCode = d.error; } catch {}
+      }
+      const msg = errorCode === "chat_limit_reached" ? _chatErrorGlobalLimit
+                : res.status === 429                 ? _chatErrorRateLimit
+                : _chatErrorGeneric;
+      throw Object.assign(new Error("Token error"), { status: res.status, msg });
+    }
     const data = await res.json();
-    if (!res.ok) throw new Error(data.error || "Token error");
     _initWebChat(data.token, data.expires_in);
   } catch (e) {
     console.error("Chat init failed:", e);
+    const msg = e.msg || _chatErrorGeneric;
+    chatEl.style.display = "none";
+    if (creditEl) creditEl.hidden = true;
+    errEl.innerHTML = `<strong>Chat unavailable</strong><span>${msg}</span>`;
+    errEl.hidden = false;
   }
 }
 
@@ -1483,6 +1506,10 @@ async function init() {
     if (k === state.selVar) opt.selected = true;
     sel.appendChild(opt);
   });
+
+  if (meta.chat_error_rate_limit)   _chatErrorRateLimit   = meta.chat_error_rate_limit;
+  if (meta.chat_error_generic)      _chatErrorGeneric     = meta.chat_error_generic;
+  if (meta.chat_error_global_limit) _chatErrorGlobalLimit = meta.chat_error_global_limit;
 
   // Show/hide chat button based on server config
   if (!meta.chat_enabled) {
