@@ -319,6 +319,12 @@ body {
 .app-footer a { color: var(--ink-soft); text-decoration: none; display: inline-flex; align-items: center; gap: 5px; }
 .app-footer a:hover { color: var(--accent); }
 
+/* ── Contact strip ───────────────────────────────────────────────────────────── */
+
+.contact-strip { display: flex; justify-content: center; align-items: center; gap: 20px; padding: 10px 40px; border-top: 1px solid var(--rule); border-bottom: 1px solid var(--rule); background: var(--paper-2); }
+.contact-strip a { display: inline-flex; align-items: center; justify-content: center; color: var(--ink-soft); padding: 8px; text-decoration: none; }
+.contact-strip a:hover { color: var(--accent); }
+
 /* ── Loading overlay ─────────────────────────────────────────────────────────── */
 
 .chart-wrap { position: relative; }
@@ -426,6 +432,7 @@ body.chat-modal-open { overflow: hidden; }
   .today-chart  { padding: 14px 14px 16px; }
   .today-chart-title { font-size: 12px; }
   #today-dist-chart  { min-height: 200px; }
+  .contact-strip { padding: 10px 14px; gap: 14px; }
 }
 
 /* ── Hamburger button ────────────────────────────────────────────────────────── */
