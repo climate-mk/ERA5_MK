@@ -4,7 +4,7 @@ Run:  source venv/bin/activate && python3 mk_api.py
 Open: http://127.0.0.1:5050
 """
 
-import os, glob, time, hashlib
+import os, glob, time, hashlib, json, threading
 import numpy as np
 import pandas as pd
 import requests as http_requests
@@ -165,9 +165,14 @@ def window_raw(loc_data, month, day, half_window, col):
     sub["x"] = sub["year"] + (sub["date"].dt.dayofyear - 1) / 365.0
     return sub["x"].to_numpy(float), sub[col].to_numpy(float)
 
-# ── Regression computation ─────────────────────────────────────────────────────
+# ── Regression computation (in-memory cached) ─────────────────────────────────
+
+_REGRESSION_CACHE = {}
 
 def compute_regression(loc, var, month, day, half_window, col, method):
+    _key = (loc, var, month, day, half_window, col, method)
+    if _key in _REGRESSION_CACHE:
+        return _REGRESSION_CACHE[_key]
     ld     = data[data["location"] == loc]
     series = window_series(ld, month, day, half_window, col)
     n_raw  = int(window_filter(ld, month, day, half_window)[col].notna().sum())
@@ -237,7 +242,7 @@ def compute_regression(loc, var, month, day, half_window, col, method):
     if ar1 is not None:
         fit_desc += f"  ·  AR(1)={ar1:.2f}"
 
-    return {
+    result = {
         "loc": loc,
         "year_min": int(x_arr.min()),
         "year_max": int(x_arr.max()),
@@ -264,8 +269,10 @@ def compute_regression(loc, var, month, day, half_window, col, method):
             "ar1":          ar1,
         },
     }
+    _REGRESSION_CACHE[_key] = result
+    return result
 
-# ── Calendar computation (cached) ──────────────────────────────────────────────
+# ── Calendar computation (in-memory + filesystem cached) ──────────────────────
 
 _CAL_CACHE = {}
 
@@ -273,6 +280,15 @@ def compute_calendar(loc, col, var, half_window, method):
     key = (loc, col, half_window, method)
     if key in _CAL_CACHE:
         return _CAL_CACHE[key]
+
+    # FS cache: survives service restarts (data only changes once/day via cron)
+    today_str   = _today_mk().date().isoformat()
+    fs_filename = f"cal_{loc}_{col}_{half_window}_{method}_{today_str}.json"
+    fs_path     = os.path.join(_CACHE_DIR, fs_filename)
+    cached      = _fs_load(fs_path)
+    if cached is not None:
+        _CAL_CACHE[key] = cached
+        return cached
 
     vs     = vstyle(var)
     ld     = data[data["location"] == loc]
@@ -311,6 +327,9 @@ def compute_calendar(loc, col, var, half_window, method):
 
     result = {"days": days}
     _CAL_CACHE[key] = result
+    _fs_save(fs_path, result,
+             glob_pattern=os.path.join(_CACHE_DIR, f"cal_{loc}_{col}_{half_window}_{method}_*.json"),
+             anchor_date=today_str)
     return result
 
 # ── Timezone helper ────────────────────────────────────────────────────────────
@@ -331,6 +350,13 @@ def compute_annual_trend():
     cache_key = today.date().isoformat()
     if cache_key in _ANNUAL_TREND_CACHE:
         return _ANNUAL_TREND_CACHE[cache_key]
+
+    # FS cache: survives restarts
+    fs_path = os.path.join(_CACHE_DIR, f"annual_trend_{cache_key}.json")
+    cached  = _fs_load(fs_path)
+    if cached is not None:
+        _ANNUAL_TREND_CACHE[cache_key] = cached
+        return cached
 
     month, day = today.month, today.day
     dlabel     = f"{MONTH_NAMES[month - 1]} {day}"
@@ -401,12 +427,45 @@ def compute_annual_trend():
         },
     }
     _ANNUAL_TREND_CACHE[cache_key] = result
+    _fs_save(fs_path, result,
+             glob_pattern=os.path.join(_CACHE_DIR, "annual_trend_*.json"),
+             anchor_date=cache_key)
     return result
+
+# ── Generic filesystem cache helpers ──────────────────────────────────────────
+
+_CACHE_DIR = os.path.join(os.path.dirname(__file__), "cache")
+
+def _fs_load(path):
+    """Load a JSON cache file; return None on any error."""
+    try:
+        with open(path) as f:
+            return json.load(f)
+    except Exception:
+        return None
+
+def _fs_save(path, data, glob_pattern=None, keep_days=3, anchor_date=None):
+    """Write data as JSON; optionally prune old sibling files by date suffix."""
+    try:
+        os.makedirs(os.path.dirname(path), exist_ok=True)
+        with open(path, "w") as f:
+            json.dump(data, f)
+        if glob_pattern and anchor_date:
+            cutoff = (pd.Timestamp(anchor_date) - pd.Timedelta(days=keep_days)).date().isoformat()
+            for p in glob.glob(glob_pattern):
+                # Filenames end with _YYYY-MM-DD.json
+                stem = os.path.basename(p)
+                date_part = stem[-len("YYYY-MM-DD.json"):-len(".json")]
+                if date_part < cutoff:
+                    try: os.remove(p)
+                    except Exception: pass
+    except Exception:
+        pass  # disk failure is non-fatal
 
 # ── Today status ("Is it Hot in Macedonia Today?") ─────────────────────────────
 
 _TODAY_CACHE     = {}
-_TODAY_CACHE_DIR = os.path.join(os.path.dirname(__file__), "cache")
+_TODAY_CACHE_DIR = _CACHE_DIR
 
 _TODAY_CATEGORIES = [
     # (max_percentile_exclusive, name, hex, description_template)
@@ -750,6 +809,23 @@ def refresh_token():
         "conversationId": data["conversationId"],
         "expires_in":     data["expires_in"],
     })
+
+# ── Background pre-warm ────────────────────────────────────────────────────────
+# After every restart, silently pre-compute the most expensive entries so the
+# first real visitor doesn't wait.  Runs in a daemon thread; errors are ignored.
+
+def _prewarm():
+    time.sleep(3)  # let gunicorn/Flask finish binding before we start heavy work
+    try: compute_annual_trend()
+    except Exception: pass
+    try: compute_today_status()
+    except Exception: pass
+    # Calendar for all locations with default params (temperature_max, w=7, theilsen)
+    for _loc in list(LOC_COORDS.keys()):
+        try: compute_calendar(_loc, "temperature_max", "temperature_max", 7, "theilsen")
+        except Exception: pass
+
+threading.Thread(target=_prewarm, daemon=True).start()
 
 if __name__ == "__main__":
     print("API running at http://127.0.0.1:5050")
