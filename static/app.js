@@ -1492,9 +1492,13 @@ async function init() {
 
   // First load
   await refreshRegression();
-  refreshCalendar();  // async, don't await
-  refreshMap();       // async, don't await
+  refreshCalendar();    // async, don't await
+  refreshMap();         // async, don't await
   renderTodayStatus();  // async, don't await — country-wide, doesn't depend on selection
+
+  // Quote + effects use locale data — must run after loadLocale() resolves
+  loadQuote();
+  loadEffects();
 }
 
 init().catch(console.error);
@@ -1527,8 +1531,6 @@ async function loadQuote() {
   } catch (e) { /* silently skip */ }
 }
 
-loadQuote();
-
 async function loadEffects() {
   try {
     // Use locale effects if available, otherwise fall back to CSV
@@ -1547,8 +1549,6 @@ async function loadEffects() {
       <ul class="effects-list">${shuffled.map(i => `<li>${i}</li>`).join('')}</ul>`;
   } catch (e) { /* silently skip */ }
 }
-
-loadEffects();
 
 // ── Welcome modal ─────────────────────────────────────────────────────────────
 
