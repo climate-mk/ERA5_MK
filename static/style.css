@@ -541,3 +541,80 @@ body.drawer-open { overflow: hidden; }
 }
 .mdr-chat-btn:hover { background: var(--paper-2); }
 .mdr-chat-avatar { width: 34px; height: 34px; border-radius: 50%; flex-shrink: 0; }
+
+/* ─────────────────────────────────────────────────────────────────────────────
+   MINIMAL THEME
+   JetBrains Mono throughout, no italics, squarer corners.
+   Activated by data-theme="minimal" on <html>.
+──────────────────────────────────────────────────────────────────────────────*/
+
+[data-theme="minimal"] {
+  --radius: 3px;
+}
+
+/* Every element gets JetBrains Mono and loses italics */
+[data-theme="minimal"] * {
+  font-family: 'JetBrains Mono', monospace !important;
+  font-style: normal !important;
+}
+
+/* ── Section headings (was Instrument Serif 32px italic) */
+[data-theme="minimal"] .sec-heading {
+  font-size: 18px;
+  font-weight: 600;
+  letter-spacing: 0.10em;
+  text-transform: uppercase;
+}
+[data-theme="minimal"] .sec-heading--sm { font-size: 12px; }
+
+/* ── Today status heading */
+[data-theme="minimal"] .today-h {
+  font-size: 18px;
+  font-weight: 600;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+}
+
+/* ── Hero verdict (was Instrument Serif 24px italic) */
+[data-theme="minimal"] .verdict {
+  font-size: 14px;
+  font-weight: 400;
+  letter-spacing: 0.03em;
+  line-height: 1.6;
+}
+[data-theme="minimal"] .verdict em { font-style: normal !important; font-weight: 600; }
+
+/* ── About section titles (was Instrument Serif 22px italic) */
+[data-theme="minimal"] .about-title {
+  font-size: 11px;
+  font-weight: 700;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  margin-bottom: 10px;
+}
+
+/* ── Effects card label (was Instrument Serif 22px italic) */
+[data-theme="minimal"] .action-card-label {
+  font-size: 11px;
+  font-weight: 700;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+}
+
+/* ── Quote card: hide the giant decorative " glyph, shrink text */
+[data-theme="minimal"] .quote-card::before { display: none; }
+[data-theme="minimal"] .quote-text {
+  font-size: 13px;
+  font-weight: 400;
+  line-height: 1.75;
+  letter-spacing: 0.02em;
+}
+
+/* ── Big stat numbers: mono is wider so shrink slightly */
+[data-theme="minimal"] .stat-num { font-size: 72px; }
+[data-theme="minimal"] #hero.hero-cards-2 .stat-num { font-size: 52px; }
+[data-theme="minimal"] #hero:is(.hero-cards-3,.hero-cards-4,.hero-cards-5,.hero-cards-6) .stat-num { font-size: 36px; }
+[data-theme="minimal"] .today-cat { font-size: 26px; }
+
+/* ── Logo: slightly smaller to keep topbar compact */
+[data-theme="minimal"] .brand-logo { height: 50px; }
