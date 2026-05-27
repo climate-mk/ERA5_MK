@@ -966,11 +966,6 @@ function setDoy(val) {
   state.doy = Math.max(1, Math.min(365, val));
   slider.value = state.doy;
   badge.textContent = doyBadge(state.doy);
-  // Keep drawer in sync (safe to call even when drawer is closed)
-  const mdrS = document.getElementById("mdr-doy-slider");
-  const mdrB = document.getElementById("mdr-doy-badge");
-  if (mdrS) mdrS.value = state.doy;
-  if (mdrB) mdrB.textContent = doyBadge(state.doy);
   updateCalDoyLine();
 
   clearTimeout(regDebounce);
@@ -1400,13 +1395,8 @@ async function init() {
     document.getElementById("chat-toggle-btn").style.display = "none";
   }
 
-  // Build location lists (desktop dropdown + mobile drawer)
+  // Build location list (desktop dropdown)
   buildLocationList(meta.locations);
-  buildMobileLocList(meta.locations);
-
-  // Populate mobile variable select (copy options from desktop select)
-  const mdrVarSel = document.getElementById("mdr-var-select");
-  if (mdrVarSel) mdrVarSel.innerHTML = document.getElementById("var-select").innerHTML;
 
   // Hide mobile chat section if chat is disabled
   if (!meta.chat_enabled) {
@@ -1489,80 +1479,12 @@ function openMobileDrawer() {
   document.getElementById("mobile-drawer").classList.add("open");
   document.getElementById("mobile-backdrop").classList.add("show");
   document.body.classList.add("drawer-open");
-  syncMobileDrawer();
 }
 
 function closeMobileDrawer() {
   document.getElementById("mobile-drawer").classList.remove("open");
   document.getElementById("mobile-backdrop").classList.remove("show");
   document.body.classList.remove("drawer-open");
-}
-
-function syncMobileDrawer() {
-  const mdrVar = document.getElementById("mdr-var-select");
-  if (mdrVar) mdrVar.value = state.selVar;
-
-  document.querySelectorAll("input[name='mdr-method']").forEach(r => { r.checked = r.value === state.method; });
-
-  const mdrCorr = document.getElementById("mdr-corr-toggle");
-  if (mdrCorr) mdrCorr.checked = state.corr === "corr";
-
-  const mdrWin = document.getElementById("mdr-window-input");
-  if (mdrWin) mdrWin.value = state.window;
-
-  const mdrSlider = document.getElementById("mdr-doy-slider");
-  const mdrBadge  = document.getElementById("mdr-doy-badge");
-  if (mdrSlider) mdrSlider.value = state.doy;
-  if (mdrBadge)  mdrBadge.textContent = doyBadge(state.doy);
-
-  document.querySelectorAll("#mdr-loc-list input[type=checkbox]").forEach(cb => {
-    cb.checked = state.selLocs.includes(cb.value);
-  });
-
-  const mdrCorrSec = document.getElementById("mdr-corr-section");
-  if (mdrCorrSec) mdrCorrSec.style.display = isTemp(state.selVar) ? "" : "none";
-}
-
-function buildMobileLocList(locations) {
-  const list = document.getElementById("mdr-loc-list");
-  if (!list) return;
-  list.innerHTML = "";
-  locations.forEach((loc, idx) => {
-    const item = document.createElement("label");
-    item.className = "mdr-loc-item";
-
-    const cb = document.createElement("input");
-    cb.type = "checkbox";
-    cb.value = loc;
-    cb.checked = state.selLocs.includes(loc);
-    cb.addEventListener("change", () => {
-      if (cb.checked) {
-        if (state.selLocs.length >= 6) { cb.checked = false; return; }
-        if (!state.selLocs.includes(loc)) state.selLocs.push(loc);
-      } else {
-        if (state.selLocs.length <= 1) { cb.checked = true; return; }
-        state.selLocs = state.selLocs.filter(l => l !== loc);
-      }
-      syncLocationCheckboxes();
-      updateLocCheckboxStates();
-      updateLocDisplay();
-      updateMapSelection();
-      refreshRegression();
-      refreshCalendar();
-    });
-
-    const dot = document.createElement("span");
-    dot.className = "mdr-loc-dot";
-    dot.style.background = state.palette[idx % state.palette.length];
-
-    const name = document.createElement("span");
-    name.textContent = loc;
-
-    item.appendChild(cb);
-    item.appendChild(dot);
-    item.appendChild(name);
-    list.appendChild(item);
-  });
 }
 
 // Open / close
@@ -1586,66 +1508,6 @@ document.getElementById("mdr-style-select").addEventListener("change", function(
   const t = this.value;
   document.documentElement.setAttribute("data-theme", t === "default" ? "" : t);
   localStorage.setItem("mk_theme", t);
-});
-
-// Variable
-document.getElementById("mdr-var-select").addEventListener("change", function() {
-  state.selVar = this.value;
-  document.getElementById("var-select").value = this.value;         // sync desktop
-  const showCorr = isTemp(state.selVar);
-  document.getElementById("corr-section").style.display     = showCorr ? "" : "none";
-  document.getElementById("mdr-corr-section").style.display = showCorr ? "" : "none";
-  if (!showCorr) state.corr = "raw";
-  Object.keys(calCache).forEach(k => delete calCache[k]);
-  refreshRegression(); refreshCalendar(); refreshMap();
-});
-
-// Method
-document.querySelectorAll("input[name='mdr-method']").forEach(el => {
-  el.addEventListener("change", function() {
-    state.method = this.value;
-    // sync desktop radio + pill active state
-    const deskRadio = document.querySelector(`input[name="method"][value="${this.value}"]`);
-    if (deskRadio) {
-      deskRadio.checked = true;
-      document.querySelectorAll(".pill-radio").forEach(p => p.classList.remove("active"));
-      deskRadio.closest(".pill-radio")?.classList.add("active");
-    }
-    Object.keys(calCache).forEach(k => delete calCache[k]);
-    refreshRegression(); refreshCalendar(); refreshMap();
-  });
-});
-
-// Elevation correction
-document.getElementById("mdr-corr-toggle").addEventListener("change", function() {
-  state.corr = this.checked ? "corr" : "raw";
-  document.getElementById("corr-toggle").checked = this.checked;   // sync desktop
-  Object.keys(calCache).forEach(k => delete calCache[k]);
-  refreshRegression(); refreshCalendar(); refreshMap();
-});
-
-// Window
-document.getElementById("mdr-window-input").addEventListener("change", function() {
-  const v = parseInt(this.value);
-  if (isNaN(v) || v < 1) return;
-  state.window = v;
-  document.getElementById("window-input").value = v;               // sync desktop
-  Object.keys(calCache).forEach(k => delete calCache[k]);
-  refreshRegression(); refreshCalendar(); refreshMap();
-});
-
-// DOY slider + play buttons inside drawer
-const _mdrSlider  = document.getElementById("mdr-doy-slider");
-const _mdrBtnPlay = document.getElementById("mdr-btn-play");
-const _mdrBtnPrev = document.getElementById("mdr-btn-prev");
-const _mdrBtnNext = document.getElementById("mdr-btn-next");
-
-_mdrSlider.addEventListener("input", () => setDoy(parseInt(_mdrSlider.value)));
-_mdrBtnPrev.addEventListener("click", () => { stopPlay(); setDoy(state.doy - 1 < 1 ? 365 : state.doy - 1); });
-_mdrBtnNext.addEventListener("click", () => { stopPlay(); setDoy(state.doy + 1 > 365 ? 1 : state.doy + 1); });
-_mdrBtnPlay.addEventListener("click", () => {
-  state.playing ? stopPlay() : startPlay();
-  _mdrBtnPlay.textContent = state.playing ? "⏸" : "▶";
 });
 
 if (document.fonts && document.fonts.ready) {

@@ -428,7 +428,7 @@ body.chat-modal-open { overflow: hidden; }
 /* ── Hamburger button ────────────────────────────────────────────────────────── */
 
 .hamburger-btn {
-  display: none;
+  display: flex;
   flex-direction: column;
   justify-content: center;
   align-items: center;
@@ -446,11 +446,6 @@ body.chat-modal-open { overflow: hidden; }
   width: 18px; height: 2px;
   background: var(--ink);
   border-radius: 1px;
-}
-
-@media (max-width: 600px) {
-  .hamburger-btn      { display: flex; }
-  #chat-toggle-btn    { display: none; }   /* chat moves into drawer on mobile */
 }
 
 /* ── Mobile drawer backdrop ──────────────────────────────────────────────────── */
@@ -512,8 +507,6 @@ body.drawer-open { overflow: hidden; }
 }
 .mdr-nav a:hover { background: var(--paper-2); }
 
-.mdr-sep { height: 6px; background: var(--paper-2); border-top: 1px solid var(--rule); border-bottom: 1px solid var(--rule); flex-shrink: 0; }
-
 .mdr-section {
   padding: 14px 20px;
   border-bottom: 1px solid var(--rule);
@@ -524,8 +517,6 @@ body.drawer-open { overflow: hidden; }
   text-transform: uppercase; color: var(--ink-soft);
   margin-bottom: 10px;
 }
-.mdr-hint { font-size: 8px; opacity: 0.7; text-transform: none; letter-spacing: 0; }
-
 .mdr-select {
   width: 100%;
   padding: 10px 36px 10px 12px;
@@ -538,53 +529,6 @@ body.drawer-open { overflow: hidden; }
   background-position: right 12px center;
 }
 .mdr-select:focus { outline: none; border-color: var(--accent); }
-
-.mdr-loc-list  { display: flex; flex-direction: column; gap: 2px; }
-.mdr-loc-item  {
-  display: flex; align-items: center; gap: 10px;
-  padding: 9px 10px; border-radius: 8px;
-  font-family: 'Space Grotesk', sans-serif; font-size: 14px;
-  cursor: pointer; transition: background 0.1s;
-  user-select: none;
-}
-.mdr-loc-item:hover { background: var(--paper-2); }
-.mdr-loc-item input[type=checkbox] { width: 17px; height: 17px; accent-color: var(--accent); cursor: pointer; flex-shrink: 0; }
-.mdr-loc-dot   { width: 8px; height: 8px; border-radius: 50%; flex-shrink: 0; }
-
-.mdr-radio-group { display: flex; flex-direction: column; gap: 10px; }
-.mdr-radio {
-  display: flex; align-items: center; gap: 10px;
-  font-family: 'Space Grotesk', sans-serif; font-size: 14px;
-  cursor: pointer;
-}
-.mdr-radio input { accent-color: var(--accent); width: 17px; height: 17px; flex-shrink: 0; }
-
-.mdr-toggle-row {
-  display: flex; align-items: center; justify-content: space-between;
-  font-family: 'Space Grotesk', sans-serif; font-size: 14px;
-  cursor: pointer;
-}
-
-.mdr-row {
-  display: flex; align-items: center; gap: 8px;
-  font-family: 'Space Grotesk', sans-serif; font-size: 14px;
-  color: var(--ink);
-}
-.mdr-num-input {
-  width: 60px; padding: 7px 8px;
-  background: var(--card); border: 1px solid var(--rule-2);
-  border-radius: 7px; text-align: center;
-  font-family: 'Space Grotesk', sans-serif; font-size: 14px;
-  color: var(--ink);
-}
-.mdr-num-input:focus { outline: none; border-color: var(--accent); }
-
-.mdr-doy-top {
-  display: flex; align-items: center; justify-content: space-between;
-  margin-bottom: 12px;
-}
-.mdr-playbar { display: flex; gap: 4px; }
-.mdr-scrub   { width: 100%; height: 28px; }
 
 .mdr-chat-btn {
   display: flex; align-items: center; gap: 12px;

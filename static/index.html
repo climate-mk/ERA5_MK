@@ -30,12 +30,6 @@
     <div class="brand">
       <a href="#"><img class="brand-logo" src="logo.png" alt="climate.mk"></a>
     </div>
-    <nav class="nav-links">
-      <a href="#">Home</a>
-      <a href="#controls-bar">Charts</a>
-      <a href="#about">About</a>
-      <a href="user-manual.html">Manual</a>
-    </nav>
     <button class="chat-btn" onclick="openChat()" id="chat-toggle-btn">
       <img class="chat-avatar" src="Ognen100.png" alt="Ognen">
       <span class="chat-label">
@@ -281,64 +275,6 @@
         <!-- additional styles added later -->
       </select>
     </div>
-
-    <div class="mdr-sep"></div>
-
-    <!-- Location -->
-    <div class="mdr-section">
-      <div class="mdr-label">Locations <span class="mdr-hint">(up to 6)</span></div>
-      <div id="mdr-loc-list" class="mdr-loc-list"></div>
-    </div>
-
-    <div class="mdr-sep"></div>
-
-    <!-- Variable -->
-    <div class="mdr-section">
-      <div class="mdr-label">Variable</div>
-      <select id="mdr-var-select" class="mdr-select"></select>
-    </div>
-
-    <!-- Method -->
-    <div class="mdr-section">
-      <div class="mdr-label">Method</div>
-      <div class="mdr-radio-group">
-        <label class="mdr-radio"><input type="radio" name="mdr-method" value="theilsen" checked> Theil-Sen + MK</label>
-        <label class="mdr-radio"><input type="radio" name="mdr-method" value="ols"> OLS</label>
-      </div>
-    </div>
-
-    <!-- Elevation correction -->
-    <div class="mdr-section" id="mdr-corr-section">
-      <div class="mdr-label">Elevation correction</div>
-      <label class="mdr-toggle-row">
-        <span>Lapse-rate correction</span>
-        <label class="toggle"><input type="checkbox" id="mdr-corr-toggle" hidden><div class="toggle-track"></div></label>
-      </label>
-    </div>
-
-    <!-- Window -->
-    <div class="mdr-section">
-      <div class="mdr-label">Window half-width</div>
-      <div class="mdr-row">± <input type="number" id="mdr-window-input" value="7" min="1" max="90" class="mdr-num-input"> days</div>
-    </div>
-
-    <div class="mdr-sep"></div>
-
-    <!-- Day of year -->
-    <div class="mdr-section">
-      <div class="mdr-label">Day of year</div>
-      <div class="mdr-doy-top">
-        <div class="day-v" id="mdr-doy-badge">—</div>
-        <div class="mdr-playbar">
-          <button class="play-btn" id="mdr-btn-prev">◀</button>
-          <button class="play-btn primary" id="mdr-btn-play">▶</button>
-          <button class="play-btn" id="mdr-btn-next">▶</button>
-        </div>
-      </div>
-      <div class="scrub mdr-scrub"><input type="range" id="mdr-doy-slider" min="1" max="365" value="105"></div>
-    </div>
-
-    <div class="mdr-sep"></div>
 
     <!-- Chat -->
     <div class="mdr-section" id="mdr-chat-section">
