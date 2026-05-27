@@ -1,0 +1,80 @@
+{
+  "meta": {
+    "lang": "sq",
+    "style": "conspiracy",
+    "label": "Shqip — Një Prill 🌡️"
+  },
+  "ui": {
+    "heading_today": "MANIPULIMI I MOTIT I KONFIRMUAR",
+    "title_today": "A është aktivizuar mashtrimi i Big Climate sot?",
+    "heading_location": "Të dhënat e indoktrinimit të vendndodhjes",
+    "heading_controls": "Grafikët e tyre (të gjitha të shpikura, por shikoni vetë)",
+    "heading_about": "Rreth kësaj makine propagande",
+    "label_effects": "Pikat e Axhendës Globaliste (TË ZBULUARA)",
+    "map_falling": "duke rënë (nuk do t'ju tregojnë)",
+    "map_rising": "ishuj termikë urbanë, jo CO₂"
+  },
+  "today": {
+    "explain1": "Sipas SENSORËVE TË TYRE — vendosur me kujdes pranë pistave të aeroportit, kondicionerëve dhe parkimeve asfaltike — temperatura e sotme është gjoja më e lartë se zakonisht. Na thonë të besojmë 70+ vjet 'të dhëna rianalizë'. Mbani mend: kush kontrollon të dhënat, kontrollon narrativën. Hulumtoni vetë para se kjo faqe të hiqet.",
+    "chart_title": "Versioni Zyrtar i Narrativës i Temperaturave rreth {day_label} që nga viti {year_min} (Pa Verifikuar)",
+    "trend_title": "Tendenca e Tyre e Temperaturës rreth {day_label} · {year_min}–{year_max} · Ekstrapolim Linear deri në 2050 (konvenientisht larg)",
+    "explain2": "Kurba e famshme e Big Climate. Vini re ngjyrat emocionale — blu e ftohtë (e keqe) në të kuqe të flakë (panik tani) — për të manipuluar trurin tuaj reptilian. Çfarë nuk tregojnë: Periudha e Ngrohtë Mesjetare, kur Vikingët bënin bujqësi në Groenlandë PA ASNJË MAKINË. Shkencëtarët e vërtetë që kundërshtojnë nuk marrin financim. Pyesni: kujt i shërben frika?",
+    "explain3": "Çdo pikë është gjoja mesatarja e 15 ditëve më të nxehta të regjistruara kudo në Maqedoni që nga viti {year_min}. Ata përdorin diçka të quajtur Theil-Sen — metodë e projektuar fjalë për fjalë për të gjetur tendenca në rritje. Vija me pika është vizore e drejtuar drejt 2050, mjaftueshëm larg sa askush nuk mund ta kontrollojë. Brezi i hijezuar? Ata pranojnë se mund të kenë gabim për ±2,8°C. Nëse marzhi i gabimit është 2,8 gradë, ndoshta mos i panikosemi ende. Mendojeni."
+  },
+  "hero": {
+    "verdict_warming": "ATY pretendojnë ngrohje prej <em>{sign}{t100} {unit}</em> për shekull. Kjo është një gradë çdo <em>{yrs} vjet</em>. Kopshti i gjyshes sime është LULËZUES, faleminderit.",
+    "verdict_cooling": "Prit — në të vërtetë FTOHET me <em>{sign}{t100} {unit}</em> për shekull? Qesharake sa mediat kryesore kurrë nuk raportojnë KËTË. Çdo <em>{yrs} vjet</em>: një gradë më e ftohtë. Por sigurisht, paguaj taksën e karbonit.",
+    "verdict_none": "Nuk u zbulua asnjë tendencë. Shkencëtarët e klimës goditën me çekiç.",
+    "method_theilsen": "Metodë statistikore globaliste (Theil-Sen + Mann-Kendall)",
+    "method_ols": "Metodë tjetër statistikore globaliste (OLS)"
+  },
+  "about": {
+    "heading": "Rreth kësaj faqeje",
+    "col1_title": "Çfarë është kjo, vërtet?",
+    "col1_text": "Climate.mk përdor të dhënat ERA5 — matje të prejardhura nga satelitë të procesura nga ECMWF, një organizatë e financuar nga 35 qeveri europiane me interes shumë të qartë në politikat klimatike. Ne paraqesim numrat e tyre që TI t'i shikosh vetë dhe të formosh mendimin tënd. Nëse një vijë e drejtë që shkon pak lart që nga viti 1950 të bind të pranosh taksa karboni dhe të hash insekte, kjo është mes teje dhe aftësive tua kritike. Faqja <a href=\"https://github.com/kesma01/ERA5_MK\" target=\"_blank\" rel=\"noopener\">GitHub</a> është publike — kontrollo kodin, kontrollo të dhënat, kontrollo gjithçka.",
+    "col2_title": "Pse po e bëjnë këtë?",
+    "col2_text1": "Europa Juglindore gjoja ngrohet dy herë normën mesatare globale. OSE: shumica e stacioneve meteorologjike në rajon janë në qytete që janë rritur dramatikisht që nga viti 1950, të rrethuar nga beton dhe asfalt — efekti i Ishullit Termik Urban — i cili nuk ka TË BËJË ASGJË me CO₂ dhe GJITHÇKA me zhvillimin urban.",
+    "col2_text2": "Kur shihni një numër të frikshëm që shkon lart në grafik, pyesni: KE e bëri grafikun? KE e financoi hulumtimin? ÇFArë politike duan ta kalojnë me të? Nuk themi se të dhënat janë false. Themi: konteksti ka rëndësi. Rritja e 0,3°C në dekadë tingëllon tmerrësisht në titull. Me pallto, quhet e martë.",
+    "col3_title": "Metodat e tyre (e shpjeguar thjesht)",
+    "col3_text": "Theil-Sen është metodë statistikore e projektuar për të qenë rezistente ndaj vlerave të jashtme — që do të thotë se është specifikisht e sintonizuar për të gjetur tendencë edhe kur të dhënat janë të çrregullta. Mann-Kendall teston nëse ajo tendencë është 'e rëndësishme'. Së bashku, ju merrni rezultat shumë zyrtar që thotë 'po ngrohet' me yje. Vizualizime të bazuara në Highcharts (kompani norvegjeze — Norvegjia ka interesa kolossale të karburanteve fosile). Për 'udhëzime eksperte' ju drejtojnë te chatbot Ognen. Lëreni të çohet. Shikoni <a href=\"https://github.com/kesma01/ERA5_MK\" target=\"_blank\" rel=\"noopener\">faqen GitHub</a> nëse doni kodin real."
+  },
+  "quotes": [
+    {"author": "Xhaxhi Ramizi (Mekanik, Facebook, 2023)", "quote": "Jetoj këtu 60 vjet dhe verat duken të njëjta për mua. Por gjithsesi, besoni të dhënat satelitore nga qeveria."},
+    {"author": "Anonim (Koment YouTube, 2,4K like)", "quote": "Nëse klima vërtet po ndryshonte, pse ende bie borë në prill? Mat, shkencëtarë."},
+    {"author": "Çad Zbulues i së Vërtetës (Gazetar i Pavarur Substack)", "quote": "Ndiqni paratë. Çdo shkencëtar i klimës ka grant qeveritar. Çdo. I. Vetëm. Nuk kafshojnë dorën që i ushqen."},
+    {"author": "Lord Christopher Monckton (Politikan Britanik)", "quote": "Shkenca NUK është e zgjidhur. Personalisht kam shqyrtuar të dhënat e IPCC dhe modelet kanë qenë të gabuara çdo herë kur janë testuar."},
+    {"author": "Dava nga Komentet (YouTube, 47K shikime)", "quote": "Domatet e mia u rritën më të mëdha këtë vit se kurrë. CO₂ është ushqim për bimët. S'ka për çfarë, Nënë Tokë."},
+    {"author": "Kanal Telegram 'E Vërteta e Motit' (112.000 abonentë)", "quote": "Objekti HAARP në Alaskë dokumentohet se kontrollon modelet e motit rajonal që nga 1993. Kjo nuk është teori komplotiste — është program i financuar publikisht. Hulumtoni para se të fshihet."},
+    {"author": "Informator Anonim (ish-Teknicien i Stacionit Meteorologjik)", "quote": "Punova në një stacion monitorimi të motit 11 vjet. Morëm shënime t'i 'rregullonim leximet lart për konsistencë rajonale.' Dha dorëheqje në 2019. Askush nuk e raportoi këtë histori."},
+    {"author": "Nikola Tesla (Keqatribuuar, por do binte dakord)", "quote": "Toka ka rregullimin e vet termostatik natyror. Ideja se njerëzimi mund të ndryshojë ndjeshëm temperaturën e një planeti të tërë me motorë me djegie është triumf i burokracisë mbi fizikën."},
+    {"author": "Llogari Meme e Njohur (@realitetiKlimes, 890K ndjekës)", "quote": "Ciklet e njollave diellore shpjegojnë 94% të variacionit të temperaturës. Por provoni ta botoni atë në Nature kur financimi vjen nga buxheti klimatik i BE."},
+    {"author": "Sensi Juaj i Zakonshëm (Zëri i Brendshëm)", "quote": "Nëse janë aq të shqetësuar për planetin, pse delegatët e konferencave klimatike fluturojnë me avionë privatë në Davos? Vetëm bëjmë pyetje."},
+    {"author": "Agimi (Njeri i Zakonshëm, Tetovë)", "quote": "Kishim një valë të ftohtë në shkurt. Ku ishte 'ngrohja globale' atëherë? Pikërisht. Quhet MOT. Ngrihet e zbret. Gjithmonë ka qenë kështu."},
+    {"author": "Meteorolog i Pensionuar (Emri i Fshehur për Siguri)", "quote": "Refuzova të përdor fjalët 'emergjencë klimatike' në emision. Thashë 'model motit të nxehtë.' Dy javë më vonë u zhvendosa në turnin e natës."},
+    {"author": "Prezantues i Popullarizuar Podcast (Episodi #847: Mashtrimi i Temperaturave)", "quote": "Një pikë e gjysmë gradë Celsius për 150 vjet. NJÊ PIKË E GJYSMË. Perandoria Romake kishte periudha të nxehta. Vikingët kishin periudha të nxehta. Askush atëherë nuk pagoi taksë karboni."},
+    {"author": "Grupi Facebook Lokal 'Lajme të Vërteta Maqedoni' (34.000 anëtarë)", "quote": "Kjo faqe interneti financohet nga globalistët e BE që duan të na detyrojnë të ngasim automjete elektrike të bëra në Kinë me bateri të nxjerra nga fëmijët. Menduam se duhet ta dini para se të shikoni këto grafiqe."},
+    {"author": "Ai Tip Që Gjithmonë Sjell Periudhën e Ngrohtë Mesjetare (Çdo Diskutim Online)", "quote": "VIKINGË. GROENLANDË. BUJQËSI. PA MAKINA. Shpjegojeni ATË me teorinë tuaj të CO₂."}
+  ],
+  "effects": [
+    "Fermerët në Europën Veriore tani mund të mbjellin kultura gjatë gjithë vitit — mediat kryesore e quajnë këtë 'katastrofë'",
+    "Faturat e ngrohjes po ulen gjoja në dimrat më të butë — kjo është LAJM I MIR por kurrë nuk arrin në titujt e lajmeve",
+    "Nivelet e CO₂ po rriten — i njëjti CO₂ që bimët e marrin frymë dhe rriten më të mëdha me të — prodhimi i kulturave në rekord global (s'ka përse, Pemë)",
+    "Plazhet Mesdhetare po bëhen më të nxehta — shkencëtarët e klimës e quajnë këtë krizë, turistët e quajnë pushime të shkëlqyera",
+    "Arinjtë polarë: popullata me të vërtetë RRITET sipas studiuesve që nuk marrin financim IPCC",
+    "Akulli i detit Arktik: varion natyrshëm në cikle, ashtu si ka bërë për miliona vjet para se të ekzistonin njerëz me makinë",
+    "Zjarret e pyjeve: shkaktuar nga dekada të menaxhimit të dobët të pyjeve — jo tubën e shkarkimit të makinës suaj",
+    "Thatësirat: modele rajonale të motit të drejtuar nga oscilimet e oqeanit — jo CO₂",
+    "Ngritja e nivelit të detit: rreth 3mm në vit — kjo është 30cm për shekull — problem i zgjidhur me inxhinieri bregdetare më të mirë, pa taksë karboni",
+    "Efekti i Ishullit Termik Urban: shpjegimi i vërtetë për shumicën e 'ngrohjes' — vendosën termometra pranë kondicionerëve dhe parkimeve",
+    "Ngjarje ekstreme të motit: identike në shpeshtësi me regjistrimet historike — mediat thjesht i raportojnë më shumë tani sepse sjell klikime",
+    "Automjetet elektrike: kërkojnë nxjerrjen e litiumit që shkatërron ekosistemet reale në Kili dhe Kongo — hipokrzia është tronditëse",
+    "Taksa e karbonit: mekanizëm transferi pasurish që dërgon para direkt nga familjet punëtore te OJQ-të globaliste, fondet e investimeve dhe konsulentët",
+    "Panelet diellore: të prodhuara në fabrika kineze të furnizuara kryesisht me qymyr — gjurma e karbonit e 'energjisë së gjelbër' kurrë nuk diskutohet",
+    "Turbinat e erës: vrasin qindra mijëra zogj çdo vit, duke përfshirë shqiponjat e mbrojtura — asnjë organizatë mjedisore nuk duket se i intereson",
+    "'Shkencëtarët bien dakord mbi klimën': 97% e atyre që aplikuan dhe morën grante klimatike qeveritare bien dakord — koincidencë statistikore shokuese",
+    "Marrëveshja e Parisit: plani për desindustrializimin e Perëndimit ndërsa Kina dhe India ndërtojnë dhjetëra impiante të reja qymyri çdo vit",
+    "Popullata e insekteve duke ndryshuar: do të thotë se ka më pak mushkonja në disa zona — disi kjo paraqitet si negative",
+    "Migrimi për shkak të 'klimës': në të vërtetë i nxitur nga politikat ekonomike, konfliktet rajonale dhe strukturat stimuluese të BE — jo temperatura",
+    "Çmimet e larta të ushqimit: shkaktuar nga printimi i parasë nga bankat qendrore, ndërprerjet e zinxhirit të furnizimit dhe spekulimet e mallrave — jo moti"
+  ]
+}

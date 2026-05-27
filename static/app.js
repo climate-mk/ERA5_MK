@@ -1418,13 +1418,17 @@ function renderStaticLabels() {
   if (legWarm && u.map_rising)  legWarm.textContent = u.map_rising;
 }
 
+// Build the composite locale key from the two separate localStorage values
+function _localeKey() {
+  return (localStorage.getItem('mk_lang') || 'en') + '_' + (localStorage.getItem('mk_content') || 'default');
+}
+
 // ── Init ──────────────────────────────────────────────────────────────────────
 
 async function init() {
 
   // Load locale before rendering anything
-  const _locName = localStorage.getItem('mk_locale') || 'en_default';
-  await loadLocale(_locName);
+  await loadLocale(_localeKey());
 
   // Fetch metadata + topo + initial trends in parallel
   const todayDoy = getTodayDOY();
@@ -1600,12 +1604,20 @@ document.getElementById("mdr-style-select").addEventListener("change", function(
   localStorage.setItem("mk_theme", theme);
 });
 
-// Locale / content-style switcher — reloads page so all rendered text updates
-const _locSel = document.getElementById("mdr-locale-select");
-if (_locSel) {
-  _locSel.value = localStorage.getItem("mk_locale") || "en_default";
-  _locSel.addEventListener("change", function() {
-    localStorage.setItem("mk_locale", this.value);
+// Language + content-style switchers — each reloads page so all text updates
+const _langSel    = document.getElementById("mdr-lang-select");
+const _contentSel = document.getElementById("mdr-content-select");
+if (_langSel) {
+  _langSel.value = localStorage.getItem("mk_lang") || "en";
+  _langSel.addEventListener("change", function() {
+    localStorage.setItem("mk_lang", this.value);
+    window.location.reload();
+  });
+}
+if (_contentSel) {
+  _contentSel.value = localStorage.getItem("mk_content") || "default";
+  _contentSel.addEventListener("change", function() {
+    localStorage.setItem("mk_content", this.value);
     window.location.reload();
   });
 }
