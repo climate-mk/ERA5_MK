@@ -58,7 +58,7 @@ body {
 .nav-links a.active::before { content: '·'; color: var(--accent); }
 
 /* Chat button */
-.chat-btn { display: inline-flex; align-items: center; gap: 10px; padding: 7px 14px 7px 14px; border: 1px solid var(--rule-2); border-radius: 999px; background: var(--card); cursor: pointer; font-family: 'Space Grotesk', sans-serif; font-size: 13px; color: var(--ink); transition: background 0.15s; flex-shrink: 0; }
+.chat-btn { display: inline-flex; align-items: center; gap: 10px; padding: 7px 14px 7px 14px; border: 1px solid var(--rule-2); border-radius: 999px; background: var(--card); cursor: pointer; font-family: 'Space Grotesk', sans-serif; font-size: 13px; color: var(--ink); transition: background 0.15s; flex-shrink: 0; margin-left: auto; }
 .chat-btn:hover { background: var(--paper-2); }
 .chat-avatar { width: 30px; height: 30px; border-radius: 50%; object-fit: cover; flex-shrink: 0; }
 .chat-label  { display: flex; flex-direction: column; align-items: flex-start; gap: 2px; line-height: 1; }
