@@ -42,7 +42,11 @@
     "over_mean":     "Над просекот",
     "trend_line":    "Линија на тренд",
     "ci95":          "95% CI",
-    "change_record": "промена низ записите"
+    "change_record":   "промена низ записите",
+    "cal_cooling":     "Ладење",
+    "cal_warming":     "Затоплување",
+    "cal_decreasing":  "Намалување",
+    "cal_increasing":  "Зголемување"
   },
   "locations": {
     "Berovo":       "Берово",
@@ -72,6 +76,13 @@
     "verdict_none": "Не е откриен тренд. Климатолозите најтешко погодени.",
     "method_theilsen": "Глобалистичка статистичка метода (Theil-Sen + Mann-Kendall)",
     "method_ols": "Друга глобалистичка статистичка метода (OLS)"
+  },
+  "hero_category": {
+    "baseline":     "Основно",
+    "moderate":     "Умерено",
+    "bad":          "Лошо",
+    "extreme":      "Екстремно",
+    "catastrophic": "Катастрофално"
   },
   "about": {
     "heading": "За оваа веб-страница",

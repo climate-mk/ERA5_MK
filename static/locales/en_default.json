@@ -9,13 +9,15 @@
     "title_today": "Is it Hot in Macedonia Today?",
     "heading_location": "Location details",
     "heading_controls": "Location selection, Controls, and Charts",
+    "heading_controls_sub": "(red = bad, blue = good)",
     "heading_about": "About us",
     "label_effects": "Some effects of the climate changes",
     "map_falling": "falling",
     "map_rising": "rising"
   },
   "today": {
-    "explain1": "Today's peak is the highest temperature forecast across all 20 stations, ranked against 70+ years of ERA5-Land records for this same ±7-day window. The colour and label show where today falls in the full historical range.",
+    "explain1": "Today's peak is the highest temperature forecast across all 20 stations, ranked against 70+ years of ERA5-Land records for this same ±7-day window.",
+    "climate_context": "Macedonia sits at the heart of a regional climate hotspot — Southeastern Europe is warming at nearly twice the global average rate. Temperatures have risen by almost 2°C in the past 70 years and continue to climb. Springs arrive earlier, summers last longer, snowpack shrinks each decade, and autumn rains come later. What felt like a typical summer in 1980 now falls in the cooler half of the historical record.",
     "chart_title": "Macedonia daily max temperatures for the two weeks around {day_label} since {year_min}",
     "trend_title": "Macedonia peak temperatures around {day_label} · {year_min}–{year_max} with linear projection to 2050",
     "explain2": "The curve shows how often each peak temperature occurred on days like today across all years. Colours mark climatological zones — from cold blue through the typical beige band to extreme red — so you can see at a glance where today sits.",
@@ -42,7 +44,11 @@
     "over_mean":     "Over mean",
     "trend_line":    "Trend line",
     "ci95":          "95% CI",
-    "change_record": "change over the record"
+    "change_record":   "change over the record",
+    "cal_cooling":     "Cooling",
+    "cal_warming":     "Warming",
+    "cal_decreasing":  "Decreasing",
+    "cal_increasing":  "Increasing"
   },
   "locations": {},
   "hero": {
@@ -50,7 +56,138 @@
     "verdict_cooling": "A century to cool by <em>{sign}{t100} {unit}</em> – at current pace, every <em>{yrs} years</em> adds another degree.",
     "verdict_none": "No detectable trend at this day of year.",
     "method_theilsen": "Theil-Sen + TFPW Mann-Kendall",
-    "method_ols": "OLS linear regression"
+    "method_ols": "OLS linear regression",
+    "explain_reg": "Each dot is one year's value; the rising line is the Theil-Sen trend — robust to outliers. The shaded band is its 95% confidence interval. Notice how the cluster of dots shifts upward over the decades: what counts as a normal year for this location keeps getting redefined. A trend that looks modest in °C per decade translates to a fundamentally different baseline by mid-century — warmer springs, hotter summers, and shorter cold seasons than any historical record describes.",
+    "explain_cal": "Each bar is the warming or cooling trend for that week of the year, in °C per decade. Orange means warming; blue means cooling. The pattern across the year reveals which seasons are shifting fastest — in Macedonia, summer bars are typically the tallest, meaning peak heat is intensifying most rapidly. A calendar dominated by orange bars across all seasons signals year-round warming, not just hotter summers: shorter winters, earlier springs, and longer dry periods are all encoded in this chart."
+  },
+  "hero_category": {
+    "baseline":     "Baseline",
+    "moderate":     "Moderate",
+    "bad":          "Bad",
+    "extreme":      "Extreme",
+    "catastrophic": "Catastrophic"
+  },
+  "hero_context": {
+    "Skopje": {
+      "baseline":     "Capital city in a bowl-shaped valley that amplifies heat through urban heat island effect and trapped air masses. Continued warming threatens to push summer temperatures above 40°C with increasing regularity.",
+      "bad":          "Heat waves of five or more consecutive days above 38°C are becoming the norm. The urban heat island keeps nights warm, reducing overnight recovery time and increasing heat-related illness, particularly for the elderly and outdoor workers.",
+      "extreme":      "Summer nights no longer cool meaningfully — the city retains daytime heat well past midnight. Air conditioning demand peaks strain the power grid, urban trees are under drought stress, and the outdoor environment becomes hostile for extended periods each summer.",
+      "catastrophic": "At this rate, Skopje summers will resemble today's conditions in Athens or southern Spain within decades. The bowl-valley geography offers no escape — heat stress becomes a structural public health crisis, outdoor labour becomes dangerous for months, and the city's infrastructure faces pressure it was never designed to handle."
+    },
+    "Bitola": {
+      "baseline":     "High Pelagonia plain in the southwest, one of Macedonia's colder lowland cities. Warming shortens the cool season and intensifies summer heat over this open agricultural basin, increasing drought stress for crops.",
+      "bad":          "The Pelagonia plain's agricultural calendar is shifting — wheat harvests move earlier, but summer heat stress increases for later-season crops and livestock. Irrigation demand rises as reliable summer rainfall becomes scarcer.",
+      "extreme":      "The long cold winters that defined Bitola's growing season are shrinking, disrupting dormancy cycles for perennial crops. Prolonged summer droughts across the open plain are intensifying, putting serious pressure on the region's food production capacity.",
+      "catastrophic": "Macedonia's most important agricultural basin faces a fundamental transformation. Crops suited to the region's historical climate are becoming unviable, groundwater levels fall under continuous extraction pressure, and extreme heat events threaten both harvest quality and human health."
+    },
+    "Ohrid": {
+      "baseline":     "Lakeside city beside one of Europe's oldest and deepest lakes, which has historically moderated temperature extremes. Even here, the lake's thermal buffering effect is being outpaced by the pace of regional warming.",
+      "bad":          "Warmer lake surface temperatures are affecting oxygen levels in deeper water, putting pressure on endemic species found nowhere else on Earth. The historic thermal moderation that made Ohrid's climate distinctive is weakening measurably.",
+      "extreme":      "Lake Ohrid's unique ecosystem — including organisms that survived the last Ice Age in its depths — is under thermal stress. Warmer summers accelerate algal growth, reduce dissolved oxygen, and threaten the endemic biodiversity that gives the lake its UNESCO status.",
+      "catastrophic": "The combination of warming air temperatures, changing precipitation patterns, and rising lake surface temperatures threatens the ecological integrity of one of Earth's most ancient lakes. Irreversible shifts in the lake ecosystem are possible within decades, with profound consequences for biodiversity, tourism, and regional identity."
+    },
+    "Gevgelija": {
+      "baseline":     "Southernmost station with the strongest Mediterranean influence and already the highest baseline temperatures in the network. Any further warming pushes it toward conditions matching the most extreme heat in the southern Balkans.",
+      "bad":          "Already carrying Macedonia's warmest baseline, Gevgelija now regularly exceeds 40°C in summer. Heat-related stress for agricultural workers, livestock, and heat-sensitive crops is a present-day reality, not a future risk.",
+      "extreme":      "Conditions here are tracking toward those of northern Greece's hottest valleys. The Mediterranean crops that thrive on the current climate will face increasing production failure as peak temperatures push beyond established tolerance ranges.",
+      "catastrophic": "Gevgelija is at the frontier of European climate extremes. Summer conditions may become incompatible with sustained outdoor agricultural work, and the region's ecological character — oriented around warm-season agriculture — faces an existential shift with no historical precedent in this area."
+    },
+    "Tetovo": {
+      "baseline":     "Nestled at the foot of the Šar Mountains where steep slopes restrict airflow, combining urban growth with valley heat trapping. Warmer temperatures reduce snowpack on Šar, threatening summer water supply for a large population.",
+      "bad":          "Šar Mountain snowpack — the primary summer water source for Tetovo and the wider Polog region — is declining in duration and volume. Summer water availability is tightening while demand from the large urban population and agriculture is growing.",
+      "extreme":      "The Polog valley's combination of trapped summer heat, urban density, and declining mountain water creates compound stress. Heat episodes in the confined valley become more intense and prolonged, while Šar's reduced snowmelt arrives earlier — front-loading the water supply and leaving summer months dry.",
+      "catastrophic": "Tetovo sits at the intersection of water scarcity and population pressure. The densely populated Polog valley, dependent on Šar snowmelt, faces a scenario where summer water demand structurally exceeds reliable supply — a crisis that no incremental adaptation can fully resolve without transformative investment."
+    },
+    "Kumanovo": {
+      "baseline":     "Northern lowland city on a broad plain, exposed to continental air masses from the north. Warming amplifies summer heat stress over the flat, open terrain while reducing the cold periods that suppress crop pests and disease.",
+      "bad":          "The open northern plain offers no shelter from intensifying summer heat. Cereal yields are showing heat-stress fingerprints — grain quality declining in hot years — and reduced winter cold is allowing pest species to overwinter that previously could not.",
+      "extreme":      "Summer heat stress episodes on the Kumanovo plain now regularly exceed what traditional crop varieties were bred for. The flat terrain offers no topographic relief, and evaporation rates during summer exceed what natural rainfall can replenish.",
+      "catastrophic": "The northern plain's agriculture, based on crops adapted to a cooler continental baseline, faces a fundamental mismatch with the emerging climate. Sustained adaptation requires major investment in heat-tolerant varieties and irrigation infrastructure — the cost of inaction grows each decade."
+    },
+    "Gostivar": {
+      "baseline":     "Valley town in the Polog region, surrounded by the Šar Mountains that trap cold air in winter. Warming gradually erodes the cold-air pooling that previously kept summers moderate, while shrinking the Šar snowpack.",
+      "bad":          "The Polog basin's cold winter air pools, which suppressed both pests and summer heat, are weakening. Agricultural pest pressure is rising, while summer temperatures increasingly trap inside the mountain-ringed valley.",
+      "extreme":      "Šar Mountain snowpack — the primary summer water source for the densely populated Polog region — is in sharp decline. Water shortages during summer are becoming structurally predictable, affecting both agriculture and the large urban population.",
+      "catastrophic": "The Polog region faces a water crisis driven by the intersection of population density, declining snowmelt, and rising evaporation demand. The social and economic impacts of reduced summer water availability in this highly populated valley cannot be managed through incremental adaptation alone."
+    },
+    "Kicevo": {
+      "baseline":     "Mountain valley town in western Macedonia at higher elevation than the lowland cities. Temperature increases affect snowmelt timing and summer water availability for downstream agricultural and urban communities.",
+      "bad":          "Mountain snowmelt arrives weeks earlier, front-loading the water supply and leaving streams lower during the critical mid-summer agricultural period. Forests on the surrounding slopes show increasing stress from summer drought.",
+      "extreme":      "The western mountain watershed feeding Kičevo is losing its capacity to store and release water gradually through the summer. Agricultural water shortages coincide with peak crop demand, and forest fire risk in the surrounding uplands rises sharply.",
+      "catastrophic": "The hydrological function of the western highlands — steady snowmelt-fed water release through summer — is breaking down. Downstream communities face increasingly unreliable summer water access, and the mountain forest ecosystems that protect the watershed are under compounding stress."
+    },
+    "Debar": {
+      "baseline":     "Sheltered western valley town along the Black Drin river, surrounded by high mountains. Rising temperatures directly affect meltwater timing and alpine ecosystems on the nearby Bistra and Jablanica ranges.",
+      "bad":          "Reduced snowpack on Bistra and Jablanica means lower summer flows in the Black Drin river system, straining irrigation and hydropower. Alpine meadows above 1500m are contracting as warming pushes the treeline higher.",
+      "extreme":      "The mountain snow systems that feed the Drin are in accelerated retreat. Summer water shortages in the valley become more frequent, and the unique alpine flora of the surrounding ranges faces habitat compression as temperatures rise.",
+      "catastrophic": "The hydrological regime of the entire western watershed is at risk. With snowmelt arriving earlier and summer precipitation decreasing, the Black Drin can no longer sustain reliable summer flows — threatening agriculture, hydropower generation, and downstream water security across the region."
+    },
+    "Lazaropole": {
+      "baseline":     "The highest-elevation station in the network, on the Bistra plateau above 1000m. Mountain warming accelerates faster than in the lowlands, with direct impact on highland meadows, beech forests, and the last remaining snowfields.",
+      "bad":          "The Bistra plateau's highland grasslands and beech forests are retreating upslope as the thermal envelope shifts. Snowpack duration is declining further — reducing the water retained in the high terrain through spring and early summer.",
+      "extreme":      "At this warming rate, the ecological zones of the Bistra highland are compressing toward the summit. Beech forests approach their upper thermal limit, and the highland meadows that support summer pastoralism are drying out earlier each year.",
+      "catastrophic": "The high-altitude ecosystems of Bistra are approaching irreversible transformation. Species and habitats that exist nowhere else at lower elevations face extinction pressure, and the plateau's function as a water catchment for downstream communities is fundamentally degraded."
+    },
+    "Kavadarci": {
+      "baseline":     "Heart of the Tikveš wine region, where viticulture has shaped the landscape for centuries. Higher temperatures are already shifting harvest dates and threatening the balance of traditional grape varieties.",
+      "bad":          "Harvest dates for Tikveš wines are advancing by days each decade, compressing the ripening window. Grape varieties prized for their balance of sugar and acidity are producing fruit increasingly weighted toward sweetness and low acidity.",
+      "extreme":      "The Tikveš wine region's centuries-old identity is under direct threat. Heat-stressed vines require more water during increasingly dry summers, and the risk of sunburn damage to grapes during peak summer is rising rapidly.",
+      "catastrophic": "Traditional Tikveš grape varieties may no longer be climatically viable in their home region. The cultural and economic identity of an entire area faces transformation — producers must choose between expensive adaptation or the abandonment of traditional viticulture."
+    },
+    "Negotino": {
+      "baseline":     "Tikveš wine valley, with a warm continental microclimate already among the hottest in Macedonia. Further warming compresses the window for heat-sensitive crops and increases irrigation pressure on limited water resources.",
+      "bad":          "The Tikveš valley's warm microclimate, long an asset for viticulture, is now producing excessive heat during summer peak. Irrigation demand for both vines and field crops has risen sharply, increasing pressure on already limited water resources.",
+      "extreme":      "Grape harvest timing has shifted by weeks, and the balance of sugar and acidity in traditional varieties is increasingly difficult to achieve. Extended drought periods in summer now regularly exceed what irrigation infrastructure can compensate for.",
+      "catastrophic": "Negotino's agricultural economy, centred on viticulture and market gardening, is being pushed toward its operational limits. The combination of extreme summer heat, declining water availability, and increased evaporation demand means the current production system requires fundamental restructuring to survive."
+    },
+    "Veles": {
+      "baseline":     "Industrial city in the Vardar valley gorge, where valley channeling concentrates both cold air in winter and heat in summer. Warming intensifies the valley's heat-trap effect, increasing summer heat stress.",
+      "bad":          "The Vardar gorge's natural heat-channelling effect is amplifying as background temperatures rise. Summer temperatures in the valley now regularly push above 38–40°C, and the industrial legacy of the city adds additional heat stress for residents.",
+      "extreme":      "The gorge geography that creates Veles's distinctive microclimate — concentrated airflow, heat trapped between rock walls — produces summer conditions that are among the most extreme in Macedonia's interior. Heat mortality risk rises sharply during prolonged summer episodes.",
+      "catastrophic": "Veles sits in a natural amplifier for regional warming — the gorge concentrates heat to levels that exceed what the surrounding region experiences. Without major urban adaptation investment, the city faces summer conditions incompatible with outdoor activity and that strain healthcare capacity during peak heat events."
+    },
+    "Kochani": {
+      "baseline":     "Eastern basin city known as the rice capital of Macedonia, where agriculture depends on warm summers and reliable water from the Bregalnica river. Increasing heat threatens both yields and river flow during the growing season.",
+      "bad":          "Rice cultivation — Kochani's defining agricultural identity — depends on stable summer temperatures and reliable water from the Bregalnica. Both are becoming less predictable, and crop yields show increasing year-to-year variability.",
+      "extreme":      "Summer heat peaks during the critical grain-filling stage of rice and maize cause yield losses that compound over years. Bregalnica flows are declining in summer as snowmelt arrives earlier and summer precipitation decreases.",
+      "catastrophic": "Rice cultivation in the Kochani basin, practised for centuries, may become economically unviable as water costs rise and heat-induced crop failures increase. The region's agricultural identity and the livelihoods it supports face a structural challenge that adaptation alone may not resolve."
+    },
+    "Stip": {
+      "baseline":     "Eastern Macedonian river valley city, historically one of the warmer lowland stations. Further temperature rises extend drought stress periods for the surrounding agricultural land during the summer season.",
+      "bad":          "The Bregalnica valley's agricultural land faces increasing summer drought stress as temperatures rise and evaporation exceeds rainfall. Grain yields in hot years are showing measurable quality decline.",
+      "extreme":      "Prolonged summer heat in the eastern valleys is exceeding the tolerance of crops grown without irrigation. Field workers face occupational heat stress during peak summer, and water demand for irrigation is growing faster than supply can keep pace.",
+      "catastrophic": "Štip's eastern valley agriculture — already operating in a warm, dry continental regime — is approaching conditions where summer production without substantial irrigation is economically unsustainable. Infrastructure investment demands outpace the resources of what is already one of Macedonia's more economically challenged regions."
+    },
+    "Radovis": {
+      "baseline":     "Eastern valley town near the Konče gorge with a warm continental character. Proximity to Bulgaria means it experiences air masses from some of Southeast Europe's fastest-warming continental interior.",
+      "bad":          "Summer temperatures in the Konče gorge area are intensifying beyond what the region's dryland farming systems were designed for. Soil moisture deficits in summer are deepening, reducing yields for grain crops in dry years.",
+      "extreme":      "The combination of continental air mass heating from the east and local valley trapping is pushing summer temperatures to levels where traditional grain and vegetable crop varieties show significant stress losses.",
+      "catastrophic": "Radoviš sits at the intersection of southeastern Europe's most rapidly warming continental air masses and a local geography that amplifies heat. Without substantial irrigation infrastructure investment, the area's agricultural capacity in summer is at serious risk of collapse."
+    },
+    "Strumica": {
+      "baseline":     "Southeastern basin city with a warm, almost sub-Mediterranean character and intensive agriculture. Warming accelerates soil moisture loss during the long, dry summers, raising irrigation demand on an already stressed water supply.",
+      "bad":          "The intensive market garden agriculture of the Strumica basin depends on reliable summer water access. Rising temperatures accelerate soil moisture loss between irrigation cycles, increasing both frequency and cost of irrigation.",
+      "extreme":      "The sub-Mediterranean summer already produces long dry spells; warming is extending these further into spring and autumn. The region's fruit and vegetable production — exported across the region — faces increasing year-to-year volatility and water supply constraints.",
+      "catastrophic": "Strumica's agricultural identity — intensive horticulture supplying regional markets — faces a structural water crisis. As summer temperatures push higher and evapotranspiration demand grows, the gap between irrigation water needed and water available is widening toward a point that current infrastructure cannot bridge."
+    },
+    "Berovo": {
+      "baseline":     "Elevated eastern valley at around 800m in the cooler Maleševo highlands. Even this relatively cool station tracks the regional warming trend, with visible effects on highland forests and the shrinking snowpack.",
+      "bad":          "The highland forests and summer pastures that define Berovo's landscape are under increasing moisture stress. Higher temperatures accelerate evaporation from the Maleševo highlands, shortening the snow season and reducing spring water flow.",
+      "extreme":      "Beech forests at this elevation are approaching their thermal tolerance limits. Extended summer droughts threaten the highland ecosystem that has made Berovo a cool-season retreat, and wildfire risk rises in the surrounding forests.",
+      "catastrophic": "The cool highland character of Berovo that supports its forests, pasturelands, and water catchment is fundamentally threatened. Fire seasons lengthen, endemic tree species retreat upslope, and the area's capacity to recharge groundwater reserves diminishes critically."
+    },
+    "Demir_Kapija": {
+      "baseline":     "Narrow gorge where the Vardar cuts through rock, creating a natural wind channel with one of the driest, hottest microclimates in Macedonia. Already extreme summer temperatures are being pushed further by regional warming.",
+      "bad":          "Already the hottest microclimate in Macedonia, Demir Kapija's summer temperatures now routinely challenge the physiological limits of fieldwork. The gorge's wind-channel effect provides little relief when ambient temperatures exceed 40°C.",
+      "extreme":      "The gorge traps heat to an extent that outdoor activity during summer afternoons becomes a health risk. Grape varieties long cultivated in the surrounding terraces are struggling to ripen correctly — sugar accumulates too fast, acidity collapses.",
+      "catastrophic": "Demir Kapija is approaching temperature levels with few precedents in European agricultural history. Conditions in the gorge during summer may exceed what any traditional crop variety can reliably tolerate, requiring a complete rethink of land use in this unique microclimate."
+    },
+    "Prilep": {
+      "baseline":     "High Pelagonian basin city and tobacco-growing centre with a continental climate and naturally dry summers. Warming combined with the region's low summer precipitation intensifies water stress for both agriculture and urban populations.",
+      "bad":          "The Pelagonian basin's tobacco crop — which has defined Prilep for generations — is increasingly sensitive to the combination of heat and mid-summer water stress. Leaf quality is deteriorating in the hottest years.",
+      "extreme":      "Prolonged summer droughts on the high Pelagonian plain are causing soil moisture deficits that persist from year to year. Irrigation groundwater levels are declining, and the region faces difficult choices about which agricultural activities remain viable.",
+      "catastrophic": "The Pelagonian highland basin, one of Macedonia's driest agricultural regions, is approaching conditions where summer crops cannot be reliably grown without intensive irrigation. Groundwater drawdown is accelerating, and the social fabric of communities built around tobacco cultivation faces existential pressure."
+    }
   },
   "about": {
     "heading": "About us",

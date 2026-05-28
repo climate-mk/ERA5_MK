@@ -122,7 +122,7 @@ let _mapUnit  = "";
 
 function initRegChart() {
   regChart = Highcharts.chart("reg-chart", {
-    chart: { type: "scatter", zoomType: "x", marginTop: 40 },
+    chart: { type: "scatter", zoomType: "x", marginTop: 40, backgroundColor: "transparent" },
     title:    { text: "Loading…" },
     subtitle: { text: "" },
     xAxis:  { title: { text: "Year" }, crosshair: true },
@@ -163,9 +163,9 @@ function buildScales(points) {
 }
 
 function pointColor(trend10, scales) {
-  const neutral = [220, 220, 228];
-  const pos     = [160,   0,   0];
-  const neg     = [  0,  45, 175];
+  const neutral  = [220, 220, 228];
+  const pos      = isPrecipLike(state.selVar) ? [ 26,  95, 200] : [160,   0,   0];
+  const neg      = isPrecipLike(state.selVar) ? [160,  92,  32] : [  0,  45, 175];
   if (trend10 >= 0) {
     const t = Math.pow(trend10 / scales.maxPos, 0.65);
     return `rgb(${lerp(neutral[0],pos[0],t)},${lerp(neutral[1],pos[1],t)},${lerp(neutral[2],pos[2],t)})`;
@@ -238,6 +238,9 @@ function renderMap(data) {
   const countEl = document.getElementById("map-station-count");
   const mapVarLbl = (state.variables[state.selVar] || state.selVar).split("(")[0].trim();
   if (countEl) countEl.textContent = `${mapVarLbl} · ${points.length} STATIONS`;
+
+  const mapLeg = document.getElementById("map-legend");
+  if (mapLeg) mapLeg.classList.toggle("precip", isPrecipLike(state.selVar));
 
   if (mapChart) {
     mapChart.series[1].setData(mapPoints, true);
@@ -352,16 +355,21 @@ function doyBadge(doy) {
 
 
 function getTodayDOY() {
-  const today = new Date();
-  const start = new Date(today.getFullYear(), 0, 0);
-  const diff = today - start;
-  const oneDay = 1000 * 60 * 60 * 24;
-  return Math.floor(diff / oneDay);
+  const now = new Date();
+  // Use UTC arithmetic to avoid DST skew (a spring-forward day is 23 h,
+  // which makes floor(ms/86400000) land one day early).
+  const start = Date.UTC(now.getFullYear(), 0, 0);
+  const today = Date.UTC(now.getFullYear(), now.getMonth(), now.getDate());
+  return Math.round((today - start) / 86400000);
 }
 
 
 function isTemp(v) {
   return ["temperature_max","temperature_min","temperature_mean"].includes(v);
+}
+
+function isPrecipLike(v) {
+  return v === "precipitation_sum" || v === "et0_evapotranspiration";
 }
 
 function showLoading(id, show) {
@@ -509,7 +517,7 @@ function renderRegression(data) {
     const csg = chg >= 0 ? "+" : "−";
     const chgEl = document.getElementById("chart-change");
     if (chgEl) chgEl.textContent = `${csg}${Math.abs(chg).toFixed(2)} ${data.unit || ""}`;
-    if (chgEl) chgEl.style.color = chg >= 0 ? ACCENT : COOL;
+    if (chgEl) chgEl.style.color = isPrecipLike(state.selVar) ? (chg >= 0 ? COOL : ACCENT) : (chg >= 0 ? ACCENT : COOL);
 
     // Baseline plotlines — one per location, colored to match their series
     // Remove all existing baseline plotlines before re-adding (handles deselected locations)
@@ -577,7 +585,7 @@ function renderHeroCards(data) {
     const st    = res.stats;
     const isPos = st.trend10 >= 0;
     const sg    = isPos ? "+" : "−";
-    const col   = isPos ? ACCENT : COOL;
+    const col   = isPrecipLike(state.selVar) ? (isPos ? COOL : ACCENT) : (isPos ? ACCENT : COOL);
 
     // Verdict block — temperature variables only
     const tempVar = isTemp(state.selVar);
@@ -611,12 +619,29 @@ function renderHeroCards(data) {
           <div class="verdict-sub">${methodText}</div>
         </div>` : ""}
       </div>
-      <div class="sig-row">
-        <div class="sig-item"><span class="sig-k">Significance</span><span class="sig-v">${stars(st.p_val)}</span></div>
-        <div class="sig-item"><span class="sig-k">${st.metric_lbl}</span><span class="sig-v">${st.metric}</span></div>
-        <div class="sig-item"><span class="sig-k">Sample</span><span class="sig-v">${sampleHtml(st)}</span></div>
-        <div class="sig-item"><span class="sig-k">Autocorrelation</span><span class="sig-v">${ar1Html(st)}</span></div>
-      </div>
+      ${state.selVar === 'temperature_max' ? (() => {
+        const cat    = trendCategory(st.trend10);
+        const label  = t(`hero_category.${cat}`) || cat;
+        const ctx    = t(`hero_context.${res.loc}.${cat}`) || t(`hero_context.${res.loc}.baseline`);
+        const catTip = '< 0.05 °C/dec — Baseline\n0.05–0.10 °C/dec — Moderate\n0.10–0.20 °C/dec — Bad\n0.20–0.30 °C/dec — Extreme\n> 0.30 °C/dec — Catastrophic';
+        return `<div class="hero-context-block">
+          <div style="display:flex;align-items:center;gap:0">
+            <span class="trend-badge trend-badge--${cat}">${label}</span><span class="tip-icon" data-tooltip="${catTip}"><svg width="12" height="12" viewBox="0 0 12 12" fill="none"><circle cx="6" cy="6" r="5" stroke="currentColor" stroke-width="1.1"/><path d="M6 5.2v3M6 3.8h.01" stroke="currentColor" stroke-width="1.2" stroke-linecap="round"/></svg></span>
+          </div>
+          ${ctx ? `<p class="hero-context-text">${ctx}</p>` : ''}
+        </div>`;
+      })() : ''}
+      ${(() => {
+        const metricTip = st.method === 'OLS'
+          ? 'R²: proportion of variance\nexplained by the linear trend\n(0 = no fit, 1 = perfect fit)'
+          : "Kendall's τ: rank correlation\nbetween time and values\n(−1 to +1, sign = direction)";
+        return `<div class="sig-row${state.selVar === 'temperature_max' ? ' sig-row--compact' : ''}">
+          <div class="sig-item" data-tooltip="Mann-Kendall p-value\nProbability the trend is random.\n★★★ p<0.001 · ★★ p<0.01 · ★ p<0.05"><span class="sig-k">Significance</span><span class="sig-v">${stars(st.p_val)}</span></div>
+          <div class="sig-item" data-tooltip="${metricTip}"><span class="sig-k">${st.metric_lbl}</span><span class="sig-v">${st.metric}</span></div>
+          <div class="sig-item" data-tooltip="Annual observations and years\nof ERA5-Land data used\nfor the trend calculation"><span class="sig-k">Sample</span><span class="sig-v">${sampleHtml(st)}</span></div>
+          <div class="sig-item" data-tooltip="AR(1) serial correlation:\nyear-to-year auto-correlation.\nHigh values reduce effective\nsample size; TFPW corrects for this"><span class="sig-k">Autocorrelation</span><span class="sig-v">${ar1Html(st)}</span></div>
+        </div>`;
+      })()}
     </div>`;
   }).join("");
 
@@ -631,7 +656,36 @@ async function renderTodayStatus() {
     const r = await fetch("api/today_status").then(r => r.json());
     if (!r.available) return;
     el.innerHTML = `
-      <div class="sec-heading">${t('ui.heading_today')}</div>
+      <div class="sec-heading">
+        <span>${t('ui.heading_today')}</span>
+        <div id="share-widget">
+          <button id="share-toggle" aria-label="Share this site">
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><circle cx="18" cy="5" r="3"/><circle cx="6" cy="12" r="3"/><circle cx="18" cy="19" r="3"/><line x1="8.59" y1="13.51" x2="15.42" y2="17.49"/><line x1="15.41" y1="6.51" x2="8.59" y2="10.49"/></svg>
+          </button>
+          <div id="share-popover" hidden>
+            <button id="share-copy">
+              <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M10 13a5 5 0 0 0 7.54.54l3-3a5 5 0 0 0-7.07-7.07l-1.72 1.71"/><path d="M14 11a5 5 0 0 0-7.54-.54l-3 3a5 5 0 0 0 7.07 7.07l1.71-1.71"/></svg>
+              <span id="share-copy-lbl">Copy link</span>
+            </button>
+            <a href="https://x.com/intent/tweet?url=https%3A%2F%2Fclimate.mk&text=Explore+climate+trends+for+North+Macedonia" target="_blank" rel="noopener">
+              <svg width="15" height="15" viewBox="0 0 24 24" fill="currentColor"><path d="M18.244 2.25h3.308l-7.227 8.26 8.502 11.24H16.17l-4.714-6.231-5.401 6.231H2.744l7.73-8.835L1.254 2.25H8.08l4.713 6.231zm-1.161 17.52h1.833L7.084 4.126H5.117z"/></svg>
+              <span>X / Twitter</span>
+            </a>
+            <a href="https://www.facebook.com/sharer/sharer.php?u=https%3A%2F%2Fclimate.mk" target="_blank" rel="noopener">
+              <svg width="15" height="15" viewBox="0 0 24 24" fill="currentColor"><path d="M24 12.073c0-6.627-5.373-12-12-12s-12 5.373-12 12c0 5.99 4.388 10.954 10.125 11.854v-8.385H7.078v-3.47h3.047V9.43c0-3.007 1.792-4.669 4.533-4.669 1.312 0 2.686.235 2.686.235v2.953H15.83c-1.491 0-1.956.925-1.956 1.874v2.25h3.328l-.532 3.47h-2.796v8.385C19.612 23.027 24 18.062 24 12.073z"/></svg>
+              <span>Facebook</span>
+            </a>
+            <a href="https://www.linkedin.com/sharing/share-offsite/?url=https%3A%2F%2Fclimate.mk" target="_blank" rel="noopener">
+              <svg width="15" height="15" viewBox="0 0 24 24" fill="currentColor"><path d="M20.447 20.452h-3.554v-5.569c0-1.328-.027-3.037-1.852-3.037-1.853 0-2.136 1.445-2.136 2.939v5.667H9.351V9h3.414v1.561h.046c.477-.9 1.637-1.85 3.37-1.85 3.601 0 4.267 2.37 4.267 5.455v6.286zM5.337 7.433c-1.144 0-2.063-.926-2.063-2.065 0-1.138.92-2.063 2.063-2.063 1.14 0 2.064.925 2.064 2.063 0 1.139-.925 2.065-2.064 2.065zm1.782 13.019H3.555V9h3.564v11.452zM22.225 0H1.771C.792 0 0 .774 0 1.729v20.542C0 23.227.792 24 1.771 24h20.451C23.2 24 24 23.227 24 22.271V1.729C24 .774 23.2 0 22.222 0h.003z"/></svg>
+              <span>LinkedIn</span>
+            </a>
+            <a href="https://bsky.app/intent/compose?text=Explore+climate+trends+for+North+Macedonia+https%3A%2F%2Fclimate.mk" target="_blank" rel="noopener">
+              <svg width="15" height="15" viewBox="0 0 24 24" fill="currentColor"><path d="M12 10.8c-1.087-2.114-4.046-6.053-6.798-7.995C2.566.944 1.561 1.266.902 1.565.139 1.908 0 3.08 0 3.768c0 .69.378 5.65.624 6.479.815 2.736 3.713 3.66 6.383 3.364.136-.02.275-.039.415-.056-.138.022-.276.04-.415.056-3.912.58-7.387 2.005-2.83 7.078 5.013 5.19 6.87-1.113 7.823-4.308.953 3.195 2.05 9.271 7.733 4.308 4.267-4.308 1.172-6.498-2.74-7.078a8.741 8.741 0 0 1-.415-.056c.14.017.279.036.415.056 2.67.297 5.568-.628 6.383-3.364.246-.828.624-5.79.624-6.478 0-.69-.139-1.861-.902-2.204-.659-.299-1.664-.62-4.3 1.24C16.046 4.748 13.087 8.687 12 10.8z"/></svg>
+              <span>Bluesky</span>
+            </a>
+          </div>
+        </div>
+      </div>
       <div class="today-grid">
         <div class="today-card">
           <div class="today-h">${t('ui.title_today')}</div>
@@ -639,10 +693,11 @@ async function renderTodayStatus() {
             <span class="today-dot" style="background:${r.color}"></span>
             <div class="today-text">
               <div class="today-cat">${_locale?.categories?.[r.category_key || r.category.toLowerCase()]?.name || r.category}</div>
-              <div class="today-desc">${(_locale?.categories?.[r.category_key || r.category.toLowerCase()]?.desc || r.description).replace('{d}', r.day_label)}</div>
+              <div class="today-desc">${(_locale?.categories?.[r.category_key || r.category.toLowerCase()]?.desc || r.description).replace('{d}', _fmtDay(r.month_num, r.day_num, r.day_label))}</div>
             </div>
           </div>
           <p class="today-explain">${t('today.explain1')}</p>
+          ${t('today.climate_context') ? `<p class="today-context">${t('today.climate_context')}</p>` : ''}
           <div class="today-foot">
             ${_locale?.today?.foot
               ? t('today.foot', {temp: r.today_temp.toFixed(1), pct: r.percentile.toFixed(0), samples: r.n_samples.toLocaleString(), year_min: r.year_min, year_max: r.year_max})
@@ -650,7 +705,7 @@ async function renderTodayStatus() {
           </div>
         </div>
         <div class="today-chart">
-          <div class="today-chart-title">${t('today.chart_title', {day_label: r.day_label, year_min: r.year_min})}</div>
+          <div class="today-chart-title">${t('today.chart_title', {day_label: _fmtDay(r.month_num, r.day_num, r.day_label), year_min: r.year_min})}</div>
           <div id="today-dist-chart"></div>
         </div>
         <div class="today-chart" id="today-trend-card">
@@ -784,7 +839,7 @@ async function renderTodayTrendChart() {
 
     // Update title with actual year range
     const titleEl = document.getElementById("today-trend-title");
-    if (titleEl) titleEl.textContent = t('today.trend_title', {day_label: d.day_label, year_min: d.year_min, year_max: d.year_max});
+    if (titleEl) titleEl.textContent = t('today.trend_title', {day_label: _fmtDay(d.month_num, d.day_num, d.day_label), year_min: d.year_min, year_max: d.year_max});
 
     const histBand = d.hist_line.x.map((x, i) => [x, d.hist_line.lower[i], d.hist_line.upper[i]]);
     const fcBand   = d.projection_line.x.map((x, i) => [x, d.projection_line.lower[i], d.projection_line.upper[i]]);
@@ -960,6 +1015,12 @@ async function refreshCalendar() {
         <div class="loading-overlay" id="cal-loading-${i}">
           <div class="spinner"></div> Calculating…
         </div>
+      </div>
+      ${t('hero.explain_cal') ? `<p class="panel-explain">${t('hero.explain_cal')}</p>` : ''}
+      <div class="cal-legend${isPrecipLike(state.selVar) ? ' precip' : ''}">
+        <span class="leg-cool">${isTemp(state.selVar) ? t('charts.cal_cooling') || 'Cooling' : t('charts.cal_decreasing') || 'Decreasing'}</span>
+        <span class="cal-leg-ramp"></span>
+        <span class="leg-warm">${isTemp(state.selVar) ? t('charts.cal_warming') || 'Warming' : t('charts.cal_increasing') || 'Increasing'}</span>
       </div>
     </div>`).join("");
 
@@ -1323,6 +1384,19 @@ let _chatErrorRateLimit   = "Chat is temporarily unavailable — too many reques
 let _chatErrorGeneric     = "Chat is temporarily unavailable. Please try again later.";
 let _chatErrorGlobalLimit = "The chat assistant has reached its limit for now. Please try again in a little while.";
 
+function _fmtDay(month, day, fallback) {
+  if (_locale?.meta?.lang === 'mk') return `${day}.${String(month).padStart(2, '0')}`;
+  return fallback;
+}
+
+function trendCategory(trend10) {
+  if (trend10 >= 0.30) return 'catastrophic';
+  if (trend10 >= 0.20) return 'extreme';
+  if (trend10 >= 0.10) return 'bad';
+  if (trend10 >= 0.05) return 'moderate';
+  return 'baseline';
+}
+
 async function openChat() {
   document.getElementById("chat-modal").classList.add("open");
   document.body.classList.add("chat-modal-open");
@@ -1446,6 +1520,7 @@ function renderStaticLabels() {
   const setTxt = (id, val) => { const el = document.getElementById(id); if (el && val) el.textContent = val; };
   setTxt('heading-location', u.heading_location);
   setTxt('heading-controls', u.heading_controls);
+  setTxt('heading-controls-sub', u.heading_controls_sub);
   // Map legend
   const legCool = document.querySelector('.leg-cool');
   const legWarm = document.querySelector('.leg-warm');
@@ -1457,6 +1532,8 @@ function renderStaticLabels() {
   setTxt('lbl-trend-line', ch.trend_line);
   setTxt('lbl-ci95',       ch.ci95);
   setTxt('chart-change-lbl', ch.change_record);
+  const regExplain = document.getElementById('reg-explain');
+  if (regExplain) regExplain.textContent = t('hero.explain_reg') || '';
 }
 
 // Build the composite locale key from the two separate localStorage values
@@ -1556,23 +1633,34 @@ init().catch(console.error);
 
 async function loadQuote() {
   try {
-    // Use locale quotes if available, otherwise fall back to CSV
     const localeQuotes = tArr('quotes');
     let rows;
     if (localeQuotes && localeQuotes.length) {
-      rows = localeQuotes;
-    } else {
-      const resp = await fetch('climate_quotes.csv');
-      const text = await resp.text();
-      const lines = text.trim().split(/\r?\n/).slice(1);
-      rows = lines.map(line => {
-        const m = line.match(/^"(.+)","(.+)"$/) ||
-                  line.match(/^(.+?),"(.+)"$/) ||
-                  line.match(/^"(.+)",(.+)$/) ||
-                  line.match(/^(.+?),(.+)$/);
-        return m ? { author: m[1].trim(), quote: m[2].trim() } : null;
-      }).filter(Boolean);
+      // Author names always shown in English.
+      // To enable translated authors in the future, replace enQuotes with localeQuotes below.
+      const style    = localStorage.getItem('mk_content') || 'default';
+      const lang     = localStorage.getItem('mk_lang') || 'en';
+      const enQuotes = lang === 'en' ? localeQuotes :
+        await fetch(`locales/en_${style}.json`)
+          .then(r => r.json()).then(d => d.quotes || localeQuotes).catch(() => localeQuotes);
+      const len = Math.min(localeQuotes.length, enQuotes.length);
+      const idx = Math.floor(Math.random() * len);
+      const card = document.getElementById('quote-card');
+      card.innerHTML = `<div><p class="quote-text">${localeQuotes[idx].quote}</p><span class="quote-author">${enQuotes[idx].author}</span></div>`;
+      card.removeAttribute('hidden');
+      return;
     }
+    // CSV fallback — already English
+    const resp = await fetch('climate_quotes.csv');
+    const text = await resp.text();
+    const lines = text.trim().split(/\r?\n/).slice(1);
+    rows = lines.map(line => {
+      const m = line.match(/^"(.+)","(.+)"$/) ||
+                line.match(/^(.+?),"(.+)"$/) ||
+                line.match(/^"(.+)",(.+)$/) ||
+                line.match(/^(.+?),(.+)$/);
+      return m ? { author: m[1].trim(), quote: m[2].trim() } : null;
+    }).filter(Boolean);
     const row = rows[Math.floor(Math.random() * rows.length)];
     const card = document.getElementById('quote-card');
     card.innerHTML = `<div><p class="quote-text">${row.quote}</p><span class="quote-author">${row.author}</span></div>`;
@@ -1680,3 +1768,42 @@ window.addEventListener("resize", () => {
   regChart?.reflow();
   calCharts.forEach(c => c?.reflow());
 });
+
+// ── Share widget (event delegation — widget is injected by renderTodayStatus) ──
+document.addEventListener('click', e => {
+  const popover = document.getElementById('share-popover');
+  if (!popover) return;
+  if (e.target.closest('#share-toggle')) {
+    e.stopPropagation();
+    popover.hidden = !popover.hidden;
+    return;
+  }
+  if (e.target.closest('#share-copy')) {
+    navigator.clipboard.writeText(window.location.href).then(() => {
+      const lbl = document.getElementById('share-copy-lbl');
+      if (!lbl) return;
+      const orig = lbl.textContent;
+      lbl.textContent = 'Copied!';
+      setTimeout(() => { lbl.textContent = orig; }, 1500);
+    });
+    return;
+  }
+  if (!e.target.closest('#share-popover')) popover.hidden = true;
+});
+
+// ── Touch tooltip handler ─────────────────────────────────────────────────────
+// Hover-based tooltips don't work on touch. On touchstart, toggle .tip-active
+// on the tapped element; any other touchstart dismisses the open one.
+let _activeTip = null;
+document.addEventListener("touchstart", e => {
+  const el = e.target.closest("[data-tooltip]");
+  if (el && el !== _activeTip) {
+    if (_activeTip) _activeTip.classList.remove("tip-active");
+    el.classList.add("tip-active");
+    _activeTip = el;
+    e.preventDefault();
+  } else {
+    if (_activeTip) _activeTip.classList.remove("tip-active");
+    _activeTip = null;
+  }
+}, { passive: false });
