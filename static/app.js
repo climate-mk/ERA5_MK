@@ -383,9 +383,21 @@ function renderMap(data) {
         },
         point: {
           events: {
-            click() {
-              // 'this' is already the nearest-center point (findNearestPointBy:'xy')
-              const loc = this.name;
+            click(e) {
+              // Highcharts fires this on whichever bubble's radius area contains
+              // the click — not necessarily the nearest center.  Re-resolve the
+              // nearest station center from the actual pixel click position.
+              const chart  = this.series.chart;
+              const series = this.series;
+              let nearest  = this;   // safe fallback
+              let minDist  = Infinity;
+              series.points.forEach(pt => {
+                const dx = (pt.plotX + chart.plotLeft) - e.chartX;
+                const dy = (pt.plotY + chart.plotTop)  - e.chartY;
+                const d  = dx * dx + dy * dy;   // squared — no sqrt needed
+                if (d < minDist) { minDist = d; nearest = pt; }
+              });
+              const loc = nearest.name;
               if (state.selLocs.includes(loc)) {
                 if (state.selLocs.length > 1)
                   state.selLocs = state.selLocs.filter(l => l !== loc);
