@@ -330,6 +330,37 @@ function renderMap(data) {
       style: { fontFamily: "'Space Grotesk', system-ui, sans-serif" },
       animation: false,
       margin: [10, 10, 10, 10],
+      events: {
+        click(e) {
+          // Find the station whose rendered center is closest to the click point.
+          // This is more accurate than Highcharts' bubble-radius hit detection.
+          const series = this.series.find(s => s.type === "mapbubble");
+          if (!series) return;
+          let nearest = null, minDist = Infinity;
+          series.points.forEach(pt => {
+            const dx = pt.plotX - e.chartX + this.plotLeft;
+            const dy = pt.plotY - e.chartY + this.plotTop;
+            const d  = Math.sqrt(dx * dx + dy * dy);
+            if (d < minDist) { minDist = d; nearest = pt; }
+          });
+          if (!nearest) return;
+          const loc = nearest.name;
+          if (state.selLocs.includes(loc)) {
+            if (state.selLocs.length > 1)
+              state.selLocs = state.selLocs.filter(l => l !== loc);
+          } else {
+            if (state.selLocs.length < 6)
+              state.selLocs.push(loc);
+          }
+          syncLocationCheckboxes();
+          updateLocCheckboxStates();
+          updateLocDisplay();
+          updateMapSelection();
+          savePrefs();
+          refreshRegression();
+          refreshCalendar();
+        },
+      },
     },
     title:    { text: null },
     subtitle: { text: null },
@@ -372,34 +403,14 @@ function renderMap(data) {
         cursor: "pointer",
         minSize: 10,
         maxSize: 80,
+        // Use nearest center for hover/tooltip instead of bubble-radius containment
+        findNearestPointBy: "xy",
+        stickyTracking: false,
         dataLabels: {
           enabled: true,
           formatter() { return locName(this.point.name); },
           style: { fontSize: "9px", fontWeight: "400", color: INK, textOutline: "2px #fff", fontFamily: "'JetBrains Mono', monospace" },
           y: 0,
-        },
-        point: {
-          events: {
-            click() {
-              const loc = this.name;
-              if (state.selLocs.includes(loc)) {
-                if (state.selLocs.length > 1) {
-                  state.selLocs = state.selLocs.filter(l => l !== loc);
-                }
-              } else {
-                if (state.selLocs.length < 6) {
-                  state.selLocs.push(loc);
-                }
-              }
-              syncLocationCheckboxes();
-              updateLocCheckboxStates();
-              updateLocDisplay();
-              updateMapSelection();
-              savePrefs();
-              refreshRegression();
-              refreshCalendar();
-            },
-          },
         },
       },
     ],
