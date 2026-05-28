@@ -1463,20 +1463,11 @@ function _initWebChat(token, expiresIn) {
       });
     }
 
-    // ── Analytics: log user prompts and bot replies ─────────────────────────
+    // ── Analytics: log user prompts only ───────────────────────────────────
     if (action.type === "DIRECT_LINE/POST_ACTIVITY") {
-      // User just sent a message
       const act = action.payload?.activity;
       if (act?.type === "message" && act?.text) {
-        const convId = act?.conversation?.id || "";
-        _logChatEvent("user", act.text, convId);
-      }
-    } else if (action.type === "DIRECT_LINE/INCOMING_ACTIVITY") {
-      // Bot (or service) sent a message back
-      const act = action.payload?.activity;
-      if (act?.type === "message" && act?.text && act?.from?.role === "bot") {
-        const convId = act?.conversation?.id || "";
-        _logChatEvent("bot", act.text, convId);
+        _logChatEvent("user", act.text, act?.conversation?.id || "");
       }
     }
     // ───────────────────────────────────────────────────────────────────────

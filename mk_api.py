@@ -679,8 +679,8 @@ def _ip_to_country(ip: str) -> str:
         pass
     return "XX"
 
-def _log_chat_event(ip: str, direction: str, message: str, conv_id: str = "") -> None:
-    """Write one analytics row. Never raises — logging must not break the API."""
+def _log_chat_event(ip: str, message: str, conv_id: str = "") -> None:
+    """Write one user-prompt row. Never raises — logging must not break the API."""
     try:
         with _analytics_lock:
             if ip not in _COUNTRY_CACHE:
@@ -689,8 +689,8 @@ def _log_chat_event(ip: str, direction: str, message: str, conv_id: str = "") ->
         with _analytics_lock:
             with sqlite3.connect(_ANALYTICS_DB) as con:
                 con.execute(
-                    "INSERT INTO chat_events(country,direction,message,sess) VALUES(?,?,?,?)",
-                    (country, direction, message[:2000], conv_id),
+                    "INSERT INTO chat_events(country, message, sess) VALUES(?, ?, ?)",
+                    (country, message[:2000], conv_id),
                 )
     except Exception as e:
         print(f"[analytics] log_chat_event failed: {e}")
@@ -700,13 +700,12 @@ def _init_analytics_db() -> None:
         with sqlite3.connect(_ANALYTICS_DB) as con:
             con.executescript("""
                 CREATE TABLE IF NOT EXISTS chat_events (
-                    id        INTEGER PRIMARY KEY AUTOINCREMENT,
-                    ts        TEXT    NOT NULL
-                                      DEFAULT (strftime('%Y-%m-%dT%H:%M:%SZ','now')),
-                    country   TEXT    NOT NULL DEFAULT 'XX',
-                    direction TEXT    NOT NULL CHECK(direction IN ('user','bot')),
-                    message   TEXT    NOT NULL,
-                    sess      TEXT    NOT NULL DEFAULT ''
+                    id      INTEGER PRIMARY KEY AUTOINCREMENT,
+                    ts      TEXT    NOT NULL
+                                    DEFAULT (strftime('%Y-%m-%dT%H:%M:%SZ','now')),
+                    country TEXT    NOT NULL DEFAULT 'XX',
+                    message TEXT    NOT NULL,
+                    sess    TEXT    NOT NULL DEFAULT ''
                 );
                 CREATE INDEX IF NOT EXISTS idx_ts      ON chat_events(ts);
                 CREATE INDEX IF NOT EXISTS idx_country ON chat_events(country);
@@ -958,14 +957,14 @@ def api_analytics_chat():
     direction = body.get("direction", "")
     message   = body.get("message", "")
     conv_id   = body.get("conv_id", "")
-    if direction not in ("user", "bot"):
-        return jsonify({"error": "invalid direction"}), 400
+    if direction != "user":
+        return jsonify({"ok": True})   # silently ignore bot messages
     if not message:
         return jsonify({"ok": False}), 400
     ip = get_remote_address()
     threading.Thread(
         target=_log_chat_event,
-        args=(ip, direction, message, conv_id),
+        args=(ip, message, conv_id),
         daemon=True,
     ).start()
     return jsonify({"ok": True})
@@ -989,11 +988,11 @@ def api_analytics_export():
             with sqlite3.connect(_ANALYTICS_DB) as con:
                 con.row_factory = sqlite3.Row
                 rows = con.execute(
-                    "SELECT ts, country, direction, message, sess FROM chat_events ORDER BY ts"
+                    "SELECT ts, country, message, sess FROM chat_events ORDER BY ts"
                 ).fetchall()
         buf = io.StringIO()
         writer = csv.writer(buf)
-        writer.writerow(["ts", "country", "direction", "message", "sess"])
+        writer.writerow(["ts", "country", "message", "conv_id"])
         for row in rows:
             writer.writerow(list(row))
         yield buf.getvalue()
