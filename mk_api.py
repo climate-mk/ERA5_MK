@@ -4,11 +4,11 @@ Run:  source venv/bin/activate && python3 mk_api.py
 Open: http://127.0.0.1:5050
 """
 
-import os, glob, time, hashlib, json, threading, ipaddress, sqlite3
+import os, glob, time, hashlib, json, threading, ipaddress, sqlite3, csv, io
 import numpy as np
 import pandas as pd
 import requests as http_requests
-from flask import Flask, jsonify, request, send_from_directory, session
+from flask import Flask, jsonify, request, send_from_directory, session, Response
 from flask_limiter import Limiter
 from flask_limiter.util import get_remote_address
 from scipy import stats
@@ -56,6 +56,9 @@ from chat_config import (
 )
 
 _global_chat_counter = {"hour": -1, "hour_count": 0, "day": -1, "day_count": 0}
+
+# Analytics export key — set ANALYTICS_EXPORT_KEY in .env (and as a GitHub secret)
+_ANALYTICS_EXPORT_KEY = os.getenv("ANALYTICS_EXPORT_KEY", "")
 
 # ── Load data ──────────────────────────────────────────────────────────────────
 
@@ -966,6 +969,40 @@ def api_analytics_chat():
         daemon=True,
     ).start()
     return jsonify({"ok": True})
+
+@app.route("/api/analytics/export")
+def api_analytics_export():
+    """
+    Private CSV export of the full chat_events table.
+    Access: GET /api/analytics/export?key=<ANALYTICS_EXPORT_KEY>
+    The key is set via the ANALYTICS_EXPORT_KEY environment variable (.env on
+    the server, GitHub repository secret for reference).  Returns 403 if the
+    key is missing or wrong.  Safe to share the URL with colleagues — knowing
+    the key is the only requirement, no server access needed.
+    """
+    key = request.args.get("key", "")
+    if not _ANALYTICS_EXPORT_KEY or key != _ANALYTICS_EXPORT_KEY:
+        return Response("Forbidden", status=403)
+
+    def generate():
+        with _analytics_lock:
+            with sqlite3.connect(_ANALYTICS_DB) as con:
+                con.row_factory = sqlite3.Row
+                rows = con.execute(
+                    "SELECT ts, country, direction, message, sess FROM chat_events ORDER BY ts"
+                ).fetchall()
+        buf = io.StringIO()
+        writer = csv.writer(buf)
+        writer.writerow(["ts", "country", "direction", "message", "sess"])
+        for row in rows:
+            writer.writerow(list(row))
+        yield buf.getvalue()
+
+    return Response(
+        generate(),
+        mimetype="text/csv",
+        headers={"Content-Disposition": "attachment; filename=chat_analytics.csv"},
+    )
 
 # ── Background pre-warm ────────────────────────────────────────────────────────
 # After every restart, silently pre-compute the most expensive entries so the
