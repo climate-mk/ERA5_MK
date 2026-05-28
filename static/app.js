@@ -1380,6 +1380,7 @@ document.getElementById("window-input").addEventListener("change", function() {
 let _chatDirectLine  = null;
 let _chatRefreshTimer = null;
 let _conversationStarted = false;
+let _analyticsConvId = "";
 
 /**
  * Fire-and-forget: send one chat event to the analytics endpoint.
@@ -1437,7 +1438,7 @@ async function openChat() {
       throw Object.assign(new Error("Token error"), { status: res.status, msg });
     }
     const data = await res.json();
-    _initWebChat(data.token, data.expires_in);
+    _initWebChat(data.token, data.expires_in, data.conversationId || "");
   } catch (e) {
     console.error("Chat init failed:", e);
     const msg = e.msg || _chatErrorGeneric;
@@ -1448,7 +1449,8 @@ async function openChat() {
   }
 }
 
-function _initWebChat(token, expiresIn) {
+function _initWebChat(token, expiresIn, convId) {
+  _analyticsConvId = convId || "";
   _chatDirectLine = window.WebChat.createDirectLine({
     token,
     domain: "https://europe.directline.botframework.com/v3/directline",
@@ -1469,8 +1471,7 @@ function _initWebChat(token, expiresIn) {
       if (act?.type === "message" && act?.text) {
         // conversationId lives on the directLine instance, not on the activity
         // at POST time (it gets assigned by the service after posting).
-        const convId = _chatDirectLine?.conversationId || "";
-        _logChatEvent("user", act.text, convId);
+        _logChatEvent("user", act.text, _analyticsConvId);
       }
     }
     // ───────────────────────────────────────────────────────────────────────
