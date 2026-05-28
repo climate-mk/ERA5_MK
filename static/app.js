@@ -1380,6 +1380,23 @@ document.getElementById("window-input").addEventListener("change", function() {
 let _chatDirectLine  = null;
 let _chatRefreshTimer = null;
 let _conversationStarted = false;
+
+/**
+ * Fire-and-forget: send one chat event to the analytics endpoint.
+ * Errors are silently swallowed — analytics must never break the chat UX.
+ * @param {"user"|"bot"} direction
+ * @param {string} message  The raw text (capped server-side at 2000 chars)
+ * @param {string} convId   Direct Line conversation ID (used for session grouping)
+ */
+function _logChatEvent(direction, message, convId) {
+  try {
+    fetch("/api/analytics/chat", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ direction, message, conv_id: convId || "" }),
+    }).catch(() => {});   // ignore network errors
+  } catch (_) {}
+}
 let _chatErrorRateLimit   = "Chat is temporarily unavailable — too many requests. Please try again in a few minutes.";
 let _chatErrorGeneric     = "Chat is temporarily unavailable. Please try again later.";
 let _chatErrorGlobalLimit = "The chat assistant has reached its limit for now. Please try again in a little while.";
@@ -1445,6 +1462,25 @@ function _initWebChat(token, expiresIn) {
         payload: { name: "startConversation", value: "" },
       });
     }
+
+    // ── Analytics: log user prompts and bot replies ─────────────────────────
+    if (action.type === "DIRECT_LINE/POST_ACTIVITY") {
+      // User just sent a message
+      const act = action.payload?.activity;
+      if (act?.type === "message" && act?.text) {
+        const convId = act?.conversation?.id || "";
+        _logChatEvent("user", act.text, convId);
+      }
+    } else if (action.type === "DIRECT_LINE/INCOMING_ACTIVITY") {
+      // Bot (or service) sent a message back
+      const act = action.payload?.activity;
+      if (act?.type === "message" && act?.text && act?.from?.role === "bot") {
+        const convId = act?.conversation?.id || "";
+        _logChatEvent("bot", act.text, convId);
+      }
+    }
+    // ───────────────────────────────────────────────────────────────────────
+
     return next(action);
   });
 

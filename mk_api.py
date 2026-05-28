@@ -4,7 +4,7 @@ Run:  source venv/bin/activate && python3 mk_api.py
 Open: http://127.0.0.1:5050
 """
 
-import os, glob, time, hashlib, json, threading
+import os, glob, time, hashlib, json, threading, ipaddress, sqlite3
 import numpy as np
 import pandas as pd
 import requests as http_requests
@@ -624,6 +624,96 @@ def compute_today_status():
     _save_today_to_disk(cache_key, result)   # persist so restarts don't re-fetch
     return result
 
+# ── Chat analytics ────────────────────────────────────────────────────────────
+#
+# Privacy design:
+#   • IPs are NEVER stored — not even hashed.  The IP is used only to derive a
+#     2-letter ISO country code (via GeoLite2-Country.mmdb if present, or
+#     ip-api.com as fallback), then immediately discarded.
+#   • The country lookup result is cached in-memory (ip → country) so the
+#     external fallback is called at most once per unique IP per process lifetime.
+#   • Message text is stored as typed (capped at 2000 chars) — it is the chat
+#     prompt the user intentionally sent to the bot.
+#   • Conversation IDs are stored as-is for session grouping; they are opaque
+#     tokens assigned by Direct Line and carry no personal information.
+#   • The database file (chat_analytics.db) is excluded from git.
+#   • There is no public-facing API endpoint exposing this data.
+
+_ANALYTICS_DB  = os.path.join(os.path.dirname(__file__), "chat_analytics.db")
+_GEO_DB_PATH   = os.path.join(os.path.dirname(__file__), "GeoLite2-Country.mmdb")
+_COUNTRY_CACHE = {}          # ip → country code (in-memory, resets on restart)
+_analytics_lock = threading.Lock()
+
+def _ip_to_country(ip: str) -> str:
+    """Return ISO 3166-1 alpha-2 country code, 'LO' for private/local, 'XX' for unknown."""
+    try:
+        addr = ipaddress.ip_address(ip)
+        if addr.is_private or addr.is_loopback:
+            return "LO"
+    except ValueError:
+        return "XX"
+    # 1. Local GeoLite2-Country database (fast, offline, most accurate)
+    #    Download from https://dev.maxmind.com/geoip/geolite2-free-geolocation-data
+    #    and place GeoLite2-Country.mmdb in the app root directory.
+    if os.path.exists(_GEO_DB_PATH):
+        try:
+            import maxminddb
+            with maxminddb.open_database(_GEO_DB_PATH) as reader:
+                rec = reader.get(ip)
+                return (rec or {}).get("country", {}).get("iso_code") or "XX"
+        except Exception:
+            pass
+    # 2. Fallback: ip-api.com (free, no key, ~45 req/min limit; cached per IP)
+    try:
+        resp = http_requests.get(
+            f"http://ip-api.com/json/{ip}",
+            params={"fields": "countryCode"},
+            timeout=3,
+        )
+        if resp.ok:
+            return resp.json().get("countryCode") or "XX"
+    except Exception:
+        pass
+    return "XX"
+
+def _log_chat_event(ip: str, direction: str, message: str, conv_id: str = "") -> None:
+    """Write one analytics row. Never raises — logging must not break the API."""
+    try:
+        with _analytics_lock:
+            if ip not in _COUNTRY_CACHE:
+                _COUNTRY_CACHE[ip] = _ip_to_country(ip)
+            country = _COUNTRY_CACHE[ip]
+        with _analytics_lock:
+            with sqlite3.connect(_ANALYTICS_DB) as con:
+                con.execute(
+                    "INSERT INTO chat_events(country,direction,message,sess) VALUES(?,?,?,?)",
+                    (country, direction, message[:2000], conv_id),
+                )
+    except Exception as e:
+        print(f"[analytics] log_chat_event failed: {e}")
+
+def _init_analytics_db() -> None:
+    try:
+        with sqlite3.connect(_ANALYTICS_DB) as con:
+            con.executescript("""
+                CREATE TABLE IF NOT EXISTS chat_events (
+                    id        INTEGER PRIMARY KEY AUTOINCREMENT,
+                    ts        TEXT    NOT NULL
+                                      DEFAULT (strftime('%Y-%m-%dT%H:%M:%SZ','now')),
+                    country   TEXT    NOT NULL DEFAULT 'XX',
+                    direction TEXT    NOT NULL CHECK(direction IN ('user','bot')),
+                    message   TEXT    NOT NULL,
+                    sess      TEXT    NOT NULL DEFAULT ''
+                );
+                CREATE INDEX IF NOT EXISTS idx_ts      ON chat_events(ts);
+                CREATE INDEX IF NOT EXISTS idx_country ON chat_events(country);
+                CREATE INDEX IF NOT EXISTS idx_sess    ON chat_events(sess);
+            """)
+    except Exception as e:
+        print(f"[analytics] DB init failed: {e}")
+
+_init_analytics_db()
+
 # ── Flask app ──────────────────────────────────────────────────────────────────
 
 app = Flask(__name__, static_folder="static", static_url_path="")
@@ -848,6 +938,34 @@ def refresh_token():
         "conversationId": data["conversationId"],
         "expires_in":     data["expires_in"],
     })
+
+# ── Analytics route ───────────────────────────────────────────────────────────
+
+@app.route("/api/analytics/chat", methods=["POST"])
+@limiter.limit("60 per minute")
+def api_analytics_chat():
+    """
+    Internal endpoint — receives one chat event from the browser.
+    Body JSON: { direction: "user"|"bot", message: "...", conv_id: "..." }
+    The server resolves the real IP, looks up the country code, then discards
+    the IP immediately.  Only the country code, direction, message, and an
+    opaque conversation ID are written to SQLite.
+    """
+    body = request.get_json(silent=True) or {}
+    direction = body.get("direction", "")
+    message   = body.get("message", "")
+    conv_id   = body.get("conv_id", "")
+    if direction not in ("user", "bot"):
+        return jsonify({"error": "invalid direction"}), 400
+    if not message:
+        return jsonify({"ok": False}), 400
+    ip = get_remote_address()
+    threading.Thread(
+        target=_log_chat_event,
+        args=(ip, direction, message, conv_id),
+        daemon=True,
+    ).start()
+    return jsonify({"ok": True})
 
 # ── Background pre-warm ────────────────────────────────────────────────────────
 # After every restart, silently pre-compute the most expensive entries so the

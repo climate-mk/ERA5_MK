@@ -17,6 +17,10 @@ build/
 # ── Cache ─────────────────────────────────────────────────────────────────────
 .openmeteo_cache.sqlite
 
+# ── Analytics (runtime data — never in git) ───────────────────────────────────
+chat_analytics.db
+GeoLite2-Country.mmdb
+
 # ── Claude ────────────────────────────────────────────────────────────────────
 CLAUDE.md
 
