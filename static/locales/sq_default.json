@@ -33,44 +33,59 @@
     "trend_foot": "Theil-Sen + TFPW MK: {trend} °C/dekadë · {sig} · τ = {tau} · {n_years} vjet"
   },
   "categories": {
-    "freezing": {"name": "Ngrirje",  "desc": "Ndër {d}-t më të ftohtat në rekord — 76 vjet të dhëna."},
-    "cold":     {"name": "Ftohtë",   "desc": "Më ftohtë se shumica e {d}-ve të matura."},
-    "nope":     {"name": "Normal",   "desc": "Rreth temperaturës tipike për {d} në Maqedoni."},
-    "hot":      {"name": "Nxehtë",   "desc": "Ndër {d}-t më të nxehtat në rekordet tona."},
-    "hell":     {"name": "Ferr",     "desc": "Nxehtësi e jashtëzakonshme — top 5% e të gjithë {d}-ve që nga viti 1950."}
+    "freezing": {
+      "name": "Ngrirje",
+      "desc": "Ndër {d}-t më të ftohtat në rekord — 76 vjet të dhëna."
+    },
+    "cold": {
+      "name": "Ftohtë",
+      "desc": "Më ftohtë se shumica e {d}-ve të matura."
+    },
+    "nope": {
+      "name": "Normal",
+      "desc": "Rreth temperaturës tipike për {d} në Maqedoni."
+    },
+    "hot": {
+      "name": "Nxehtë",
+      "desc": "Ndër {d}-t më të nxehtat në rekordet tona."
+    },
+    "hell": {
+      "name": "Ferr",
+      "desc": "Nxehtësi e jashtëzakonshme — top 5% e të gjithë {d}-ve që nga viti 1950."
+    }
   },
   "charts": {
-    "under_mean":    "Nën mesatare",
-    "over_mean":     "Mbi mesatare",
-    "trend_line":    "Vija e trendit",
-    "ci95":          "95% CI",
-    "change_record":   "ndryshim gjatë rekordeve",
-    "cal_cooling":     "Ftohje",
-    "cal_warming":     "Ngrohje",
-    "cal_decreasing":  "Ulje",
-    "cal_increasing":  "Rritje"
+    "under_mean": "Nën mesatare",
+    "over_mean": "Mbi mesatare",
+    "trend_line": "Vija e trendit",
+    "ci95": "95% CI",
+    "change_record": "ndryshim gjatë rekordeve",
+    "cal_cooling": "Ftohje",
+    "cal_warming": "Ngrohje",
+    "cal_decreasing": "Ulje",
+    "cal_increasing": "Rritje"
   },
   "locations": {
-    "Berovo":       "Berovë",
-    "Bitola":       "Bitolë",
-    "Debar":        "Dibër",
+    "Berovo": "Berovë",
+    "Bitola": "Bitolë",
+    "Debar": "Dibër",
     "Demir_Kapija": "Demir Kapia",
-    "Gevgelija":    "Gevgeli",
-    "Gostivar":     "Gostivar",
-    "Kavadarci":    "Kavadari",
-    "Kicevo":       "Kërçovë",
-    "Kochani":      "Koçani",
-    "Kumanovo":     "Kumanovë",
-    "Lazaropole":   "Lazaropole",
-    "Negotino":     "Negotinë",
-    "Ohrid":        "Ohër",
-    "Prilep":       "Prilepi",
-    "Radovis":      "Radovisht",
-    "Skopje":       "Shkup",
-    "Stip":         "Shtipi",
-    "Strumica":     "Strumicë",
-    "Tetovo":       "Tetovë",
-    "Veles":        "Velesi"
+    "Gevgelija": "Gevgeli",
+    "Gostivar": "Gostivar",
+    "Kavadarci": "Kavadari",
+    "Kicevo": "Kërçovë",
+    "Kochani": "Koçani",
+    "Kumanovo": "Kumanovë",
+    "Lazaropole": "Lazaropole",
+    "Negotino": "Negotinë",
+    "Ohrid": "Ohër",
+    "Prilep": "Prilepi",
+    "Radovis": "Radovisht",
+    "Skopje": "Shkup",
+    "Stip": "Shtipi",
+    "Strumica": "Strumicë",
+    "Tetovo": "Tetovë",
+    "Veles": "Velesi"
   },
   "hero": {
     "verdict_warming": "Një shekull ngrohje me <em>{sign}{t100} {unit}</em> – në ritmin aktual, çdo <em>{yrs} vjet</em> shtohet edhe një gradë.",
@@ -82,132 +97,152 @@
     "explain_cal": "Çdo shirit është trendi i ngrohjes ose ftohjes për atë javë të vitit, në °C për dekadë. Portokalli do të thotë ngrohje; blu do të thotë ftohje. Modeli gjatë vitit zbulon cilat stinë po ndryshojnë më shpejt — në Maqedoni, shiritat e verës janë zakonisht më të lartët, që do të thotë se nxehtësia kulmore po intensifikohet më shpejt. Një kalendar i dominuar nga shiritat portokalli në të gjitha stinët sinjalizon ngrohje gjatë gjithë vitit: dimra më të shkurtër, pranvera më të hershme dhe periudha më të gjata të thata — të gjitha të koduara në këtë grafik."
   },
   "hero_category": {
-    "baseline":     "Bazë",
-    "moderate":     "Mesatar",
-    "bad":          "I keq",
-    "extreme":      "Ekstrem",
+    "baseline": "Bazë",
+    "moderate": "Mesatar",
+    "bad": "I keq",
+    "extreme": "Ekstrem",
     "catastrophic": "Katastrofik"
   },
   "hero_context": {
     "Skopje": {
-      "baseline":     "Kryeqyteti në një luginë në formë kupe që amplifikohet nxehtësia nëpërmjet efektit të ishullit urban të nxehtësisë dhe masave ajrore të bllokuara. Ngrohja e vazhdueshme kërcënon të çojë temperaturat e verës mbi 40°C me rregullsi në rritje.",
-      "bad":          "Valët e nxehtësisë me pesë ose më shumë ditë të njëpasnjëshme mbi 38°C po bëhen normë. Ishulli urban i nxehtësisë i mban netët të ngrohta, redukton kohën e rimëkëmbjes gjatë natës dhe rrit sëmundjet nga nxehtësia, veçanërisht për të moshuarit dhe punëtorët në ambiente të hapura.",
-      "extreme":      "Netët e verës nuk ftohen më me kuptim — qyteti ruan nxehtësinë e ditës mirë pas mesnate. Pikët e kërkesës për klimatizim sforcojnë rrjetin e energjisë, pemët urbane janë nën stres nga thatësira, dhe mjedisi i jashtëm bëhet i padurueshëm për periudha të zgjatura çdo verë.",
-      "catastrophic": "Me këtë ritëm, verat e Shkupit do të ngjajnë me kushtet e sotme në Athinë ose Spanjën jugore brenda disa dekadave. Gjeografia e luginës në formë kupe nuk ofron rrugëdalje — stresi termik bëhet krizë strukturore e shëndetit publik, puna në ambient të hapur bëhet e rrezikshme për muaj, dhe infrastruktura e qytetit përballet me presion për të cilin nuk u projektua kurrë."
+      "baseline": "Kryeqyteti në një luginë në formë kupe që amplifikohet nxehtësia nëpërmjet efektit të ishullit urban të nxehtësisë dhe masave ajrore të bllokuara. Ngrohja e vazhdueshme kërcënon të çojë temperaturat e verës mbi 40°C me rregullsi në rritje.",
+      "bad": "Valët e nxehtësisë me pesë ose më shumë ditë të njëpasnjëshme mbi 38°C po bëhen normë. Ishulli urban i nxehtësisë i mban netët të ngrohta, redukton kohën e rimëkëmbjes gjatë natës dhe rrit sëmundjet nga nxehtësia, veçanërisht për të moshuarit dhe punëtorët në ambiente të hapura.",
+      "extreme": "Netët e verës nuk ftohen më me kuptim — qyteti ruan nxehtësinë e ditës mirë pas mesnate. Pikët e kërkesës për klimatizim sforcojnë rrjetin e energjisë, pemët urbane janë nën stres nga thatësira, dhe mjedisi i jashtëm bëhet i padurueshëm për periudha të zgjatura çdo verë.",
+      "catastrophic": "Me këtë ritëm, verat e Shkupit do të ngjajnë me kushtet e sotme në Athinë ose Spanjën jugore brenda disa dekadave. Gjeografia e luginës në formë kupe nuk ofron rrugëdalje — stresi termik bëhet krizë strukturore e shëndetit publik, puna në ambient të hapur bëhet e rrezikshme për muaj, dhe infrastruktura e qytetit përballet me presion për të cilin nuk u projektua kurrë.",
+      "moderate": "Trendi i ngrohjes është i matshëm dhe efekti i ishullit urban të nxehtësisë po forcohet. Valët e nxehtësisë që dikur dukeshin të pazakonshme janë bërë tipare të rregullta verore, me më shumë net mbi 25°C që zvogëlojnë ftohjen natyrore të qytetit."
     },
     "Bitola": {
-      "baseline":     "Rrafshi i lartë i Pellagonisë në jugperëndim, një nga qytetet më të ftohta të ultësirës në Maqedoni. Ngrohja e shkurton sezonin e ftohtë dhe intensifikon nxehtësinë e verës në këtë bazin bujqësor të hapur, duke rritur stresin e thatësirës për kulturat.",
-      "bad":          "Kalendari bujqësor i rrafshit të Pellagonisë po ndryshon — vjeljet e grurit zhvendosen herët, por stresi i nxehtësisë verore rritet për kulturat dhe bagëtinë e sezonit të mëvonshëm. Kërkesa për ujitje rritet ndërsa reshjet e besueshme verore bëhen më të rralla.",
-      "extreme":      "Dimrat e gjatë të ftohta që përcaktuan sezonin vegjetal të Manastirit po tkurren, duke ndërprerë ciklet e qetësisë për kulturat shumëvjeçare. Thatësirat e zgjatura verore në të gjithë rrafshin e hapur po intensifikohen, duke ushtruar presion serioz mbi kapacitetin e prodhimit ushqimor të rajonit.",
-      "catastrophic": "Baseni bujqësor më i rëndësishëm i Maqedonisë përballet me transformim themelor. Kulturat e përshtatshme me klimën historike të rajonit po bëhen të paviueshme, nivelet e ujërave nëntokësore bien nën presionin e vazhdueshëm të nxjerrjes, dhe ngjarjet ekstreme të nxehtësisë kërcënojnë si cilësinë e korrjes ashtu edhe shëndetin njerëzor."
+      "baseline": "Rrafshi i lartë i Pellagonisë në jugperëndim, një nga qytetet më të ftohta të ultësirës në Maqedoni. Ngrohja e shkurton sezonin e ftohtë dhe intensifikon nxehtësinë e verës në këtë bazin bujqësor të hapur, duke rritur stresin e thatësirës për kulturat.",
+      "bad": "Kalendari bujqësor i rrafshit të Pellagonisë po ndryshon — vjeljet e grurit zhvendosen herët, por stresi i nxehtësisë verore rritet për kulturat dhe bagëtinë e sezonit të mëvonshëm. Kërkesa për ujitje rritet ndërsa reshjet e besueshme verore bëhen më të rralla.",
+      "extreme": "Dimrat e gjatë të ftohta që përcaktuan sezonin vegjetal të Manastirit po tkurren, duke ndërprerë ciklet e qetësisë për kulturat shumëvjeçare. Thatësirat e zgjatura verore në të gjithë rrafshin e hapur po intensifikohen, duke ushtruar presion serioz mbi kapacitetin e prodhimit ushqimor të rajonit.",
+      "catastrophic": "Baseni bujqësor më i rëndësishëm i Maqedonisë përballet me transformim themelor. Kulturat e përshtatshme me klimën historike të rajonit po bëhen të paviueshme, nivelet e ujërave nëntokësore bien nën presionin e vazhdueshëm të nxjerrjes, dhe ngjarjet ekstreme të nxehtësisë kërcënojnë si cilësinë e korrjes ashtu edhe shëndetin njerëzor.",
+      "moderate": "Sezoni i freskët pelagonian është dukshëm më i shkurtër. Kalendarët bujqësorë po ndryshojnë dhe ngjarjet e nxehtësisë verore që dikur ndodhnin rrallë tani priten. Ekspozimi i hapur i pellgut amplifikohen fitimet e temperaturës nëpër rrafshin bujqësor."
     },
     "Ohrid": {
-      "baseline":     "Qyteti pranë liqenit, në bregun e njërit nga liqenet më të vjetra dhe më të thella të Evropës, i cili historikisht ka zbutur ekstremet e temperaturës. Edhe këtu, efekti tampon termik i liqenit po tejkalohet nga ritmi i ngrohjes rajonale.",
-      "bad":          "Temperaturat më të ngrohta të sipërfaqes së liqenit po ndikojnë nivelet e oksigjenit në ujërat e thella, duke ushtruar presion mbi speciet endemike që nuk gjenden askund tjetër në Tokë. Moderimi historik termik që e bëri klimën e Ohrit të veçantë po dobësohet me matje.",
-      "extreme":      "Ekosistemi unik i Liqenit të Ohrit — duke përfshirë organizmat që mbijetuan Epokën e Fundit të Akullit në thellësitë e tij — është nën stres termik. Verat më të ngrohta përshpejtojnë rritjen e algave, reduktojnë oksigjenin e tretur dhe kërcënojnë biodiversitetin endemik që i jep liqenit statusin e tij UNESCO.",
-      "catastrophic": "Kombinimi i ngrohjes së temperaturave të ajrit, ndryshimit të modeleve të reshjeve dhe rritjes së temperaturave të sipërfaqes së liqenit kërcënon integritetin ekologjik të njërit prej liqeneve më të vjetra të Tokës. Ndryshimet e pakthyeshme në ekosistemin e liqenit janë të mundshme brenda disa dekadave, me pasoja të thella për biodiversitetin, turizmin dhe identitetin rajonal."
+      "baseline": "Qyteti pranë liqenit, në bregun e njërit nga liqenet më të vjetra dhe më të thella të Evropës, i cili historikisht ka zbutur ekstremet e temperaturës. Edhe këtu, efekti tampon termik i liqenit po tejkalohet nga ritmi i ngrohjes rajonale.",
+      "bad": "Temperaturat më të ngrohta të sipërfaqes së liqenit po ndikojnë nivelet e oksigjenit në ujërat e thella, duke ushtruar presion mbi speciet endemike që nuk gjenden askund tjetër në Tokë. Moderimi historik termik që e bëri klimën e Ohrit të veçantë po dobësohet me matje.",
+      "extreme": "Ekosistemi unik i Liqenit të Ohrit — duke përfshirë organizmat që mbijetuan Epokën e Fundit të Akullit në thellësitë e tij — është nën stres termik. Verat më të ngrohta përshpejtojnë rritjen e algave, reduktojnë oksigjenin e tretur dhe kërcënojnë biodiversitetin endemik që i jep liqenit statusin e tij UNESCO.",
+      "catastrophic": "Kombinimi i ngrohjes së temperaturave të ajrit, ndryshimit të modeleve të reshjeve dhe rritjes së temperaturave të sipërfaqes së liqenit kërcënon integritetin ekologjik të njërit prej liqeneve më të vjetra të Tokës. Ndryshimet e pakthyeshme në ekosistemin e liqenit janë të mundshme brenda disa dekadave, me pasoja të thella për biodiversitetin, turizmin dhe identitetin rajonal.",
+      "moderate": "Temperaturat e liqenit po rriten vazhdimisht dhe amortizimi termik që dikur mbante Ohrin më të freskët se rajonet rrethues po fillon të dobësohet. Sezoni i gjatë i ngrohtë po ndryshon ciklet biologjike në liqen dhe peizazhin përreth."
     },
     "Gevgelija": {
-      "baseline":     "Stacioni më jugor me ndikimin më të fortë mesdhetar dhe tashmë temperaturat bazë më të larta në rrjet. Çdo ngrohje e mëtejshme e shtyn drejt kushteve që i përgjigjen nxehtësisë më ekstreme në Ballkanin jugor.",
-      "bad":          "Duke mbajtur tashmë bazën më të ngrohtë të Maqedonisë, Gevgelia tani tejkalon rregullisht 40°C në verë. Stresi termik për punëtorët bujqësorë, bagëtinë dhe kulturat e ndjeshme ndaj nxehtësisë është realitet aktual, jo rrezik i ardhshëm.",
-      "extreme":      "Kushtet këtu po gjurmojnë drejt atyre të luginave më të nxehta të Greqisë veriore. Kulturat mesdhetare që lulëzojnë me klimën aktuale do të përballen me dështime gjithnjë e më të mëdha të prodhimit ndërsa temperaturat kulmore shtyjnë përtej kufijve të vendosur të tolerancës.",
-      "catastrophic": "Gevgelia është në kufirin e ekstremeve klimatike europiane. Kushtet e verës mund të bëhen të papajtueshme me punën e qëndrueshme bujqësore në ambient të hapur, dhe karakteri ekologjik i rajonit — i orientuar rreth bujqësisë së sezonit të ngrohtë — përballet me ndryshim ekzistencial pa precedent historik në këtë zonë."
+      "baseline": "Stacioni më jugor me ndikimin më të fortë mesdhetar dhe tashmë temperaturat bazë më të larta në rrjet. Çdo ngrohje e mëtejshme e shtyn drejt kushteve që i përgjigjen nxehtësisë më ekstreme në Ballkanin jugor.",
+      "bad": "Duke mbajtur tashmë bazën më të ngrohtë të Maqedonisë, Gevgelia tani tejkalon rregullisht 40°C në verë. Stresi termik për punëtorët bujqësorë, bagëtinë dhe kulturat e ndjeshme ndaj nxehtësisë është realitet aktual, jo rrezik i ardhshëm.",
+      "extreme": "Kushtet këtu po gjurmojnë drejt atyre të luginave më të nxehta të Greqisë veriore. Kulturat mesdhetare që lulëzojnë me klimën aktuale do të përballen me dështime gjithnjë e më të mëdha të prodhimit ndërsa temperaturat kulmore shtyjnë përtej kufijve të vendosur të tolerancës.",
+      "catastrophic": "Gevgelia është në kufirin e ekstremeve klimatike europiane. Kushtet e verës mund të bëhen të papajtueshme me punën e qëndrueshme bujqësore në ambient të hapur, dhe karakteri ekologjik i rajonit — i orientuar rreth bujqësisë së sezonit të ngrohtë — përballet me ndryshim ekzistencial pa precedent historik në këtë zonë.",
+      "moderate": "Tashmë stacioni më i ngrohtë i Maqedonisë, Gevgelija po shtyhet gjithnjë e më shumë drejt kushteve që dikur shoqëroheshin vetëm me Greqinë dhe Bullgarin Jugore. Periudhat e stresit termik po zgjaten dhe arrijnë më herët në sezon çdo vit."
     },
     "Tetovo": {
-      "baseline":     "I vendosur në rrëzë të Malit Sharr ku shpatet e pjerrëta kufizojnë rrjedhën e ajrit, duke kombinuar rritjen urbane me bllokimin e nxehtësisë në luginë. Temperaturat më të ngrohta reduktojnë borërat në Sharr, duke kërcënuar furnizimin me ujë veror për një popullsi të madhe.",
-      "bad":          "Bora e Malit Sharr — burimi kryesor i ujit veror për Tetovën dhe rajonin e gjerë të Pollogut — po zvogëlohet në kohëzgjatje dhe vëllim. Disponueshmëria e ujit veror po ngushtohet ndërsa kërkesa nga popullsia e madhe urbane dhe bujqësia po rritet.",
-      "extreme":      "Kombinimi i nxehtësisë verore të bllokuar, densitetit urban dhe ujit malor në rënie të Luginës së Pollogut krijon stres të ndërsëm. Episodet e nxehtësisë në luginën e mbyllur bëhen më intensive dhe të zgjatura, ndërsa shkrirja e zvogëluar e borës në Sharr arrin herët — duke i mbushur rezervat paraprakisht dhe duke lënë muajt e verës të thatë.",
-      "catastrophic": "Tetova ndodhet në kryqëzimin e mungesës së ujit dhe presionit demografik. Lugina e dendur e Pollogut, e varur nga shkrirja e borës në Sharr, përballet me një skenar ku kërkesa verore e ujit tejkalon strukturisht furnizimin e besueshëm — një krizë që asnjë përshtatje graduale nuk mund ta zgjidhë plotësisht pa investim transformues."
+      "baseline": "I vendosur në rrëzë të Malit Sharr ku shpatet e pjerrëta kufizojnë rrjedhën e ajrit, duke kombinuar rritjen urbane me bllokimin e nxehtësisë në luginë. Temperaturat më të ngrohta reduktojnë borërat në Sharr, duke kërcënuar furnizimin me ujë veror për një popullsi të madhe.",
+      "bad": "Bora e Malit Sharr — burimi kryesor i ujit veror për Tetovën dhe rajonin e gjerë të Pollogut — po zvogëlohet në kohëzgjatje dhe vëllim. Disponueshmëria e ujit veror po ngushtohet ndërsa kërkesa nga popullsia e madhe urbane dhe bujqësia po rritet.",
+      "extreme": "Kombinimi i nxehtësisë verore të bllokuar, densitetit urban dhe ujit malor në rënie të Luginës së Pollogut krijon stres të ndërsëm. Episodet e nxehtësisë në luginën e mbyllur bëhen më intensive dhe të zgjatura, ndërsa shkrirja e zvogëluar e borës në Sharr arrin herët — duke i mbushur rezervat paraprakisht dhe duke lënë muajt e verës të thatë.",
+      "catastrophic": "Tetova ndodhet në kryqëzimin e mungesës së ujit dhe presionit demografik. Lugina e dendur e Pollogut, e varur nga shkrirja e borës në Sharr, përballet me një skenar ku kërkesa verore e ujit tejkalon strukturisht furnizimin e besueshëm — një krizë që asnjë përshtatje graduale nuk mund ta zgjidhë plotësisht pa investim transformues.",
+      "moderate": "Bora e malit Sharr po zvogëlohet dukshëm nga viti në vit. Shkrirja e pranverës arrin më herët dhe rrjedhjet verore të përrenjve janë më të ulëta. Kombinimi i presionit demografik dhe furnizimit të reduktuar me ujë veror po krijon tensione sezonale."
     },
     "Kumanovo": {
-      "baseline":     "Qyteti i ultësirës veriore në një rrafsh të gjerë, i ekspozuar ndaj masave ajrore kontinentale nga veriu. Ngrohja amplifikohet stresi i nxehtësisë verore mbi terrenin e sheshtë dhe të hapur, duke reduktuar periudhat e ftohta që shtypin dëmtuesit e kulturave dhe sëmundjet.",
-      "bad":          "Rrafshi i hapur verior nuk ofron strehim nga nxehtësia verore në intensifikim. Rendimentet e drithërave po tregojnë shenja stresi nga nxehtësia — cilësia e kokrrave po bie në vitet e nxehta — dhe i ftohti dimëror i reduktuar po lejon specie dëmtuese të mbijetojnë dimrit që më parë nuk mund të bënin.",
-      "extreme":      "Episodet e stresit të nxehtësisë verore në rrafshin e Kumanovës tani tejkalojnë rregullisht ato për të cilat u kultivuan varietetet tradicionale të kulturave. Terreni i sheshtë nuk ofron lehtësim topografik, dhe shkallët e avullimit gjatë verës tejkalojnë ato që reshjet natyrore mund t'i rimbushësin.",
-      "catastrophic": "Bujqësia e rrafshit verior, e bazuar në kulturat e përshtatshme me një bazë kontinentale më të ftohtë, përballet me mospërputhje themelore me klimën në zhvillim. Përshtatja e qëndrueshme kërkon investime të mëdha në varietete rezistente ndaj nxehtësisë dhe infrastrukturë ujitjeje — kostoja e mosveprimit rritet çdo dekadë."
+      "baseline": "Qyteti i ultësirës veriore në një rrafsh të gjerë, i ekspozuar ndaj masave ajrore kontinentale nga veriu. Ngrohja amplifikohet stresi i nxehtësisë verore mbi terrenin e sheshtë dhe të hapur, duke reduktuar periudhat e ftohta që shtypin dëmtuesit e kulturave dhe sëmundjet.",
+      "bad": "Rrafshi i hapur verior nuk ofron strehim nga nxehtësia verore në intensifikim. Rendimentet e drithërave po tregojnë shenja stresi nga nxehtësia — cilësia e kokrrave po bie në vitet e nxehta — dhe i ftohti dimëror i reduktuar po lejon specie dëmtuese të mbijetojnë dimrit që më parë nuk mund të bënin.",
+      "extreme": "Episodet e stresit të nxehtësisë verore në rrafshin e Kumanovës tani tejkalojnë rregullisht ato për të cilat u kultivuan varietetet tradicionale të kulturave. Terreni i sheshtë nuk ofron lehtësim topografik, dhe shkallët e avullimit gjatë verës tejkalojnë ato që reshjet natyrore mund t'i rimbushësin.",
+      "catastrophic": "Bujqësia e rrafshit verior, e bazuar në kulturat e përshtatshme me një bazë kontinentale më të ftohtë, përballet me mospërputhje themelore me klimën në zhvillim. Përshtatja e qëndrueshme kërkon investime të mëdha në varietete rezistente ndaj nxehtësisë dhe infrastrukturë ujitjeje — kostoja e mosveprimit rritet çdo dekadë.",
+      "moderate": "Modeli i ngrohjes kontinentale po zvogëlon kohëzgjatjen e periudhës së ftohtë ndërsa zgjat nxehtësinë verore. Specie parazitësh që dikur luftonin të mbijetonin dimrin po fillojnë të vendosen, dhe stresi nga nxehtësia verore mbi kulturat po rritet ndjeshëm."
     },
     "Gostivar": {
-      "baseline":     "Qyteti i luginës në rajonin e Pollogut, i rrethuar nga Mali Sharr që blloku ajrin e ftohtë dimëror. Ngrohja gradualisht gërryen grumbullimin e ajrit të ftohtë që dikur i mbante verat e moderuara, duke tkurrur borërat e Sharrës.",
-      "bad":          "Basenet e ajrit të ftohtë dimëror të Luginës së Pollogut, të cilat shtypin si dëmtuesit ashtu edhe nxehtësinë verore, po dobësohen. Presioni nga dëmtuesit bujqësorë po rritet, ndërsa temperaturat verore gjithnjë e më shumë bllokojnë brenda luginës së rrethuar nga malet.",
-      "extreme":      "Bora e Malit Sharr — burimi kryesor i ujit veror për rajonin e densur të Pollogut — është në rënie të mprehtë. Mungesa e ujit gjatë verës po bëhet strukturisht e parashikueshme, duke ndikuar si bujqësinë ashtu edhe popullsinë e madhe urbane.",
-      "catastrophic": "Rajoni i Pollogut përballet me krizë uji të drejtuar nga kryqëzimi i densitetit demografik, shkrirjes së zvogëluar të borës dhe kërkesës në rritje të avullimit. Ndikimet sociale dhe ekonomike të disponueshmërisë së reduktuar të ujit veror në këtë luginë shumë të populluar nuk mund të menaxhohen vetëm nëpërmjet përshtatjes graduale."
+      "baseline": "Qyteti i luginës në rajonin e Pollogut, i rrethuar nga Mali Sharr që blloku ajrin e ftohtë dimëror. Ngrohja gradualisht gërryen grumbullimin e ajrit të ftohtë që dikur i mbante verat e moderuara, duke tkurrur borërat e Sharrës.",
+      "bad": "Basenet e ajrit të ftohtë dimëror të Luginës së Pollogut, të cilat shtypin si dëmtuesit ashtu edhe nxehtësinë verore, po dobësohen. Presioni nga dëmtuesit bujqësorë po rritet, ndërsa temperaturat verore gjithnjë e më shumë bllokojnë brenda luginës së rrethuar nga malet.",
+      "extreme": "Bora e Malit Sharr — burimi kryesor i ujit veror për rajonin e densur të Pollogut — është në rënie të mprehtë. Mungesa e ujit gjatë verës po bëhet strukturisht e parashikueshme, duke ndikuar si bujqësinë ashtu edhe popullsinë e madhe urbane.",
+      "catastrophic": "Rajoni i Pollogut përballet me krizë uji të drejtuar nga kryqëzimi i densitetit demografik, shkrirjes së zvogëluar të borës dhe kërkesës në rritje të avullimit. Ndikimet sociale dhe ekonomike të disponueshmërisë së reduktuar të ujit veror në këtë luginë shumë të populluar nuk mund të menaxhohen vetëm nëpërmjet përshtatjes graduale.",
+      "moderate": "Bllokimet e ajrit të ftohtë dimëror në pellgun e Pollogut po bëhen më të rralla. Bora e Sharrit që dikur ushqente lumenjtë gjatë verës po tërhiqet, dhe shenjat e para të stresit ujor bujqësor veror po shfaqen në vitet e thata."
     },
     "Kicevo": {
-      "baseline":     "Qyteti i luginës malore në Maqedoninë perëndimore në lartësi më të madhe se qytetet e ultësirës. Rritjet e temperaturës ndikojnë kohën e shkrirjes së borës dhe disponueshmërinë e ujit veror për komunitetin bujqësor dhe urban poshtë rrjedhës.",
-      "bad":          "Shkrirja e borës malore arrin javë më herët, duke i mbushur rezervat paraprakisht dhe duke lënë rrjedhjet e lumenjve në nivel më të ulët gjatë periudhës kritike bujqësore të mesit të verës. Pyjet në shpatet përreth tregojnë stres në rritje nga thatësira verore.",
-      "extreme":      "Pellgu ujëmbledhës malor perëndimor që ushqen Kërçovën po humbet kapacitetin e çlirimit gradual të ujit gjatë verës. Mangësia e ujit bujqësor përkon me kërkesën kulmore të kulturave, dhe rreziku i zjarrit në pyje në zonat e larta rreth rajonit rritet mprehtë.",
-      "catastrophic": "Funksioni hidrologjik i maleve perëndimore — çlirimi gradual i ujit të shkrirjes së borës gjatë verës — po shpërbëhet. Komunitetet e vendosura poshtë rrjedhës përballen me akses gjithnjë e më të pabesueshëm të ujit veror, dhe ekosistemet pyjore malore që mbrojnë pellgun ujëmbledhës janë nën stres të ndërsëm."
+      "baseline": "Qyteti i luginës malore në Maqedoninë perëndimore në lartësi më të madhe se qytetet e ultësirës. Rritjet e temperaturës ndikojnë kohën e shkrirjes së borës dhe disponueshmërinë e ujit veror për komunitetin bujqësor dhe urban poshtë rrjedhës.",
+      "bad": "Shkrirja e borës malore arrin javë më herët, duke i mbushur rezervat paraprakisht dhe duke lënë rrjedhjet e lumenjve në nivel më të ulët gjatë periudhës kritike bujqësore të mesit të verës. Pyjet në shpatet përreth tregojnë stres në rritje nga thatësira verore.",
+      "extreme": "Pellgu ujëmbledhës malor perëndimor që ushqen Kërçovën po humbet kapacitetin e çlirimit gradual të ujit gjatë verës. Mangësia e ujit bujqësor përkon me kërkesën kulmore të kulturave, dhe rreziku i zjarrit në pyje në zonat e larta rreth rajonit rritet mprehtë.",
+      "catastrophic": "Funksioni hidrologjik i maleve perëndimore — çlirimi gradual i ujit të shkrirjes së borës gjatë verës — po shpërbëhet. Komunitetet e vendosura poshtë rrjedhës përballen me akses gjithnjë e më të pabesueshëm të ujit veror, dhe ekosistemet pyjore malore që mbrojnë pellgun ujëmbledhës janë nën stres të ndërsëm.",
+      "moderate": "Koha e shkrirjes së borës po zhvendoset dukshëm herët, duke ndryshuar rrjedhjen sezonale të përrojve malor. Pyjet rrethues tregojnë shenja të hershme të stresit nga thatësira në verat e thata, dhe zonat e vegjetacionit në lartësi të mëdha fillojnë të migrojnë lart."
     },
     "Debar": {
-      "baseline":     "Qyteti i mbrojtur i luginës perëndimore përgjatë lumit Drini i Zi, i rrethuar nga male të larta. Temperaturat në rritje ndikojnë drejtpërdrejt kohën e shkrirjes dhe ekosistemet alpine në vargjet e afërta të Bistrës dhe Jablanicës.",
-      "bad":          "Bora e zvogëluar në Bistrë dhe Jablanicë do të thotë rrjedhje verore më të ulëta në sistemin e lumit Drini i Zi, duke sforcuar ujitjen dhe hidrocentralet. Livadhet alpine mbi 1500m po ngushtohen ndërsa ngrohja e shtyn vijën e pyllit lart.",
-      "extreme":      "Sistemet e borës malore që ushqejnë Drinin janë në tërheqje të përshpejtuar. Mungesa e ujit veror në luginë bëhet më e shpeshtë, dhe flora alpine unike e vargjeve rrethues përballet me kompresimin e habitatit ndërsa temperaturat rriten.",
-      "catastrophic": "Regjimi hidrologjik i të gjithë pellgut perëndimor është në rrezik. Me shkrirjen e borës që arrin herët dhe reshjet verore në rënie, Drini i Zi nuk mund të ruajë rrjedhje verore të besueshme — duke kërcënuar bujqësinë, prodhimin e energjisë hidrike dhe sigurinë ujore poshtë rrjedhës në të gjithë rajonin."
+      "baseline": "Qyteti i mbrojtur i luginës perëndimore përgjatë lumit Drini i Zi, i rrethuar nga male të larta. Temperaturat në rritje ndikojnë drejtpërdrejt kohën e shkrirjes dhe ekosistemet alpine në vargjet e afërta të Bistrës dhe Jablanicës.",
+      "bad": "Bora e zvogëluar në Bistrë dhe Jablanicë do të thotë rrjedhje verore më të ulëta në sistemin e lumit Drini i Zi, duke sforcuar ujitjen dhe hidrocentralet. Livadhet alpine mbi 1500m po ngushtohen ndërsa ngrohja e shtyn vijën e pyllit lart.",
+      "extreme": "Sistemet e borës malore që ushqejnë Drinin janë në tërheqje të përshpejtuar. Mungesa e ujit veror në luginë bëhet më e shpeshtë, dhe flora alpine unike e vargjeve rrethues përballet me kompresimin e habitatit ndërsa temperaturat rriten.",
+      "catastrophic": "Regjimi hidrologjik i të gjithë pellgut perëndimor është në rrezik. Me shkrirjen e borës që arrin herët dhe reshjet verore në rënie, Drini i Zi nuk mund të ruajë rrjedhje verore të besueshme — duke kërcënuar bujqësinë, prodhimin e energjisë hidrike dhe sigurinë ujore poshtë rrjedhës në të gjithë rajonin.",
+      "moderate": "Shkrirja e borës nga Bistra dhe Jablanica arrin më herët, duke ngarkuar rrjedhën e lumit Drini i Zi dhe duke zvogëluar disponueshmërinë e besueshme të ujit veror. Livadhet malore të larta tregojnë shenja të hershme të zhvendosjeve të zonave të vegjetacionit."
     },
     "Lazaropole": {
-      "baseline":     "Stacioni me lartësinë më të madhe mbidetare në rrjet, mbi rrafshnaltën e Bistrës mbi 1000m. Ngrohja malore përshpejtohet më shpejt se në ultësirat, me ndikim të drejtpërdrejtë mbi livadhet malore, pyjet e ahut dhe fushat e fundit të borës.",
-      "bad":          "Livadhet malore dhe pyjet e ahut të rrafshnaltës së Bistrës po tërhiqen lart ndërsa zarfi termik ndryshon. Kohëzgjatja e borës po zvogëlohet — duke reduktuar ujin e mbajtur në terren të lartë gjatë pranverës dhe fillimit të verës.",
-      "extreme":      "Me këtë ritëm ngrohje, zonat ekologjike të malësisë së Bistrës po kompresohen drejt majës. Pyjet e ahut po i afrohen kufirit të tyre të sipërm termik, dhe livadhet malore që mbështesin baritoren verore po thahen herët çdo vit.",
-      "catastrophic": "Ekosistemet e larta alpine të Bistrës po i afrohen transformimit të pakthyeshëm. Speciet dhe habitatet që nuk ekzistojnë askund tjetër në lartësi më të ulëta përballen me presionin e zhdukjes, dhe funksioni i rrafshnaltës si pellg ujëmbledhës për komunitetin poshtë rrjedhës është i degraduar në mënyrë themelore."
+      "baseline": "Stacioni me lartësinë më të madhe mbidetare në rrjet, mbi rrafshnaltën e Bistrës mbi 1000m. Ngrohja malore përshpejtohet më shpejt se në ultësirat, me ndikim të drejtpërdrejtë mbi livadhet malore, pyjet e ahut dhe fushat e fundit të borës.",
+      "bad": "Livadhet malore dhe pyjet e ahut të rrafshnaltës së Bistrës po tërhiqen lart ndërsa zarfi termik ndryshon. Kohëzgjatja e borës po zvogëlohet — duke reduktuar ujin e mbajtur në terren të lartë gjatë pranverës dhe fillimit të verës.",
+      "extreme": "Me këtë ritëm ngrohje, zonat ekologjike të malësisë së Bistrës po kompresohen drejt majës. Pyjet e ahut po i afrohen kufirit të tyre të sipërm termik, dhe livadhet malore që mbështesin baritoren verore po thahen herët çdo vit.",
+      "catastrophic": "Ekosistemet e larta alpine të Bistrës po i afrohen transformimit të pakthyeshëm. Speciet dhe habitatet që nuk ekzistojnë askund tjetër në lartësi më të ulëta përballen me presionin e zhdukjes, dhe funksioni i rrafshnaltës si pellg ujëmbledhës për komunitetin poshtë rrjedhës është i degraduar në mënyrë themelore.",
+      "moderate": "Ngrohja malore në këtë lartësi tashmë tejkalon shkallët e ultësirës. Kohëzgjatja e borës po shkurtohet dukshëm, dhe livadhet e larta dhe pyjet e ahut tregojnë shenja të hershme të stresit termik jashtë intervalit historik të njohur këtu."
     },
     "Kavadarci": {
-      "baseline":     "Zemra e rajonit vitivinikol të Tikveşit, ku vitivinikultura ka formësuar peizazhin prej shekujsh. Temperaturat e larta tashmë po ndryshojnë datat e vjeljes dhe kërcënojnë ekuilibrin e varieteteve tradicionale të rrushit.",
-      "bad":          "Datat e vjeljes së verërave të Tikveşit po avancojnë me ditë çdo dekadë, duke kompresuar dritaren e pjekjes. Varietetet e rrushit të vlerësuara për ekuilibrin e tyre të sheqerit dhe aciditetit po prodhojnë frut gjithnjë e më shumë të orientuar drejt ëmbëlsisë dhe aciditetit të ulët.",
-      "extreme":      "Identiteti shekullor i rajonit vitivinikol të Tikveşit është nën kërcënim të drejtpërdrejtë. Hardhitë nën stres termik kërkojnë më shumë ujë gjatë verëve gjithnjë e më të thata, dhe rreziku i dëmtimit nga dielli i rrushit gjatë pikut veror po rritet me shpejtësi.",
-      "catastrophic": "Varietetet tradicionale të rrushit të Tikveşit mund të mos jenë më të zbatueshme klimatikisht në rajonin e tyre të origjinës. Identiteti kulturor dhe ekonomik i një zone të tërë përballet me transformim — prodhuesit duhet të zgjedhin midis përshtatjes së shtrenjtë ose braktisjes së vitivinikultivimit tradicional."
+      "baseline": "Zemra e rajonit vitivinikol të Tikveşit, ku vitivinikultura ka formësuar peizazhin prej shekujsh. Temperaturat e larta tashmë po ndryshojnë datat e vjeljes dhe kërcënojnë ekuilibrin e varieteteve tradicionale të rrushit.",
+      "bad": "Datat e vjeljes së verërave të Tikveşit po avancojnë me ditë çdo dekadë, duke kompresuar dritaren e pjekjes. Varietetet e rrushit të vlerësuara për ekuilibrin e tyre të sheqerit dhe aciditetit po prodhojnë frut gjithnjë e më shumë të orientuar drejt ëmbëlsisë dhe aciditetit të ulët.",
+      "extreme": "Identiteti shekullor i rajonit vitivinikol të Tikveşit është nën kërcënim të drejtpërdrejtë. Hardhitë nën stres termik kërkojnë më shumë ujë gjatë verëve gjithnjë e më të thata, dhe rreziku i dëmtimit nga dielli i rrushit gjatë pikut veror po rritet me shpejtësi.",
+      "catastrophic": "Varietetet tradicionale të rrushit të Tikveşit mund të mos jenë më të zbatueshme klimatikisht në rajonin e tyre të origjinës. Identiteti kulturor dhe ekonomik i një zone të tërë përballet me transformim — prodhuesit duhet të zgjedhin midis përshtatjes së shtrenjtë ose braktisjes së vitivinikultivimit tradicional.",
+      "moderate": "Datat e vjeljes në rajonin e verës Tikveš po avancojnë dukshëm, dhe prodhuesit e verës po rregullojnë praktikat e tyre. Ngrohja është ende brenda një game të adaptueshme, por balanca e kimisë së rrushit po largohet nga karakteri i saj historik."
     },
     "Negotino": {
-      "baseline":     "Lugina vitivinikole e Tikveşit, me mikroklimë kontinentale të ngrohtë tashmë ndër më të nxehtat në Maqedoni. Ngrohja e mëtejshme ngushton dritaren për kulturat e ndjeshme ndaj nxehtësisë dhe rrit presionin e ujitjes mbi burimet e kufizuara të ujit.",
-      "bad":          "Mikroklima e ngrohtë e luginës së Tikveşit, prej kohësh avantazh për vitivinikulturën, tani prodhon nxehtësi të tepërt gjatë pikut veror. Kërkesa për ujitje si për hardhitë ashtu edhe për kulturat e fushave është rritur mprehtë, duke rritur presionin mbi burimet tashmë të kufizuara të ujit.",
-      "extreme":      "Koha e vjeljes së rrushit është zhvendosur me javë, dhe ekuilibri i sheqerit dhe aciditetit në varietetet tradicionale është gjithnjë e më i vështirë të arrihet. Periudhat e zgjatura të thatësirës në verë tani tejkalojnë rregullisht ato që infrastruktura e ujitjes mund t'i kompensojë.",
-      "catastrophic": "Ekonomia bujqësore e Negotinit, e centralizuar mbi vitivinikultivim dhe kopshtari tregu, po shtyhet drejt kufijve të saj operacionalë. Kombinimi i nxehtësisë ekstreme verore, disponueshmërisë në rënie të ujit dhe kërkesës në rritje të avullimit do të thotë se sistemi aktual i prodhimit kërkon ristrukturim themelor për të mbijetuar."
+      "baseline": "Lugina vitivinikole e Tikveşit, me mikroklimë kontinentale të ngrohtë tashmë ndër më të nxehtat në Maqedoni. Ngrohja e mëtejshme ngushton dritaren për kulturat e ndjeshme ndaj nxehtësisë dhe rrit presionin e ujitjes mbi burimet e kufizuara të ujit.",
+      "bad": "Mikroklima e ngrohtë e luginës së Tikveşit, prej kohësh avantazh për vitivinikulturën, tani prodhon nxehtësi të tepërt gjatë pikut veror. Kërkesa për ujitje si për hardhitë ashtu edhe për kulturat e fushave është rritur mprehtë, duke rritur presionin mbi burimet tashmë të kufizuara të ujit.",
+      "extreme": "Koha e vjeljes së rrushit është zhvendosur me javë, dhe ekuilibri i sheqerit dhe aciditetit në varietetet tradicionale është gjithnjë e më i vështirë të arrihet. Periudhat e zgjatura të thatësirës në verë tani tejkalojnë rregullisht ato që infrastruktura e ujitjes mund t'i kompensojë.",
+      "catastrophic": "Ekonomia bujqësore e Negotinit, e centralizuar mbi vitivinikultivim dhe kopshtari tregu, po shtyhet drejt kufijve të saj operacionalë. Kombinimi i nxehtësisë ekstreme verore, disponueshmërisë në rënie të ujit dhe kërkesës në rritje të avullimit do të thotë se sistemi aktual i prodhimit kërkon ristrukturim themelor për të mbijetuar.",
+      "moderate": "Baza e ngrohtë e luginës Tikveš do të thotë që ngrohja shtesë regjistrohet më akutisht. Kërkesa për ujitje po rritet, dhe furnizimi veror me ujë nga lumenjtë lokalë tregon shenja të hershme stresi në vitet e thata."
     },
     "Veles": {
-      "baseline":     "Qyteti industrial në grykën e luginës së Vardarit, ku kanalizimi i luginës përqendron ajrin e ftohtë dimëror dhe nxehtësinë verore. Ngrohja intensifikon efektin e kurthit të nxehtësisë në luginë, duke rritur stresin e nxehtësisë verore.",
-      "bad":          "Efekti natyral i kanalizimit të nxehtësisë i grykës së Vardarit po amplifikohet ndërsa temperaturat bazë rriten. Temperaturat verore në luginë tani shtyjnë rregullisht mbi 38–40°C, dhe trashëgimia industriale e qytetit shton stres shtesë termik për banorët.",
-      "extreme":      "Gjeografia e grykës që krijon mikroklimën dalluese të Velesit — rrjedhje ajri e koncentruar, nxehtësi e bllokuar midis mureve shkëmbore — prodhon kushte verore që janë ndër më ekstremet në brendësinë e Maqedonisë. Rreziku i vdekshmërisë nga nxehtësia rritet mprehtë gjatë episodeve të zgjatura verore.",
-      "catastrophic": "Velesi ndodhet në një amplifikues natyral të ngrohjes rajonale — gryka koncentron nxehtësinë në nivele që tejkalojnë ato që përjeton rajoni rrethues. Pa investime të mëdha në përshtatjen urbane, qyteti përballet me kushte verore të papajtueshme me aktivitete në ambient të hapur dhe që sforcojnë kapacitetin e kujdesit shëndetësor gjatë ngjarjeve kulmore të nxehtësisë."
+      "baseline": "Qyteti industrial në grykën e luginës së Vardarit, ku kanalizimi i luginës përqendron ajrin e ftohtë dimëror dhe nxehtësinë verore. Ngrohja intensifikon efektin e kurthit të nxehtësisë në luginë, duke rritur stresin e nxehtësisë verore.",
+      "bad": "Efekti natyral i kanalizimit të nxehtësisë i grykës së Vardarit po amplifikohet ndërsa temperaturat bazë rriten. Temperaturat verore në luginë tani shtyjnë rregullisht mbi 38–40°C, dhe trashëgimia industriale e qytetit shton stres shtesë termik për banorët.",
+      "extreme": "Gjeografia e grykës që krijon mikroklimën dalluese të Velesit — rrjedhje ajri e koncentruar, nxehtësi e bllokuar midis mureve shkëmbore — prodhon kushte verore që janë ndër më ekstremet në brendësinë e Maqedonisë. Rreziku i vdekshmërisë nga nxehtësia rritet mprehtë gjatë episodeve të zgjatura verore.",
+      "catastrophic": "Velesi ndodhet në një amplifikues natyral të ngrohjes rajonale — gryka koncentron nxehtësinë në nivele që tejkalojnë ato që përjeton rajoni rrethues. Pa investime të mëdha në përshtatjen urbane, qyteti përballet me kushte verore të papajtueshme me aktivitete në ambient të hapur dhe që sforcojnë kapacitetin e kujdesit shëndetësor gjatë ngjarjeve kulmore të nxehtësisë.",
+      "moderate": "Efekti i kurthit të nxehtësisë së luginës së Vardarit po intensifikohet me temperaturat e sfondit në rritje. Pikët e nxehtësisë verore janë më të larta dhe zgjasin më shumë, duke rritur barrën mbi banorët dhe ekosistemin e lumit."
     },
     "Kochani": {
-      "baseline":     "Qyteti i basenit lindor i njohur si kryeqendra e orizit në Maqedoni, ku bujqësia varet nga verat e ngrohta dhe uji i besueshëm i lumit Bregalnica. Nxehtësia në rritje kërcënon si prodhimet ashtu edhe rrjedhën e lumit gjatë sezonit të rritjes.",
-      "bad":          "Kultivimi i orizit — identiteti bujqësor përcaktues i Koçanit — varet nga temperaturat stabile verore dhe uji i besueshëm nga Bregalnica. Të dyja po bëhen më pak të parashikueshme, dhe rendimentet e kulturave tregojnë variabilitet gjithnjë e më të madh vit pas viti.",
-      "extreme":      "Pikët e nxehtësisë verore gjatë fazës kritike të mbushjes me kokrra të orizit dhe misrit shkaktojnë humbje rendimentesh që akumulohen me kalimin e viteve. Rrjedhjet e Bregalnicës po zvogëlohen në verë ndërsa shkrirja e borës arrin herët dhe reshjet verore zvogëlohen.",
-      "catastrophic": "Kultivimi i orizit në basenin e Koçanit, i praktikuar prej shekujsh, mund të bëhet ekonomikisht i pazbatueshëm ndërsa kostot e ujit rriten dhe dëmtimet e kulturave nga nxehtësia rriten. Identiteti bujqësor i rajonit dhe mbijetesa që mbështet përballen me sfidë strukturore që vetëm përshtatja mund të mos e zgjidhë."
+      "baseline": "Qyteti i basenit lindor i njohur si kryeqendra e orizit në Maqedoni, ku bujqësia varet nga verat e ngrohta dhe uji i besueshëm i lumit Bregalnica. Nxehtësia në rritje kërcënon si prodhimet ashtu edhe rrjedhën e lumit gjatë sezonit të rritjes.",
+      "bad": "Kultivimi i orizit — identiteti bujqësor përcaktues i Koçanit — varet nga temperaturat stabile verore dhe uji i besueshëm nga Bregalnica. Të dyja po bëhen më pak të parashikueshme, dhe rendimentet e kulturave tregojnë variabilitet gjithnjë e më të madh vit pas viti.",
+      "extreme": "Pikët e nxehtësisë verore gjatë fazës kritike të mbushjes me kokrra të orizit dhe misrit shkaktojnë humbje rendimentesh që akumulohen me kalimin e viteve. Rrjedhjet e Bregalnicës po zvogëlohen në verë ndërsa shkrirja e borës arrin herët dhe reshjet verore zvogëlohen.",
+      "catastrophic": "Kultivimi i orizit në basenin e Koçanit, i praktikuar prej shekujsh, mund të bëhet ekonomikisht i pazbatueshëm ndërsa kostot e ujit rriten dhe dëmtimet e kulturave nga nxehtësia rriten. Identiteti bujqësor i rajonit dhe mbijetesa që mbështet përballen me sfidë strukturore që vetëm përshtatja mund të mos e zgjidhë.",
+      "moderate": "Rrjedhjet e lumit Bregalnicë gjatë sezonit kritik veror të rritjes po tregojnë variabilitet të lidhur me ngrohjen. Kultivimi i orizit është ende i realizueshëm por gjithnjë e më shumë varet nga ujitja e menaxhuar sesa nga kushtet ujore natyrisht të qëndrueshme."
     },
     "Stip": {
-      "baseline":     "Qyteti i luginës lumore lindore maqedonase, historikisht një nga stacionet më të ngrohta të ultësirës. Rritjet e mëtejshme të temperaturës zgjasin periudhat e stresit të thatësirës për tokën bujqësore përreth gjatë sezonit veror.",
-      "bad":          "Toka bujqësore e luginës së Bregalnicës përballet me stres gjithnjë e më të madh të thatësirës verore ndërsa temperaturat rriten dhe avullimi tejkalon reshjet. Rendimentet e drithërave në vitet e nxehta po tregojnë rënie të matshme të cilësisë.",
-      "extreme":      "Nxehtësia e zgjatur verore në luginat lindore po tejkalon tolerancën e kulturave të rritura pa ujitje. Punëtorët në terren përballen me stres profesional nga nxehtësia gjatë pikut veror, dhe kërkesa për ujë për ujitje po rritet më shpejt se sa furnizimi mund t'i mbajë hapin.",
-      "catastrophic": "Bujqësia e luginës lindore e Shtipit — tashmë duke operuar në regjim kontinental të ngrohtë dhe të thatë — po i afrohet kushteve ku prodhimi veror pa ujitje të konsiderueshme është ekonomikisht i paviueshëm. Kërkesat për investim infrastrukturor tejkalojnë burimet e asaj që është tashmë një nga rajonet ekonomikisht më të sfiduar të Maqedonisë."
+      "baseline": "Qyteti i luginës lumore lindore maqedonase, historikisht një nga stacionet më të ngrohta të ultësirës. Rritjet e mëtejshme të temperaturës zgjasin periudhat e stresit të thatësirës për tokën bujqësore përreth gjatë sezonit veror.",
+      "bad": "Toka bujqësore e luginës së Bregalnicës përballet me stres gjithnjë e më të madh të thatësirës verore ndërsa temperaturat rriten dhe avullimi tejkalon reshjet. Rendimentet e drithërave në vitet e nxehta po tregojnë rënie të matshme të cilësisë.",
+      "extreme": "Nxehtësia e zgjatur verore në luginat lindore po tejkalon tolerancën e kulturave të rritura pa ujitje. Punëtorët në terren përballen me stres profesional nga nxehtësia gjatë pikut veror, dhe kërkesa për ujë për ujitje po rritet më shpejt se sa furnizimi mund t'i mbajë hapin.",
+      "catastrophic": "Bujqësia e luginës lindore e Shtipit — tashmë duke operuar në regjim kontinental të ngrohtë dhe të thatë — po i afrohet kushteve ku prodhimi veror pa ujitje të konsiderueshme është ekonomikisht i paviueshëm. Kërkesat për investim infrastrukturor tejkalojnë burimet e asaj që është tashmë një nga rajonet ekonomikisht më të sfiduar të Maqedonisë.",
+      "moderate": "Periudhat e thatësirës verore po zgjaten në luginën e Bregalnicës. Stresi nga avullimi mbi tokën bujqësore në mes të verës po rritet, dhe periudhat e thata që dikur zgjatën dy javë tani zgjaten tre ose më shumë."
     },
     "Radovis": {
-      "baseline":     "Qyteti i luginës lindore pranë grykës së Konçës me karakter kontinental të ngrohtë. Afëria me Bullgarinë do të thotë se ekspozohet ndaj masave ajrore nga disa nga brendësinë kontinentale që ngrohen më shpejt të Evropës Juglindore.",
-      "bad":          "Temperaturat verore në zonën e grykës së Konçës po intensifikohen përtej atyre për të cilat u projektuan sistemet e bujqësisë toksërisht të rajonit. Deficitet e lagështirës së tokës në verë po thellohen, duke reduktuar rendimentet e kulturave të drithërave në vitet e thata.",
-      "extreme":      "Kombinimi i ngrohjes së masës ajrore kontinentale nga lindja dhe bllokimit të luginës lokale po shtyn temperaturat verore në nivele ku varietetet tradicionale të kulturave të drithërave dhe perimeve tregojnë humbje të konsiderueshme nga stresi.",
-      "catastrophic": "Radovishi ndodhet në kryqëzimin e masave ajrore kontinentale të ngrohjes më të shpejtë të Evropës Juglindore dhe gjeografisë lokale që amplifikohet nxehtësia. Pa investim të konsiderueshëm në infrastrukturën e ujitjes, kapaciteti bujqësor i zonës në verë është në rrezik serioz colapsi."
+      "baseline": "Qyteti i luginës lindore pranë grykës së Konçës me karakter kontinental të ngrohtë. Afëria me Bullgarinë do të thotë se ekspozohet ndaj masave ajrore nga disa nga brendësinë kontinentale që ngrohen më shpejt të Evropës Juglindore.",
+      "bad": "Temperaturat verore në zonën e grykës së Konçës po intensifikohen përtej atyre për të cilat u projektuan sistemet e bujqësisë toksërisht të rajonit. Deficitet e lagështirës së tokës në verë po thellohen, duke reduktuar rendimentet e kulturave të drithërave në vitet e thata.",
+      "extreme": "Kombinimi i ngrohjes së masës ajrore kontinentale nga lindja dhe bllokimit të luginës lokale po shtyn temperaturat verore në nivele ku varietetet tradicionale të kulturave të drithërave dhe perimeve tregojnë humbje të konsiderueshme nga stresi.",
+      "catastrophic": "Radovishi ndodhet në kryqëzimin e masave ajrore kontinentale të ngrohjes më të shpejtë të Evropës Juglindore dhe gjeografisë lokale që amplifikohet nxehtësia. Pa investim të konsiderueshëm në infrastrukturën e ujitjes, kapaciteti bujqësor i zonës në verë është në rrezik serioz colapsi.",
+      "moderate": "Masat e ajrit kontinental nga brendësia e ngrohur e Europës Juglindore po sjellin ngjarje më intensive të nxehtësisë verore. Bujqësia e tokës së thatë po tregon stres në vitet më të ngrohta ndërsa deficitet e lagështisë së tokës gjatë mesit të verës thellohen."
     },
     "Strumica": {
-      "baseline":     "Qyteti i basenit juglindor me karakter të ngrohtë, pothuajse sub-mesdhetar dhe bujqësi intensive. Ngrohja përshpejton humbjen e lagështirës së tokës gjatë verëve të gjata të thata, duke rritur kërkesën për ujitje në furnizimin me ujë tashmë të stresuar.",
-      "bad":          "Kopshtaria intensive tregtare e basenit të Strumicës varet nga aksesi i besueshëm i ujit veror. Temperaturat në rritje përshpejtojnë humbjen e lagështirës së tokës midis cikleve të ujitjes, duke rritur si frekuencën ashtu edhe koston e ujitjes.",
-      "extreme":      "Vera sub-mesdhetare tashmë prodhon periudha të gjata të thata; ngrohja i zgjat këto më tej në pranverë dhe vjeshtë. Prodhimi i frutave dhe perimeve të rajonit — i eksportuar në të gjithë rajonin — përballet me variabilitet gjithnjë e më të madh vit pas viti dhe kufizime të furnizimit me ujë.",
-      "catastrophic": "Identiteti bujqësor i Strumicës — kopshtaria intensive që furnizon tregjet rajonale — përballet me krizë strukturore uji. Ndërsa temperaturat verore rriten dhe kërkesa e avapotranspirimit rritet, hendeku midis ujit të nevojshëm për ujitje dhe ujit të disponueshëm po zgjerohet drejt një pike që infrastruktura aktuale nuk mund ta mbushë."
+      "baseline": "Qyteti i basenit juglindor me karakter të ngrohtë, pothuajse sub-mesdhetar dhe bujqësi intensive. Ngrohja përshpejton humbjen e lagështirës së tokës gjatë verëve të gjata të thata, duke rritur kërkesën për ujitje në furnizimin me ujë tashmë të stresuar.",
+      "bad": "Kopshtaria intensive tregtare e basenit të Strumicës varet nga aksesi i besueshëm i ujit veror. Temperaturat në rritje përshpejtojnë humbjen e lagështirës së tokës midis cikleve të ujitjes, duke rritur si frekuencën ashtu edhe koston e ujitjes.",
+      "extreme": "Vera sub-mesdhetare tashmë prodhon periudha të gjata të thata; ngrohja i zgjat këto më tej në pranverë dhe vjeshtë. Prodhimi i frutave dhe perimeve të rajonit — i eksportuar në të gjithë rajonin — përballet me variabilitet gjithnjë e më të madh vit pas viti dhe kufizime të furnizimit me ujë.",
+      "catastrophic": "Identiteti bujqësor i Strumicës — kopshtaria intensive që furnizon tregjet rajonale — përballet me krizë strukturore uji. Ndërsa temperaturat verore rriten dhe kërkesa e avapotranspirimit rritet, hendeku midis ujit të nevojshëm për ujitje dhe ujit të disponueshëm po zgjerohet drejt një pike që infrastruktura aktuale nuk mund ta mbushë.",
+      "moderate": "Karakteri sub-mesdhetar që e bën Strumicën produktive për kulturat e kopshtarisë do të thotë gjithashtu që fitimet e nxehtësisë shndërrohen shpejt në kërkesë bujqësore për ujë. Sezoni i ujitjes fillon më herët dhe zgjat deri vonë çdo vit."
     },
     "Berovo": {
-      "baseline":     "Lugina lindore e ngritur rreth 800m në rrafshnaltat e ftohta të Maleshevisë. Edhe ky stacion relativisht i ftohtë ndjek trendin rajonal të ngrohjes, me efekte të dukshme në pyjet malore dhe tkurrjen e borërave.",
-      "bad":          "Pyjet malore dhe kullotat verore që përcaktojnë peizazhin e Berovës janë nën stres gjithnjë e më të madh të lagështirës. Temperaturat e larta përshpejtojnë avullimin nga rrafshnaltat e Maleshevisë, duke shkurtuar sezonin e borës dhe duke reduktuar rrjedhjen e ujit pranveror.",
-      "extreme":      "Pyjet e ahut në këtë lartësi po i afrohen kufijve të tyre të tolerancës termike. Thatësirat e zgjatura verore kërcënojnë ekosistemin malor që e ka bërë Berovën strehë të sezonit të ftohtë, dhe rreziku i zjarrit në pyje rritet në pyjet rrethues.",
-      "catastrophic": "Karakteri i ftohtë malor i Berovës që mbështet pyjet, kullotat dhe zonat ujëmbledhëse është kërcënuar në mënyrë themelore. Sezoni i zjarrit zgjatet, speciet endemike pyjore tërhiqen lart, dhe kapaciteti i zonës për të rimbushur rezervat e ujërave nëntokësore zvogëlohet në mënyrë kritike."
+      "baseline": "Lugina lindore e ngritur rreth 800m në rrafshnaltat e ftohta të Maleshevisë. Edhe ky stacion relativisht i ftohtë ndjek trendin rajonal të ngrohjes, me efekte të dukshme në pyjet malore dhe tkurrjen e borërave.",
+      "bad": "Pyjet malore dhe kullotat verore që përcaktojnë peizazhin e Berovës janë nën stres gjithnjë e më të madh të lagështirës. Temperaturat e larta përshpejtojnë avullimin nga rrafshnaltat e Maleshevisë, duke shkurtuar sezonin e borës dhe duke reduktuar rrjedhjen e ujit pranveror.",
+      "extreme": "Pyjet e ahut në këtë lartësi po i afrohen kufijve të tyre të tolerancës termike. Thatësirat e zgjatura verore kërcënojnë ekosistemin malor që e ka bërë Berovën strehë të sezonit të ftohtë, dhe rreziku i zjarrit në pyje rritet në pyjet rrethues.",
+      "catastrophic": "Karakteri i ftohtë malor i Berovës që mbështet pyjet, kullotat dhe zonat ujëmbledhëse është kërcënuar në mënyrë themelore. Sezoni i zjarrit zgjatet, speciet endemike pyjore tërhiqen lart, dhe kapaciteti i zonës për të rimbushur rezervat e ujërave nëntokësore zvogëlohet në mënyrë kritike.",
+      "moderate": "Pavarësisht lartësisë malore, trendi i ngrohjes është i matshëm dhe karakteri i freskët i peizazhit të Maleshevës po ndryshon në mënyrë delikate. Sezoni i borës është më i shkurtër, pranvera arrin më herët, dhe pyjet e ahut po përjetojnë stres të rastësishëm të lagështisë verore."
     },
     "Demir_Kapija": {
-      "baseline":     "Grykë e ngushtë ku Vardari pret nëpër shkëmbinj, duke krijuar një kanal natyral të erës me një nga mikroklitmat më të thata dhe më të nxehta në Maqedoni. Temperaturat verore tashmë ekstreme po shtyhen edhe më lart nga ngrohja rajonale.",
-      "bad":          "Tashmë duke mbajtur mikroklimën më të nxehtë të Maqedonisë, temperaturat verore të Demir Kapisë tani sfidojnë rregullisht kufijtë fiziologjikë të punës në terren. Efekti i kanalit të erës i grykës ofron pak lehtësim kur temperaturat ambienti tejkalojnë 40°C.",
-      "extreme":      "Gryka bllokon nxehtësinë deri në një pikë ku aktiviteti në ambient të hapur gjatë pasditeve verore bëhet rrezik shëndetësor. Varietetet e rrushit të kultivuara prej kohësh në teracetat rrethues po luftojnë të piqen siç duhet — sheqeri akumulohet shumë shpejt, aciditeti kolabos.",
-      "catastrophic": "Demir Kapia po i afrohet niveleve të temperaturës me pak precedent në historinë bujqësore europiane. Kushtet në grykë gjatë verës mund të tejkalojnë ato që çdo varietete tradicionale e kulturave mund t'i tolerojë me besueshmëri, duke kërkuar rishikim të plotë të përdorimit të tokës në këtë mikroklimë unike."
+      "baseline": "Grykë e ngushtë ku Vardari pret nëpër shkëmbinj, duke krijuar një kanal natyral të erës me një nga mikroklitmat më të thata dhe më të nxehta në Maqedoni. Temperaturat verore tashmë ekstreme po shtyhen edhe më lart nga ngrohja rajonale.",
+      "bad": "Tashmë duke mbajtur mikroklimën më të nxehtë të Maqedonisë, temperaturat verore të Demir Kapisë tani sfidojnë rregullisht kufijtë fiziologjikë të punës në terren. Efekti i kanalit të erës i grykës ofron pak lehtësim kur temperaturat ambienti tejkalojnë 40°C.",
+      "extreme": "Gryka bllokon nxehtësinë deri në një pikë ku aktiviteti në ambient të hapur gjatë pasditeve verore bëhet rrezik shëndetësor. Varietetet e rrushit të kultivuara prej kohësh në teracetat rrethues po luftojnë të piqen siç duhet — sheqeri akumulohet shumë shpejt, aciditeti kolabos.",
+      "catastrophic": "Demir Kapia po i afrohet niveleve të temperaturës me pak precedent në historinë bujqësore europiane. Kushtet në grykë gjatë verës mund të tejkalojnë ato që çdo varietete tradicionale e kulturave mund t'i tolerojë me besueshmëri, duke kërkuar rishikim të plotë të përdorimit të tokës në këtë mikroklimë unike.",
+      "moderate": "Në një grykë tashmë të njohur për nxehtësi ekstreme verore, edhe ngrohja e moderuar shtesë ka efekte disproporcionale. Numri i ditëve që kalojnë 38°C po rritet, dhe puna në terren gjatë pikut veror është gjithnjë e më e kufizuar në orët e hershme të mëngjesit."
     },
     "Prilep": {
-      "baseline":     "Qyteti i lartë i basenit të Pellagonisë dhe qendra e kultivimit të duhanit me klimë kontinentale dhe vera natyrisht të thata. Ngrohja e kombinuar me reshjet e ulëta verore të rajonit intensifikon stresin e ujit si për bujqësinë ashtu edhe për popullsinë urbane.",
-      "bad":          "Kultura e duhanit e basenit të Pellagonisë — e cila e ka përcaktuar Prilepën për gjenera — është gjithnjë e më e ndjeshme ndaj kombinimit të nxehtësisë dhe stresit të ujit të mesit të verës. Cilësia e gjethes po deteriorohet në vitet më të nxehta.",
-      "extreme":      "Thatësirat e zgjatura verore në rrafshin e lartë pellagonas po shkaktojnë deficite të lagështirës së tokës që vazhdojnë nga viti në vit. Nivelet e ujërave nëntokësore për ujitje po zvogëlohen, dhe rajoni përballet me zgjedhje të vështira se cilat aktivitete bujqësore mbeten të zbatueshme.",
-      "catastrophic": "Baseni malor i Pellagonisë, një nga rajonet bujqësore më të thata të Maqedonisë, po i afrohet kushteve ku kulturat verore nuk mund të rriten me besueshmëri pa ujitje intensive. Zvogëlimi i ujërave nëntokësore po përshpejtohet, dhe tkanina sociale e komuniteteve të ndërtuara rreth kultivimit të duhanit përballet me presion ekzistencial."
+      "baseline": "Qyteti i lartë i basenit të Pellagonisë dhe qendra e kultivimit të duhanit me klimë kontinentale dhe vera natyrisht të thata. Ngrohja e kombinuar me reshjet e ulëta verore të rajonit intensifikon stresin e ujit si për bujqësinë ashtu edhe për popullsinë urbane.",
+      "bad": "Kultura e duhanit e basenit të Pellagonisë — e cila e ka përcaktuar Prilepën për gjenera — është gjithnjë e më e ndjeshme ndaj kombinimit të nxehtësisë dhe stresit të ujit të mesit të verës. Cilësia e gjethes po deteriorohet në vitet më të nxehta.",
+      "extreme": "Thatësirat e zgjatura verore në rrafshin e lartë pellagonas po shkaktojnë deficite të lagështirës së tokës që vazhdojnë nga viti në vit. Nivelet e ujërave nëntokësore për ujitje po zvogëlohen, dhe rajoni përballet me zgjedhje të vështira se cilat aktivitete bujqësore mbeten të zbatueshme.",
+      "catastrophic": "Baseni malor i Pellagonisë, një nga rajonet bujqësore më të thata të Maqedonisë, po i afrohet kushteve ku kulturat verore nuk mund të rriten me besueshmëri pa ujitje intensive. Zvogëlimi i ujërave nëntokësore po përshpejtohet, dhe tkanina sociale e komuniteteve të ndërtuara rreth kultivimit të duhanit përballet me presion ekzistencial.",
+      "moderate": "Verat natyrisht të thata të pellgut pelagonian do të thotë që ngrohja e moderuar amplifikohet stresin ujor herët dhe më akutisht sesa në rajonet më të lagështa. Rendimentet e duhanit po tregojnë variabilitet të hershëm dhe kërkesa verore për ujitje po rritet."
     }
   },
   "about": {
@@ -221,31 +256,106 @@
     "col3_text": "Ne përdorim metoda statistikore për llogaritjen e pjerrësisë dhe zbulimin e tendencave, duke korrigjuar për korrelacionin serial. Përpunimi i të dhënave përfshin modelim, korrigjime bazuar në lartësinë mbi nivelin e detit dhe zbutje me dritare për të analizuar ndryshimet klimatike shumëdekadëshe, me vizualizime të bazuara në bibliotekën Highcharts. Për informacion më të detajuar konsultohuni me chatbot-in tonë Ognen ose vizitoni <a href=\"https://github.com/kesma01/ERA5_MK\" target=\"_blank\" rel=\"noopener\">faqen GitHub</a>."
   },
   "quotes": [
-    {"author": "Greta Thunberg (Aktiviste Klimatike)", "quote": "Shtëpia jonë po digjet. Jam këtu të them se shtëpia jonë po digjet."},
-    {"author": "David Attenborough (Natyralist)", "quote": "Nuk ka asnjë dyshim se ndryshimet klimatike po ndodhin; e vetmja pikë e diskutueshme është çfarë roli po luajnë njerëzit."},
-    {"author": "Barack Obama (ish-President i SHBA)", "quote": "Ne jemi gjenerata e parë që ndjek efektin e ndryshimeve klimatike dhe gjenerata e fundit që mund të bëjë diçka për to."},
-    {"author": "Albert Einstein (Fizikan)", "quote": "Bota nuk do të shkatërrohet nga ata që bëjnë të keq, por nga ata që i shikojnë pa bërë asgjë."},
-    {"author": "Shprehje e Vjetër Indiane", "quote": "Tokën nuk e trashëgojmë nga paraardhësit tanë. E huazojmë nga fëmijët tanë."},
-    {"author": "Carl Sagan (Fizikan)", "quote": "Gjithçka tjetër që ju intereson nuk do të ndodhë nëse nuk mund të merrni frymë ajër dhe të pini ujë."},
-    {"author": "Stephen Hawking (Fizikan)", "quote": "Jemi afër pikës kthyese ku ngrohja globale bëhet e pakthyeshme."},
-    {"author": "Desmond Tutu (Kryepeshkop)", "quote": "Njëzet e pesë vjet më parë, njerëzit mund të justifikoheshin se nuk dinin shumë rreth ndryshimeve klimatike. Sot nuk kemi asnjë justifikim."},
-    {"author": "Papa Françesku (Lider Fetar)", "quote": "Tani ose kurrë. Çdo vit problemet bëhen gjithnjë e më keq."},
-    {"author": "Edi Rama (Kryeministër, Shqipëri)", "quote": "Jeta vazhdon me zakonet e veta të vjetra dhe fjalimet tona për të luftuar ndryshimet klimatike nuk ndryshojnë asgjë."},
-    {"author": "Edi Rama (Kryeministër, Shqipëri)", "quote": "Çfarë po bëjmë këtu nëse nuk ka vullnet të përbashkët politik për të kaluar nga fjalët në veprime kuptimplote?"},
-    {"author": "Stevo Pendarovski (Politikan)", "quote": "Ndryshimet klimatike nuk janë më kërcënim i largët; është një realitet i ashpër që prek ekosistemet tona dhe kërkon bashkëpunim global të menjëhershëm."},
-    {"author": "Goran Bregović (Muzikant)", "quote": "E trajtojmë tokën si dhomë hoteli me qera, duke lënë rrëmujë sepse mendojmë se nuk do të jemi këtu nesër ta pastrojmë."},
-    {"author": "Rade Šerbedžija (Aktor)", "quote": "Shqetësohemi kaq shumë për kufijtë dhe historinë, ndërsa vetë natyra që mbështet jetën tonë po shembet në heshtje nën ne."},
-    {"author": "Bora Dugić (Muzikant)", "quote": "Natyra ka harmoninë e vet dhe kur njerëzimi ndryshon klimën, ne fusim një disharmoni shkatërruese në botë."},
-    {"author": "Michio Kaku (Fizikan)", "quote": "Ngrohja globale është reale. Është një katastrofë me lëvizje të ngadaltë që do të rimodelojë gjeografinë e planetit."},
-    {"author": "Arnold Schwarzenegger (Aktor dhe Politikan)", "quote": "Faktet janë aty — kemi krijuar një plagë vetëshkaktuar përmes ngrohjes globale."},
-    {"author": "Al Gore (ish-Nënpresident i SHBA)", "quote": "Po mbarojmë kohë dhe duhet të kemi një zgjidhje planetare për një krizë planetare."},
-    {"author": "Leonardo DiCaprio (Aktor)", "quote": "Ndryshimet klimatike janë reale. Po ndodhin tani. Duhet të bashkëpunojmë dhe të ndalim zvarritjen."},
-    {"author": "Bill Gates (Lider Biznesi)", "quote": "Deri në kohën kur të shohim se ndryshimet klimatike janë vërtet të rënda, aftësia juaj për t'i rregulluar do të jetë jashtëzakonisht e kufizuar."},
-    {"author": "Nicholas Stern (Ekonomist)", "quote": "Ndryshimet klimatike janë rezultat i dështimit më të madh të tregut që ka parë bota."},
-    {"author": "Jane Goodall (Primatolog)", "quote": "Për fat të mirë, natyra është jashtëzakonisht elastike: vendet që kemi shkatërruar, duke iu dhënë kohë dhe ndihmë, mund të mbështesin jetën sërish."},
-    {"author": "Harrison Ford (Aktor)", "quote": "Natyra nuk ka nevojë për njerëz. Njerëzit kanë nevojë për natyrën. Natyra do të mbijetonte zhdukjen e njerëzve, por njerëzit nuk mund të mbijetojnë pa natyrën."},
-    {"author": "Sting (Muzikant)", "quote": "Po e shkatërrojmë planetin tonë me një braktisje kaq të papërgjegjshme. Pyjet tropikale janë mushkëritë e botës dhe ne po i presim."},
-    {"author": "Bono (Muzikant)", "quote": "Ndryshimet klimatike nuk janë vetëm çështje mjedisore. Është çështje e të drejtave të njeriut, çështje ekonomike dhe çështje sigurie."}
+    {
+      "author": "Greta Thunberg (Aktiviste Klimatike)",
+      "quote": "Shtëpia jonë po digjet. Jam këtu të them se shtëpia jonë po digjet."
+    },
+    {
+      "author": "David Attenborough (Natyralist)",
+      "quote": "Nuk ka asnjë dyshim se ndryshimet klimatike po ndodhin; e vetmja pikë e diskutueshme është çfarë roli po luajnë njerëzit."
+    },
+    {
+      "author": "Barack Obama (ish-President i SHBA)",
+      "quote": "Ne jemi gjenerata e parë që ndjek efektin e ndryshimeve klimatike dhe gjenerata e fundit që mund të bëjë diçka për to."
+    },
+    {
+      "author": "Albert Einstein (Fizikan)",
+      "quote": "Bota nuk do të shkatërrohet nga ata që bëjnë të keq, por nga ata që i shikojnë pa bërë asgjë."
+    },
+    {
+      "author": "Shprehje e Vjetër Indiane",
+      "quote": "Tokën nuk e trashëgojmë nga paraardhësit tanë. E huazojmë nga fëmijët tanë."
+    },
+    {
+      "author": "Carl Sagan (Fizikan)",
+      "quote": "Gjithçka tjetër që ju intereson nuk do të ndodhë nëse nuk mund të merrni frymë ajër dhe të pini ujë."
+    },
+    {
+      "author": "Stephen Hawking (Fizikan)",
+      "quote": "Jemi afër pikës kthyese ku ngrohja globale bëhet e pakthyeshme."
+    },
+    {
+      "author": "Desmond Tutu (Kryepeshkop)",
+      "quote": "Njëzet e pesë vjet më parë, njerëzit mund të justifikoheshin se nuk dinin shumë rreth ndryshimeve klimatike. Sot nuk kemi asnjë justifikim."
+    },
+    {
+      "author": "Papa Françesku (Lider Fetar)",
+      "quote": "Tani ose kurrë. Çdo vit problemet bëhen gjithnjë e më keq."
+    },
+    {
+      "author": "Edi Rama (Kryeministër, Shqipëri)",
+      "quote": "Jeta vazhdon me zakonet e veta të vjetra dhe fjalimet tona për të luftuar ndryshimet klimatike nuk ndryshojnë asgjë."
+    },
+    {
+      "author": "Edi Rama (Kryeministër, Shqipëri)",
+      "quote": "Çfarë po bëjmë këtu nëse nuk ka vullnet të përbashkët politik për të kaluar nga fjalët në veprime kuptimplote?"
+    },
+    {
+      "author": "Stevo Pendarovski (Politikan)",
+      "quote": "Ndryshimet klimatike nuk janë më kërcënim i largët; është një realitet i ashpër që prek ekosistemet tona dhe kërkon bashkëpunim global të menjëhershëm."
+    },
+    {
+      "author": "Goran Bregović (Muzikant)",
+      "quote": "E trajtojmë tokën si dhomë hoteli me qera, duke lënë rrëmujë sepse mendojmë se nuk do të jemi këtu nesër ta pastrojmë."
+    },
+    {
+      "author": "Rade Šerbedžija (Aktor)",
+      "quote": "Shqetësohemi kaq shumë për kufijtë dhe historinë, ndërsa vetë natyra që mbështet jetën tonë po shembet në heshtje nën ne."
+    },
+    {
+      "author": "Bora Dugić (Muzikant)",
+      "quote": "Natyra ka harmoninë e vet dhe kur njerëzimi ndryshon klimën, ne fusim një disharmoni shkatërruese në botë."
+    },
+    {
+      "author": "Michio Kaku (Fizikan)",
+      "quote": "Ngrohja globale është reale. Është një katastrofë me lëvizje të ngadaltë që do të rimodelojë gjeografinë e planetit."
+    },
+    {
+      "author": "Arnold Schwarzenegger (Aktor dhe Politikan)",
+      "quote": "Faktet janë aty — kemi krijuar një plagë vetëshkaktuar përmes ngrohjes globale."
+    },
+    {
+      "author": "Al Gore (ish-Nënpresident i SHBA)",
+      "quote": "Po mbarojmë kohë dhe duhet të kemi një zgjidhje planetare për një krizë planetare."
+    },
+    {
+      "author": "Leonardo DiCaprio (Aktor)",
+      "quote": "Ndryshimet klimatike janë reale. Po ndodhin tani. Duhet të bashkëpunojmë dhe të ndalim zvarritjen."
+    },
+    {
+      "author": "Bill Gates (Lider Biznesi)",
+      "quote": "Deri në kohën kur të shohim se ndryshimet klimatike janë vërtet të rënda, aftësia juaj për t'i rregulluar do të jetë jashtëzakonisht e kufizuar."
+    },
+    {
+      "author": "Nicholas Stern (Ekonomist)",
+      "quote": "Ndryshimet klimatike janë rezultat i dështimit më të madh të tregut që ka parë bota."
+    },
+    {
+      "author": "Jane Goodall (Primatolog)",
+      "quote": "Për fat të mirë, natyra është jashtëzakonisht elastike: vendet që kemi shkatërruar, duke iu dhënë kohë dhe ndihmë, mund të mbështesin jetën sërish."
+    },
+    {
+      "author": "Harrison Ford (Aktor)",
+      "quote": "Natyra nuk ka nevojë për njerëz. Njerëzit kanë nevojë për natyrën. Natyra do të mbijetonte zhdukjen e njerëzve, por njerëzit nuk mund të mbijetojnë pa natyrën."
+    },
+    {
+      "author": "Sting (Muzikant)",
+      "quote": "Po e shkatërrojmë planetin tonë me një braktisje kaq të papërgjegjshme. Pyjet tropikale janë mushkëritë e botës dhe ne po i presim."
+    },
+    {
+      "author": "Bono (Muzikant)",
+      "quote": "Ndryshimet klimatike nuk janë vetëm çështje mjedisore. Është çështje e të drejtave të njeriut, çështje ekonomike dhe çështje sigurie."
+    }
   ],
   "effects": [
     "Verë më të nxehta dhe më të gjata me valë ekstreme të nxehtësisë",

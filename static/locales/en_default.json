@@ -33,22 +33,37 @@
     "trend_foot": "Theil-Sen + TFPW MK: {trend} °C/decade · {sig} · τ = {tau} · {n_years} yrs"
   },
   "categories": {
-    "freezing": {"name": "Freezing", "desc": "Among the coldest {d}s in our 76-year record."},
-    "cold":     {"name": "Cold",     "desc": "Cooler than most {d}s we've measured."},
-    "nope":     {"name": "Normal",   "desc": "Right around what {d} usually feels like in Macedonia."},
-    "hot":      {"name": "Hot",      "desc": "Among the hottest {d}s in our record."},
-    "hell":     {"name": "Hell",     "desc": "Exceptional heat — top 5% of all {d}s since 1950."}
+    "freezing": {
+      "name": "Freezing",
+      "desc": "Among the coldest {d}s in our 76-year record."
+    },
+    "cold": {
+      "name": "Cold",
+      "desc": "Cooler than most {d}s we've measured."
+    },
+    "nope": {
+      "name": "Normal",
+      "desc": "Right around what {d} usually feels like in Macedonia."
+    },
+    "hot": {
+      "name": "Hot",
+      "desc": "Among the hottest {d}s in our record."
+    },
+    "hell": {
+      "name": "Hell",
+      "desc": "Exceptional heat — top 5% of all {d}s since 1950."
+    }
   },
   "charts": {
-    "under_mean":    "Under mean",
-    "over_mean":     "Over mean",
-    "trend_line":    "Trend line",
-    "ci95":          "95% CI",
-    "change_record":   "change over the record",
-    "cal_cooling":     "Cooling",
-    "cal_warming":     "Warming",
-    "cal_decreasing":  "Decreasing",
-    "cal_increasing":  "Increasing"
+    "under_mean": "Under mean",
+    "over_mean": "Over mean",
+    "trend_line": "Trend line",
+    "ci95": "95% CI",
+    "change_record": "change over the record",
+    "cal_cooling": "Cooling",
+    "cal_warming": "Warming",
+    "cal_decreasing": "Decreasing",
+    "cal_increasing": "Increasing"
   },
   "locations": {},
   "hero": {
@@ -61,132 +76,152 @@
     "explain_cal": "Each bar is the warming or cooling trend for that week of the year, in °C per decade. Orange means warming; blue means cooling. The pattern across the year reveals which seasons are shifting fastest — in Macedonia, summer bars are typically the tallest, meaning peak heat is intensifying most rapidly. A calendar dominated by orange bars across all seasons signals year-round warming, not just hotter summers: shorter winters, earlier springs, and longer dry periods are all encoded in this chart."
   },
   "hero_category": {
-    "baseline":     "Baseline",
-    "moderate":     "Moderate",
-    "bad":          "Bad",
-    "extreme":      "Extreme",
+    "baseline": "Baseline",
+    "moderate": "Moderate",
+    "bad": "Bad",
+    "extreme": "Extreme",
     "catastrophic": "Catastrophic"
   },
   "hero_context": {
     "Skopje": {
-      "baseline":     "Capital city in a bowl-shaped valley that amplifies heat through urban heat island effect and trapped air masses. Continued warming threatens to push summer temperatures above 40°C with increasing regularity.",
-      "bad":          "Heat waves of five or more consecutive days above 38°C are becoming the norm. The urban heat island keeps nights warm, reducing overnight recovery time and increasing heat-related illness, particularly for the elderly and outdoor workers.",
-      "extreme":      "Summer nights no longer cool meaningfully — the city retains daytime heat well past midnight. Air conditioning demand peaks strain the power grid, urban trees are under drought stress, and the outdoor environment becomes hostile for extended periods each summer.",
-      "catastrophic": "At this rate, Skopje summers will resemble today's conditions in Athens or southern Spain within decades. The bowl-valley geography offers no escape — heat stress becomes a structural public health crisis, outdoor labour becomes dangerous for months, and the city's infrastructure faces pressure it was never designed to handle."
+      "baseline": "Capital city in a bowl-shaped valley that amplifies heat through urban heat island effect and trapped air masses. Continued warming threatens to push summer temperatures above 40°C with increasing regularity.",
+      "bad": "Heat waves of five or more consecutive days above 38°C are becoming the norm. The urban heat island keeps nights warm, reducing overnight recovery time and increasing heat-related illness, particularly for the elderly and outdoor workers.",
+      "extreme": "Summer nights no longer cool meaningfully — the city retains daytime heat well past midnight. Air conditioning demand peaks strain the power grid, urban trees are under drought stress, and the outdoor environment becomes hostile for extended periods each summer.",
+      "catastrophic": "At this rate, Skopje summers will resemble today's conditions in Athens or southern Spain within decades. The bowl-valley geography offers no escape — heat stress becomes a structural public health crisis, outdoor labour becomes dangerous for months, and the city's infrastructure faces pressure it was never designed to handle.",
+      "moderate": "The warming trend is measurable and the urban heat island effect is strengthening. Heatwaves that once seemed unusual are now regular summer features, with more nights staying above 25°C and reducing the city's natural overnight cooling."
     },
     "Bitola": {
-      "baseline":     "High Pelagonia plain in the southwest, one of Macedonia's colder lowland cities. Warming shortens the cool season and intensifies summer heat over this open agricultural basin, increasing drought stress for crops.",
-      "bad":          "The Pelagonia plain's agricultural calendar is shifting — wheat harvests move earlier, but summer heat stress increases for later-season crops and livestock. Irrigation demand rises as reliable summer rainfall becomes scarcer.",
-      "extreme":      "The long cold winters that defined Bitola's growing season are shrinking, disrupting dormancy cycles for perennial crops. Prolonged summer droughts across the open plain are intensifying, putting serious pressure on the region's food production capacity.",
-      "catastrophic": "Macedonia's most important agricultural basin faces a fundamental transformation. Crops suited to the region's historical climate are becoming unviable, groundwater levels fall under continuous extraction pressure, and extreme heat events threaten both harvest quality and human health."
+      "baseline": "High Pelagonia plain in the southwest, one of Macedonia's colder lowland cities. Warming shortens the cool season and intensifies summer heat over this open agricultural basin, increasing drought stress for crops.",
+      "bad": "The Pelagonia plain's agricultural calendar is shifting — wheat harvests move earlier, but summer heat stress increases for later-season crops and livestock. Irrigation demand rises as reliable summer rainfall becomes scarcer.",
+      "extreme": "The long cold winters that defined Bitola's growing season are shrinking, disrupting dormancy cycles for perennial crops. Prolonged summer droughts across the open plain are intensifying, putting serious pressure on the region's food production capacity.",
+      "catastrophic": "Macedonia's most important agricultural basin faces a fundamental transformation. Crops suited to the region's historical climate are becoming unviable, groundwater levels fall under continuous extraction pressure, and extreme heat events threaten both harvest quality and human health.",
+      "moderate": "The cool Pelagonian season is perceptibly shorter. Crop calendars are shifting and summer heat events that once occurred rarely are now expected. The basin's open exposure amplifies temperature gains across the agricultural plain."
     },
     "Ohrid": {
-      "baseline":     "Lakeside city beside one of Europe's oldest and deepest lakes, which has historically moderated temperature extremes. Even here, the lake's thermal buffering effect is being outpaced by the pace of regional warming.",
-      "bad":          "Warmer lake surface temperatures are affecting oxygen levels in deeper water, putting pressure on endemic species found nowhere else on Earth. The historic thermal moderation that made Ohrid's climate distinctive is weakening measurably.",
-      "extreme":      "Lake Ohrid's unique ecosystem — including organisms that survived the last Ice Age in its depths — is under thermal stress. Warmer summers accelerate algal growth, reduce dissolved oxygen, and threaten the endemic biodiversity that gives the lake its UNESCO status.",
-      "catastrophic": "The combination of warming air temperatures, changing precipitation patterns, and rising lake surface temperatures threatens the ecological integrity of one of Earth's most ancient lakes. Irreversible shifts in the lake ecosystem are possible within decades, with profound consequences for biodiversity, tourism, and regional identity."
+      "baseline": "Lakeside city beside one of Europe's oldest and deepest lakes, which has historically moderated temperature extremes. Even here, the lake's thermal buffering effect is being outpaced by the pace of regional warming.",
+      "bad": "Warmer lake surface temperatures are affecting oxygen levels in deeper water, putting pressure on endemic species found nowhere else on Earth. The historic thermal moderation that made Ohrid's climate distinctive is weakening measurably.",
+      "extreme": "Lake Ohrid's unique ecosystem — including organisms that survived the last Ice Age in its depths — is under thermal stress. Warmer summers accelerate algal growth, reduce dissolved oxygen, and threaten the endemic biodiversity that gives the lake its UNESCO status.",
+      "catastrophic": "The combination of warming air temperatures, changing precipitation patterns, and rising lake surface temperatures threatens the ecological integrity of one of Earth's most ancient lakes. Irreversible shifts in the lake ecosystem are possible within decades, with profound consequences for biodiversity, tourism, and regional identity.",
+      "moderate": "Lake temperatures are rising steadily and the thermal buffering that once kept Ohrid cooler than surrounding regions is beginning to weaken. Longer warm seasons are altering biological cycles in the lake and surrounding landscape."
     },
     "Gevgelija": {
-      "baseline":     "Southernmost station with the strongest Mediterranean influence and already the highest baseline temperatures in the network. Any further warming pushes it toward conditions matching the most extreme heat in the southern Balkans.",
-      "bad":          "Already carrying Macedonia's warmest baseline, Gevgelija now regularly exceeds 40°C in summer. Heat-related stress for agricultural workers, livestock, and heat-sensitive crops is a present-day reality, not a future risk.",
-      "extreme":      "Conditions here are tracking toward those of northern Greece's hottest valleys. The Mediterranean crops that thrive on the current climate will face increasing production failure as peak temperatures push beyond established tolerance ranges.",
-      "catastrophic": "Gevgelija is at the frontier of European climate extremes. Summer conditions may become incompatible with sustained outdoor agricultural work, and the region's ecological character — oriented around warm-season agriculture — faces an existential shift with no historical precedent in this area."
+      "baseline": "Southernmost station with the strongest Mediterranean influence and already the highest baseline temperatures in the network. Any further warming pushes it toward conditions matching the most extreme heat in the southern Balkans.",
+      "bad": "Already carrying Macedonia's warmest baseline, Gevgelija now regularly exceeds 40°C in summer. Heat-related stress for agricultural workers, livestock, and heat-sensitive crops is a present-day reality, not a future risk.",
+      "extreme": "Conditions here are tracking toward those of northern Greece's hottest valleys. The Mediterranean crops that thrive on the current climate will face increasing production failure as peak temperatures push beyond established tolerance ranges.",
+      "catastrophic": "Gevgelija is at the frontier of European climate extremes. Summer conditions may become incompatible with sustained outdoor agricultural work, and the region's ecological character — oriented around warm-season agriculture — faces an existential shift with no historical precedent in this area.",
+      "moderate": "Already Macedonia's warmest station, Gevgelija is being pushed further toward conditions once associated only with Greece and southern Bulgaria. Heat stress periods are lengthening and arriving earlier in the season each year."
     },
     "Tetovo": {
-      "baseline":     "Nestled at the foot of the Šar Mountains where steep slopes restrict airflow, combining urban growth with valley heat trapping. Warmer temperatures reduce snowpack on Šar, threatening summer water supply for a large population.",
-      "bad":          "Šar Mountain snowpack — the primary summer water source for Tetovo and the wider Polog region — is declining in duration and volume. Summer water availability is tightening while demand from the large urban population and agriculture is growing.",
-      "extreme":      "The Polog valley's combination of trapped summer heat, urban density, and declining mountain water creates compound stress. Heat episodes in the confined valley become more intense and prolonged, while Šar's reduced snowmelt arrives earlier — front-loading the water supply and leaving summer months dry.",
-      "catastrophic": "Tetovo sits at the intersection of water scarcity and population pressure. The densely populated Polog valley, dependent on Šar snowmelt, faces a scenario where summer water demand structurally exceeds reliable supply — a crisis that no incremental adaptation can fully resolve without transformative investment."
+      "baseline": "Nestled at the foot of the Šar Mountains where steep slopes restrict airflow, combining urban growth with valley heat trapping. Warmer temperatures reduce snowpack on Šar, threatening summer water supply for a large population.",
+      "bad": "Šar Mountain snowpack — the primary summer water source for Tetovo and the wider Polog region — is declining in duration and volume. Summer water availability is tightening while demand from the large urban population and agriculture is growing.",
+      "extreme": "The Polog valley's combination of trapped summer heat, urban density, and declining mountain water creates compound stress. Heat episodes in the confined valley become more intense and prolonged, while Šar's reduced snowmelt arrives earlier — front-loading the water supply and leaving summer months dry.",
+      "catastrophic": "Tetovo sits at the intersection of water scarcity and population pressure. The densely populated Polog valley, dependent on Šar snowmelt, faces a scenario where summer water demand structurally exceeds reliable supply — a crisis that no incremental adaptation can fully resolve without transformative investment.",
+      "moderate": "Šar Mountain snowpack is visibly declining year on year. Spring melt arrives earlier and late-summer stream flows are lower. The combination of population pressure and reduced summer water supply is creating seasonal water tensions."
     },
     "Kumanovo": {
-      "baseline":     "Northern lowland city on a broad plain, exposed to continental air masses from the north. Warming amplifies summer heat stress over the flat, open terrain while reducing the cold periods that suppress crop pests and disease.",
-      "bad":          "The open northern plain offers no shelter from intensifying summer heat. Cereal yields are showing heat-stress fingerprints — grain quality declining in hot years — and reduced winter cold is allowing pest species to overwinter that previously could not.",
-      "extreme":      "Summer heat stress episodes on the Kumanovo plain now regularly exceed what traditional crop varieties were bred for. The flat terrain offers no topographic relief, and evaporation rates during summer exceed what natural rainfall can replenish.",
-      "catastrophic": "The northern plain's agriculture, based on crops adapted to a cooler continental baseline, faces a fundamental mismatch with the emerging climate. Sustained adaptation requires major investment in heat-tolerant varieties and irrigation infrastructure — the cost of inaction grows each decade."
+      "baseline": "Northern lowland city on a broad plain, exposed to continental air masses from the north. Warming amplifies summer heat stress over the flat, open terrain while reducing the cold periods that suppress crop pests and disease.",
+      "bad": "The open northern plain offers no shelter from intensifying summer heat. Cereal yields are showing heat-stress fingerprints — grain quality declining in hot years — and reduced winter cold is allowing pest species to overwinter that previously could not.",
+      "extreme": "Summer heat stress episodes on the Kumanovo plain now regularly exceed what traditional crop varieties were bred for. The flat terrain offers no topographic relief, and evaporation rates during summer exceed what natural rainfall can replenish.",
+      "catastrophic": "The northern plain's agriculture, based on crops adapted to a cooler continental baseline, faces a fundamental mismatch with the emerging climate. Sustained adaptation requires major investment in heat-tolerant varieties and irrigation infrastructure — the cost of inaction grows each decade.",
+      "moderate": "The continental warming pattern is reducing cold-period duration while extending summer heat. Pest species that once struggled to survive winter are beginning to establish, and summer heat stress on crops is measurably increasing."
     },
     "Gostivar": {
-      "baseline":     "Valley town in the Polog region, surrounded by the Šar Mountains that trap cold air in winter. Warming gradually erodes the cold-air pooling that previously kept summers moderate, while shrinking the Šar snowpack.",
-      "bad":          "The Polog basin's cold winter air pools, which suppressed both pests and summer heat, are weakening. Agricultural pest pressure is rising, while summer temperatures increasingly trap inside the mountain-ringed valley.",
-      "extreme":      "Šar Mountain snowpack — the primary summer water source for the densely populated Polog region — is in sharp decline. Water shortages during summer are becoming structurally predictable, affecting both agriculture and the large urban population.",
-      "catastrophic": "The Polog region faces a water crisis driven by the intersection of population density, declining snowmelt, and rising evaporation demand. The social and economic impacts of reduced summer water availability in this highly populated valley cannot be managed through incremental adaptation alone."
+      "baseline": "Valley town in the Polog region, surrounded by the Šar Mountains that trap cold air in winter. Warming gradually erodes the cold-air pooling that previously kept summers moderate, while shrinking the Šar snowpack.",
+      "bad": "The Polog basin's cold winter air pools, which suppressed both pests and summer heat, are weakening. Agricultural pest pressure is rising, while summer temperatures increasingly trap inside the mountain-ringed valley.",
+      "extreme": "Šar Mountain snowpack — the primary summer water source for the densely populated Polog region — is in sharp decline. Water shortages during summer are becoming structurally predictable, affecting both agriculture and the large urban population.",
+      "catastrophic": "The Polog region faces a water crisis driven by the intersection of population density, declining snowmelt, and rising evaporation demand. The social and economic impacts of reduced summer water availability in this highly populated valley cannot be managed through incremental adaptation alone.",
+      "moderate": "Winter cold-air pooling in the Polog basin is becoming less frequent. The Šar snowpack that once sustained rivers through summer is retreating, and first signs of summer agricultural water stress are appearing in dry years."
     },
     "Kicevo": {
-      "baseline":     "Mountain valley town in western Macedonia at higher elevation than the lowland cities. Temperature increases affect snowmelt timing and summer water availability for downstream agricultural and urban communities.",
-      "bad":          "Mountain snowmelt arrives weeks earlier, front-loading the water supply and leaving streams lower during the critical mid-summer agricultural period. Forests on the surrounding slopes show increasing stress from summer drought.",
-      "extreme":      "The western mountain watershed feeding Kičevo is losing its capacity to store and release water gradually through the summer. Agricultural water shortages coincide with peak crop demand, and forest fire risk in the surrounding uplands rises sharply.",
-      "catastrophic": "The hydrological function of the western highlands — steady snowmelt-fed water release through summer — is breaking down. Downstream communities face increasingly unreliable summer water access, and the mountain forest ecosystems that protect the watershed are under compounding stress."
+      "baseline": "Mountain valley town in western Macedonia at higher elevation than the lowland cities. Temperature increases affect snowmelt timing and summer water availability for downstream agricultural and urban communities.",
+      "bad": "Mountain snowmelt arrives weeks earlier, front-loading the water supply and leaving streams lower during the critical mid-summer agricultural period. Forests on the surrounding slopes show increasing stress from summer drought.",
+      "extreme": "The western mountain watershed feeding Kičevo is losing its capacity to store and release water gradually through the summer. Agricultural water shortages coincide with peak crop demand, and forest fire risk in the surrounding uplands rises sharply.",
+      "catastrophic": "The hydrological function of the western highlands — steady snowmelt-fed water release through summer — is breaking down. Downstream communities face increasingly unreliable summer water access, and the mountain forest ecosystems that protect the watershed are under compounding stress.",
+      "moderate": "Snowmelt timing is shifting noticeably earlier, altering the seasonal flow of mountain streams. Surrounding forests show early signs of drought stress in dry summers, and vegetation zones at higher elevations are beginning to migrate upward."
     },
     "Debar": {
-      "baseline":     "Sheltered western valley town along the Black Drin river, surrounded by high mountains. Rising temperatures directly affect meltwater timing and alpine ecosystems on the nearby Bistra and Jablanica ranges.",
-      "bad":          "Reduced snowpack on Bistra and Jablanica means lower summer flows in the Black Drin river system, straining irrigation and hydropower. Alpine meadows above 1500m are contracting as warming pushes the treeline higher.",
-      "extreme":      "The mountain snow systems that feed the Drin are in accelerated retreat. Summer water shortages in the valley become more frequent, and the unique alpine flora of the surrounding ranges faces habitat compression as temperatures rise.",
-      "catastrophic": "The hydrological regime of the entire western watershed is at risk. With snowmelt arriving earlier and summer precipitation decreasing, the Black Drin can no longer sustain reliable summer flows — threatening agriculture, hydropower generation, and downstream water security across the region."
+      "baseline": "Sheltered western valley town along the Black Drin river, surrounded by high mountains. Rising temperatures directly affect meltwater timing and alpine ecosystems on the nearby Bistra and Jablanica ranges.",
+      "bad": "Reduced snowpack on Bistra and Jablanica means lower summer flows in the Black Drin river system, straining irrigation and hydropower. Alpine meadows above 1500m are contracting as warming pushes the treeline higher.",
+      "extreme": "The mountain snow systems that feed the Drin are in accelerated retreat. Summer water shortages in the valley become more frequent, and the unique alpine flora of the surrounding ranges faces habitat compression as temperatures rise.",
+      "catastrophic": "The hydrological regime of the entire western watershed is at risk. With snowmelt arriving earlier and summer precipitation decreasing, the Black Drin can no longer sustain reliable summer flows — threatening agriculture, hydropower generation, and downstream water security across the region.",
+      "moderate": "Snowmelt from Bistra and Jablanica arrives earlier, front-loading the Black Drin river flow and reducing reliable summer water availability. High mountain meadows are showing early signs of vegetation zone shifts."
     },
     "Lazaropole": {
-      "baseline":     "The highest-elevation station in the network, on the Bistra plateau above 1000m. Mountain warming accelerates faster than in the lowlands, with direct impact on highland meadows, beech forests, and the last remaining snowfields.",
-      "bad":          "The Bistra plateau's highland grasslands and beech forests are retreating upslope as the thermal envelope shifts. Snowpack duration is declining further — reducing the water retained in the high terrain through spring and early summer.",
-      "extreme":      "At this warming rate, the ecological zones of the Bistra highland are compressing toward the summit. Beech forests approach their upper thermal limit, and the highland meadows that support summer pastoralism are drying out earlier each year.",
-      "catastrophic": "The high-altitude ecosystems of Bistra are approaching irreversible transformation. Species and habitats that exist nowhere else at lower elevations face extinction pressure, and the plateau's function as a water catchment for downstream communities is fundamentally degraded."
+      "baseline": "The highest-elevation station in the network, on the Bistra plateau above 1000m. Mountain warming accelerates faster than in the lowlands, with direct impact on highland meadows, beech forests, and the last remaining snowfields.",
+      "bad": "The Bistra plateau's highland grasslands and beech forests are retreating upslope as the thermal envelope shifts. Snowpack duration is declining further — reducing the water retained in the high terrain through spring and early summer.",
+      "extreme": "At this warming rate, the ecological zones of the Bistra highland are compressing toward the summit. Beech forests approach their upper thermal limit, and the highland meadows that support summer pastoralism are drying out earlier each year.",
+      "catastrophic": "The high-altitude ecosystems of Bistra are approaching irreversible transformation. Species and habitats that exist nowhere else at lower elevations face extinction pressure, and the plateau's function as a water catchment for downstream communities is fundamentally degraded.",
+      "moderate": "Mountain warming at this elevation already exceeds lowland rates. Snowpack duration is shortening noticeably, and highland grasslands and beech stands show early signs of thermal stress outside the historic range experienced here."
     },
     "Kavadarci": {
-      "baseline":     "Heart of the Tikveš wine region, where viticulture has shaped the landscape for centuries. Higher temperatures are already shifting harvest dates and threatening the balance of traditional grape varieties.",
-      "bad":          "Harvest dates for Tikveš wines are advancing by days each decade, compressing the ripening window. Grape varieties prized for their balance of sugar and acidity are producing fruit increasingly weighted toward sweetness and low acidity.",
-      "extreme":      "The Tikveš wine region's centuries-old identity is under direct threat. Heat-stressed vines require more water during increasingly dry summers, and the risk of sunburn damage to grapes during peak summer is rising rapidly.",
-      "catastrophic": "Traditional Tikveš grape varieties may no longer be climatically viable in their home region. The cultural and economic identity of an entire area faces transformation — producers must choose between expensive adaptation or the abandonment of traditional viticulture."
+      "baseline": "Heart of the Tikveš wine region, where viticulture has shaped the landscape for centuries. Higher temperatures are already shifting harvest dates and threatening the balance of traditional grape varieties.",
+      "bad": "Harvest dates for Tikveš wines are advancing by days each decade, compressing the ripening window. Grape varieties prized for their balance of sugar and acidity are producing fruit increasingly weighted toward sweetness and low acidity.",
+      "extreme": "The Tikveš wine region's centuries-old identity is under direct threat. Heat-stressed vines require more water during increasingly dry summers, and the risk of sunburn damage to grapes during peak summer is rising rapidly.",
+      "catastrophic": "Traditional Tikveš grape varieties may no longer be climatically viable in their home region. The cultural and economic identity of an entire area faces transformation — producers must choose between expensive adaptation or the abandonment of traditional viticulture.",
+      "moderate": "Harvest dates in the Tikveš wine region are advancing noticeably, and winemakers are adjusting practices. The warming is still within an adaptable range, but the balance of grape chemistry is trending away from its historic character."
     },
     "Negotino": {
-      "baseline":     "Tikveš wine valley, with a warm continental microclimate already among the hottest in Macedonia. Further warming compresses the window for heat-sensitive crops and increases irrigation pressure on limited water resources.",
-      "bad":          "The Tikveš valley's warm microclimate, long an asset for viticulture, is now producing excessive heat during summer peak. Irrigation demand for both vines and field crops has risen sharply, increasing pressure on already limited water resources.",
-      "extreme":      "Grape harvest timing has shifted by weeks, and the balance of sugar and acidity in traditional varieties is increasingly difficult to achieve. Extended drought periods in summer now regularly exceed what irrigation infrastructure can compensate for.",
-      "catastrophic": "Negotino's agricultural economy, centred on viticulture and market gardening, is being pushed toward its operational limits. The combination of extreme summer heat, declining water availability, and increased evaporation demand means the current production system requires fundamental restructuring to survive."
+      "baseline": "Tikveš wine valley, with a warm continental microclimate already among the hottest in Macedonia. Further warming compresses the window for heat-sensitive crops and increases irrigation pressure on limited water resources.",
+      "bad": "The Tikveš valley's warm microclimate, long an asset for viticulture, is now producing excessive heat during summer peak. Irrigation demand for both vines and field crops has risen sharply, increasing pressure on already limited water resources.",
+      "extreme": "Grape harvest timing has shifted by weeks, and the balance of sugar and acidity in traditional varieties is increasingly difficult to achieve. Extended drought periods in summer now regularly exceed what irrigation infrastructure can compensate for.",
+      "catastrophic": "Negotino's agricultural economy, centred on viticulture and market gardening, is being pushed toward its operational limits. The combination of extreme summer heat, declining water availability, and increased evaporation demand means the current production system requires fundamental restructuring to survive.",
+      "moderate": "The Tikveš valley's warm baseline means additional warming registers more acutely. Irrigation demand for vines and field crops is increasing, and summer water supply from local streams shows early stress in dry years."
     },
     "Veles": {
-      "baseline":     "Industrial city in the Vardar valley gorge, where valley channeling concentrates both cold air in winter and heat in summer. Warming intensifies the valley's heat-trap effect, increasing summer heat stress.",
-      "bad":          "The Vardar gorge's natural heat-channelling effect is amplifying as background temperatures rise. Summer temperatures in the valley now regularly push above 38–40°C, and the industrial legacy of the city adds additional heat stress for residents.",
-      "extreme":      "The gorge geography that creates Veles's distinctive microclimate — concentrated airflow, heat trapped between rock walls — produces summer conditions that are among the most extreme in Macedonia's interior. Heat mortality risk rises sharply during prolonged summer episodes.",
-      "catastrophic": "Veles sits in a natural amplifier for regional warming — the gorge concentrates heat to levels that exceed what the surrounding region experiences. Without major urban adaptation investment, the city faces summer conditions incompatible with outdoor activity and that strain healthcare capacity during peak heat events."
+      "baseline": "Industrial city in the Vardar valley gorge, where valley channeling concentrates both cold air in winter and heat in summer. Warming intensifies the valley's heat-trap effect, increasing summer heat stress.",
+      "bad": "The Vardar gorge's natural heat-channelling effect is amplifying as background temperatures rise. Summer temperatures in the valley now regularly push above 38–40°C, and the industrial legacy of the city adds additional heat stress for residents.",
+      "extreme": "The gorge geography that creates Veles's distinctive microclimate — concentrated airflow, heat trapped between rock walls — produces summer conditions that are among the most extreme in Macedonia's interior. Heat mortality risk rises sharply during prolonged summer episodes.",
+      "catastrophic": "Veles sits in a natural amplifier for regional warming — the gorge concentrates heat to levels that exceed what the surrounding region experiences. Without major urban adaptation investment, the city faces summer conditions incompatible with outdoor activity and that strain healthcare capacity during peak heat events.",
+      "moderate": "The Vardar valley's heat-trap effect is intensifying with rising background temperatures. Summer heat peaks are higher and last longer, increasing burden on residents — many without air conditioning — and on the river ecosystem."
     },
     "Kochani": {
-      "baseline":     "Eastern basin city known as the rice capital of Macedonia, where agriculture depends on warm summers and reliable water from the Bregalnica river. Increasing heat threatens both yields and river flow during the growing season.",
-      "bad":          "Rice cultivation — Kochani's defining agricultural identity — depends on stable summer temperatures and reliable water from the Bregalnica. Both are becoming less predictable, and crop yields show increasing year-to-year variability.",
-      "extreme":      "Summer heat peaks during the critical grain-filling stage of rice and maize cause yield losses that compound over years. Bregalnica flows are declining in summer as snowmelt arrives earlier and summer precipitation decreases.",
-      "catastrophic": "Rice cultivation in the Kochani basin, practised for centuries, may become economically unviable as water costs rise and heat-induced crop failures increase. The region's agricultural identity and the livelihoods it supports face a structural challenge that adaptation alone may not resolve."
+      "baseline": "Eastern basin city known as the rice capital of Macedonia, where agriculture depends on warm summers and reliable water from the Bregalnica river. Increasing heat threatens both yields and river flow during the growing season.",
+      "bad": "Rice cultivation — Kochani's defining agricultural identity — depends on stable summer temperatures and reliable water from the Bregalnica. Both are becoming less predictable, and crop yields show increasing year-to-year variability.",
+      "extreme": "Summer heat peaks during the critical grain-filling stage of rice and maize cause yield losses that compound over years. Bregalnica flows are declining in summer as snowmelt arrives earlier and summer precipitation decreases.",
+      "catastrophic": "Rice cultivation in the Kochani basin, practised for centuries, may become economically unviable as water costs rise and heat-induced crop failures increase. The region's agricultural identity and the livelihoods it supports face a structural challenge that adaptation alone may not resolve.",
+      "moderate": "Bregalnica river flows during the critical summer growing season are showing variability correlated with warming. Rice cultivation is still viable but increasingly dependent on managed irrigation rather than naturally stable water conditions."
     },
     "Stip": {
-      "baseline":     "Eastern Macedonian river valley city, historically one of the warmer lowland stations. Further temperature rises extend drought stress periods for the surrounding agricultural land during the summer season.",
-      "bad":          "The Bregalnica valley's agricultural land faces increasing summer drought stress as temperatures rise and evaporation exceeds rainfall. Grain yields in hot years are showing measurable quality decline.",
-      "extreme":      "Prolonged summer heat in the eastern valleys is exceeding the tolerance of crops grown without irrigation. Field workers face occupational heat stress during peak summer, and water demand for irrigation is growing faster than supply can keep pace.",
-      "catastrophic": "Štip's eastern valley agriculture — already operating in a warm, dry continental regime — is approaching conditions where summer production without substantial irrigation is economically unsustainable. Infrastructure investment demands outpace the resources of what is already one of Macedonia's more economically challenged regions."
+      "baseline": "Eastern Macedonian river valley city, historically one of the warmer lowland stations. Further temperature rises extend drought stress periods for the surrounding agricultural land during the summer season.",
+      "bad": "The Bregalnica valley's agricultural land faces increasing summer drought stress as temperatures rise and evaporation exceeds rainfall. Grain yields in hot years are showing measurable quality decline.",
+      "extreme": "Prolonged summer heat in the eastern valleys is exceeding the tolerance of crops grown without irrigation. Field workers face occupational heat stress during peak summer, and water demand for irrigation is growing faster than supply can keep pace.",
+      "catastrophic": "Štip's eastern valley agriculture — already operating in a warm, dry continental regime — is approaching conditions where summer production without substantial irrigation is economically unsustainable. Infrastructure investment demands outpace the resources of what is already one of Macedonia's more economically challenged regions.",
+      "moderate": "Summer drought periods are lengthening in the Bregalnica valley. Evaporation stress on agricultural land in mid-summer is increasing, and dry spells that once lasted two weeks are stretching to three or more."
     },
     "Radovis": {
-      "baseline":     "Eastern valley town near the Konče gorge with a warm continental character. Proximity to Bulgaria means it experiences air masses from some of Southeast Europe's fastest-warming continental interior.",
-      "bad":          "Summer temperatures in the Konče gorge area are intensifying beyond what the region's dryland farming systems were designed for. Soil moisture deficits in summer are deepening, reducing yields for grain crops in dry years.",
-      "extreme":      "The combination of continental air mass heating from the east and local valley trapping is pushing summer temperatures to levels where traditional grain and vegetable crop varieties show significant stress losses.",
-      "catastrophic": "Radoviš sits at the intersection of southeastern Europe's most rapidly warming continental air masses and a local geography that amplifies heat. Without substantial irrigation infrastructure investment, the area's agricultural capacity in summer is at serious risk of collapse."
+      "baseline": "Eastern valley town near the Konče gorge with a warm continental character. Proximity to Bulgaria means it experiences air masses from some of Southeast Europe's fastest-warming continental interior.",
+      "bad": "Summer temperatures in the Konče gorge area are intensifying beyond what the region's dryland farming systems were designed for. Soil moisture deficits in summer are deepening, reducing yields for grain crops in dry years.",
+      "extreme": "The combination of continental air mass heating from the east and local valley trapping is pushing summer temperatures to levels where traditional grain and vegetable crop varieties show significant stress losses.",
+      "catastrophic": "Radoviš sits at the intersection of southeastern Europe's most rapidly warming continental air masses and a local geography that amplifies heat. Without substantial irrigation infrastructure investment, the area's agricultural capacity in summer is at serious risk of collapse.",
+      "moderate": "Continental air masses from the warming interior of Southeast Europe are bringing more intense summer heat events. The region's dryland farming is showing stress in the warmest years as mid-summer soil moisture deficits deepen."
     },
     "Strumica": {
-      "baseline":     "Southeastern basin city with a warm, almost sub-Mediterranean character and intensive agriculture. Warming accelerates soil moisture loss during the long, dry summers, raising irrigation demand on an already stressed water supply.",
-      "bad":          "The intensive market garden agriculture of the Strumica basin depends on reliable summer water access. Rising temperatures accelerate soil moisture loss between irrigation cycles, increasing both frequency and cost of irrigation.",
-      "extreme":      "The sub-Mediterranean summer already produces long dry spells; warming is extending these further into spring and autumn. The region's fruit and vegetable production — exported across the region — faces increasing year-to-year volatility and water supply constraints.",
-      "catastrophic": "Strumica's agricultural identity — intensive horticulture supplying regional markets — faces a structural water crisis. As summer temperatures push higher and evapotranspiration demand grows, the gap between irrigation water needed and water available is widening toward a point that current infrastructure cannot bridge."
+      "baseline": "Southeastern basin city with a warm, almost sub-Mediterranean character and intensive agriculture. Warming accelerates soil moisture loss during the long, dry summers, raising irrigation demand on an already stressed water supply.",
+      "bad": "The intensive market garden agriculture of the Strumica basin depends on reliable summer water access. Rising temperatures accelerate soil moisture loss between irrigation cycles, increasing both frequency and cost of irrigation.",
+      "extreme": "The sub-Mediterranean summer already produces long dry spells; warming is extending these further into spring and autumn. The region's fruit and vegetable production — exported across the region — faces increasing year-to-year volatility and water supply constraints.",
+      "catastrophic": "Strumica's agricultural identity — intensive horticulture supplying regional markets — faces a structural water crisis. As summer temperatures push higher and evapotranspiration demand grows, the gap between irrigation water needed and water available is widening toward a point that current infrastructure cannot bridge.",
+      "moderate": "The sub-Mediterranean character that makes Strumica productive for market gardening also means heat gains translate quickly into agricultural water demand. Irrigation seasons are starting earlier and extending later each year."
     },
     "Berovo": {
-      "baseline":     "Elevated eastern valley at around 800m in the cooler Maleševo highlands. Even this relatively cool station tracks the regional warming trend, with visible effects on highland forests and the shrinking snowpack.",
-      "bad":          "The highland forests and summer pastures that define Berovo's landscape are under increasing moisture stress. Higher temperatures accelerate evaporation from the Maleševo highlands, shortening the snow season and reducing spring water flow.",
-      "extreme":      "Beech forests at this elevation are approaching their thermal tolerance limits. Extended summer droughts threaten the highland ecosystem that has made Berovo a cool-season retreat, and wildfire risk rises in the surrounding forests.",
-      "catastrophic": "The cool highland character of Berovo that supports its forests, pasturelands, and water catchment is fundamentally threatened. Fire seasons lengthen, endemic tree species retreat upslope, and the area's capacity to recharge groundwater reserves diminishes critically."
+      "baseline": "Elevated eastern valley at around 800m in the cooler Maleševo highlands. Even this relatively cool station tracks the regional warming trend, with visible effects on highland forests and the shrinking snowpack.",
+      "bad": "The highland forests and summer pastures that define Berovo's landscape are under increasing moisture stress. Higher temperatures accelerate evaporation from the Maleševo highlands, shortening the snow season and reducing spring water flow.",
+      "extreme": "Beech forests at this elevation are approaching their thermal tolerance limits. Extended summer droughts threaten the highland ecosystem that has made Berovo a cool-season retreat, and wildfire risk rises in the surrounding forests.",
+      "catastrophic": "The cool highland character of Berovo that supports its forests, pasturelands, and water catchment is fundamentally threatened. Fire seasons lengthen, endemic tree species retreat upslope, and the area's capacity to recharge groundwater reserves diminishes critically.",
+      "moderate": "Despite highland elevation, the warming trend is measurable and the cool Maleševo character is subtly shifting. Snow seasons are shorter, spring arrives earlier, and beech forests are experiencing occasional summer moisture stress."
     },
     "Demir_Kapija": {
-      "baseline":     "Narrow gorge where the Vardar cuts through rock, creating a natural wind channel with one of the driest, hottest microclimates in Macedonia. Already extreme summer temperatures are being pushed further by regional warming.",
-      "bad":          "Already the hottest microclimate in Macedonia, Demir Kapija's summer temperatures now routinely challenge the physiological limits of fieldwork. The gorge's wind-channel effect provides little relief when ambient temperatures exceed 40°C.",
-      "extreme":      "The gorge traps heat to an extent that outdoor activity during summer afternoons becomes a health risk. Grape varieties long cultivated in the surrounding terraces are struggling to ripen correctly — sugar accumulates too fast, acidity collapses.",
-      "catastrophic": "Demir Kapija is approaching temperature levels with few precedents in European agricultural history. Conditions in the gorge during summer may exceed what any traditional crop variety can reliably tolerate, requiring a complete rethink of land use in this unique microclimate."
+      "baseline": "Narrow gorge where the Vardar cuts through rock, creating a natural wind channel with one of the driest, hottest microclimates in Macedonia. Already extreme summer temperatures are being pushed further by regional warming.",
+      "bad": "Already the hottest microclimate in Macedonia, Demir Kapija's summer temperatures now routinely challenge the physiological limits of fieldwork. The gorge's wind-channel effect provides little relief when ambient temperatures exceed 40°C.",
+      "extreme": "The gorge traps heat to an extent that outdoor activity during summer afternoons becomes a health risk. Grape varieties long cultivated in the surrounding terraces are struggling to ripen correctly — sugar accumulates too fast, acidity collapses.",
+      "catastrophic": "Demir Kapija is approaching temperature levels with few precedents in European agricultural history. Conditions in the gorge during summer may exceed what any traditional crop variety can reliably tolerate, requiring a complete rethink of land use in this unique microclimate.",
+      "moderate": "In a gorge already known for extreme summer heat, even moderate additional warming has outsized effects. The number of days exceeding 38°C is growing, and fieldwork during summer peak is increasingly restricted to early morning hours."
     },
     "Prilep": {
-      "baseline":     "High Pelagonian basin city and tobacco-growing centre with a continental climate and naturally dry summers. Warming combined with the region's low summer precipitation intensifies water stress for both agriculture and urban populations.",
-      "bad":          "The Pelagonian basin's tobacco crop — which has defined Prilep for generations — is increasingly sensitive to the combination of heat and mid-summer water stress. Leaf quality is deteriorating in the hottest years.",
-      "extreme":      "Prolonged summer droughts on the high Pelagonian plain are causing soil moisture deficits that persist from year to year. Irrigation groundwater levels are declining, and the region faces difficult choices about which agricultural activities remain viable.",
-      "catastrophic": "The Pelagonian highland basin, one of Macedonia's driest agricultural regions, is approaching conditions where summer crops cannot be reliably grown without intensive irrigation. Groundwater drawdown is accelerating, and the social fabric of communities built around tobacco cultivation faces existential pressure."
+      "baseline": "High Pelagonian basin city and tobacco-growing centre with a continental climate and naturally dry summers. Warming combined with the region's low summer precipitation intensifies water stress for both agriculture and urban populations.",
+      "bad": "The Pelagonian basin's tobacco crop — which has defined Prilep for generations — is increasingly sensitive to the combination of heat and mid-summer water stress. Leaf quality is deteriorating in the hottest years.",
+      "extreme": "Prolonged summer droughts on the high Pelagonian plain are causing soil moisture deficits that persist from year to year. Irrigation groundwater levels are declining, and the region faces difficult choices about which agricultural activities remain viable.",
+      "catastrophic": "The Pelagonian highland basin, one of Macedonia's driest agricultural regions, is approaching conditions where summer crops cannot be reliably grown without intensive irrigation. Groundwater drawdown is accelerating, and the social fabric of communities built around tobacco cultivation faces existential pressure.",
+      "moderate": "The Pelagonian basin's naturally dry summers mean moderate warming amplifies water stress earlier and more acutely than in wetter regions. Tobacco yields are showing early variability and summer irrigation demand is rising."
     }
   },
   "about": {
@@ -200,106 +235,406 @@
     "col3_text": "We utilize statistical methods for slope calculation and to detect trends while correcting for serial correlation. Data processing involves modeling, elevation-based lapse-rate corrections, and window half-width smoothing to analyze multi-decade climate shifts, with visualizations powered by the Highcharts library. For more detailed information about these methods, the website or the regional climate changes, consult our chatbot Ognen, The Climate Assistant or visit the <a href=\"https://github.com/kesma01/ERA5_MK\" target=\"_blank\" rel=\"noopener\">GitHub page</a>."
   },
   "quotes": [
-    {"author": "Sylvia Earle (Oceanographer)", "quote": "Even if you never have the chance to see or touch the ocean, the ocean touches you with every breath you take, every drop of water you drink, every bite you consume. Everyone everywhere is inextricably connected to and utterly dependent upon the existence of the sea."},
-    {"author": "Guy McPherson (Scientist)", "quote": "If you really think that the environment is less important than the economy, try holding your breath while you count your money."},
-    {"author": "Albert Einstein (Physicist)", "quote": "The world will not be destroyed by those who do evil, but by those who watch them without doing anything."},
-    {"author": "Tim Flannery (Scientist)", "quote": "One of the biggest obstacles to making a start on climate change is that it has become a cliche before it has even been understood."},
-    {"author": "Desmond Tutu (Archbishop)", "quote": "Twenty-five years ago, people could be excused for not knowing much, or doing much, about climate change. Today we have no excuse."},
-    {"author": "John Delaney (Politician)", "quote": "Climate change is the environmental challenge of this generation, and it is imperative that we act before it's too late."},
-    {"author": "Native American Proverb", "quote": "We do not inherit the earth from our ancestors. We borrow it from our children."},
-    {"author": "Jay Inslee (Politician)", "quote": "We are the first generation to feel the sting of climate change, and we are the last generation that can do something about it."},
-    {"author": "Bill Nye (Science Communicator)", "quote": "Climate change is happening, humans are causing it, and I think this is perhaps the most serious environmental issue facing us."},
-    {"author": "Frances Beinecke (Environmental Leader)", "quote": "Wind and other clean, renewable energy will help end our reliance on fossil fuels and combat the severe threat that climate change poses to humans and wildlife alike."},
-    {"author": "David Suzuki (Scientist)", "quote": "If we pollute the air, water and soil that keep us alive and well, and destroy the biodiversity that allows natural systems to function, no amount of money will save us."},
-    {"author": "Christian de Duve (Scientist)", "quote": "The cost of our success is the exhaustion of natural resources, leading to energy crises, climate change, pollution, and the destruction of our habitat."},
-    {"author": "Al Gore (Former U.S. Vice President)", "quote": "As human beings, we are vulnerable to confusing the unprecedented with the improbable - but the exceptions can kill you, and climate change is one of those exceptions."},
-    {"author": "Malcolm Turnbull (Politician)", "quote": "Climate change is a global problem - truly catastrophic consequences are likely to ensue."},
-    {"author": "David Attenborough (Naturalist)", "quote": "There is no question that climate change is happening; the only arguable point is what part humans are playing in it."},
-    {"author": "Barack Obama (Former U.S. President)", "quote": "The shift to a cleaner energy economy won't happen overnight. But the debate is settled. Climate change is a fact."},
-    {"author": "Jack Dangermond (Environmental Technologist)", "quote": "The world that you and I live in is increasingly challenged: climate change, loss of nature — these are not good stories."},
-    {"author": "Yuval Noah Harari (Historian)", "quote": "We are all living together on a single planet, and if you don't have some kind of global cooperation, you can't tackle climate change."},
-    {"author": "Nicholas Stern (Economist)", "quote": "Climate change is a result of the greatest market failure the world has seen."},
-    {"author": "Bill Gates (Business Leader)", "quote": "By the time we see that climate change is really bad, your ability to fix it is extremely limited."},
-    {"author": "Leonardo DiCaprio (Actor)", "quote": "I play fictitious characters often solving fictitious problems. I believe mankind has looked at climate change as if it were fiction."},
-    {"author": "Ernest Hemingway (Author)", "quote": "The Earth is a fine place and worth fighting for."},
-    {"author": "Terri Swearingen (Activist)", "quote": "We are living on this planet as if we had another one to go to."},
-    {"author": "Rob Stewart (Filmmaker)", "quote": "The Earth should not be a worse place after my life than it was when I was born here."},
-    {"author": "Pope Francis (Religious Leader)", "quote": "God gave us the earth, to till and to keep in a balanced and respectful way."},
-    {"author": "David King (Scientist)", "quote": "Climate change is the most severe problem that we are facing today, more serious even than the threat of terrorism."},
-    {"author": "Marco Lambertini (Conservation Leader)", "quote": "A planet being pushed to the edge will eventually turn on us."},
-    {"author": "Paul Krugman (Economist)", "quote": "The planet will continue to cook."},
-    {"author": "Arnold Schwarzenegger (Actor & Politician)", "quote": "The facts are there that we have created a self-inflicted wound through global warming."},
-    {"author": "Jonathon Porritt (Environmentalist)", "quote": "The future will be green or not at all."},
-    {"author": "David Attenborough (Naturalist)", "quote": "Dealing with global warming means that we have to stop waste."},
-    {"author": "Al Gore (Former U.S. Vice President)", "quote": "We are running out of time, and we must have a planetary solution to a planetary crisis."},
-    {"author": "Alexandria Ocasio-Cortez (U.S. Politician)", "quote": "We don't have time to sit on our hands as our planet burns. It's life or death."},
-    {"author": "Archana Soreng (Climate Advocate)", "quote": "Indigenous people, local communities, young people, women and girls, should be leaders of climate action and not victims of climate policies."},
-    {"author": "Richard Branson (Business Leader)", "quote": "Climate change is a huge challenge, but it can be brought in line if governments, businesses and individuals work together."},
-    {"author": "Leah Thomas (Environmental Communicator)", "quote": "We can't save the planet without uplifting the voices of its people, especially those most often unheard."},
-    {"author": "John Lewis (U.S. Civil Rights Leader)", "quote": "It is our responsibility to leave this planet cleaner and greener. That must be our legacy."},
-    {"author": "Greta Thunberg (Climate Activist)", "quote": "We can no longer let the people in power decide what hope is. Hope is telling the truth. Hope is taking action."},
-    {"author": "Mark Ruffalo (Actor)", "quote": "Climate change is the greatest threat to our existence in our short history on this planet. Nobody's going to buy their way out of its effects."},
-    {"author": "Tom Steyer (Investor)", "quote": "Demanding that our leaders take action on climate change is safeguarding our health and protecting the future of our children."},
-    {"author": "Tony Blair (Former UK Prime Minister)", "quote": "Global warming is too serious for the world any longer to ignore its danger."},
-    {"author": "Leonardo DiCaprio (Actor & Environmentalist)", "quote": "Climate change is real. It is happening right now. We need to work collectively together and stop procrastinating."},
-    {"author": "Gisele Bundchen (UN Goodwill Ambassador)", "quote": "Deforestation leads to climate change — it's a vicious cycle."},
-    {"author": "James Cameron (Film Director)", "quote": "It's important for me, for my kids, that we're not going to leave them in a world that's in shambles."},
-    {"author": "Elizabeth May (Politician)", "quote": "I hold a vision of this blue green planet, safe and in balance."},
-    {"author": "Barack Obama (Former U.S. President)", "quote": "The United States not only recognises our role in creating this problem, we embrace our responsibility to do something about it."},
-    {"author": "Xi Jinping (Chinese President)", "quote": "Tackling climate change is a shared mission for mankind."},
-    {"author": "Pope Francis (Religious Leader)", "quote": "Now or never. Every year the problems are getting worse."},
-    {"author": "Edi Rama (Prime Minister, Albania)", "quote": "Life goes on with its old habits and our speeches about fighting climate change change nothing."},
-    {"author": "Wopke Hoekstra (European Commissioner for Climate)", "quote": "Climate neutrality is not just a slogan, it is also our commitment under the Paris Agreement."},
-    {"author": "Simon Stiell (UN Climate Change Executive Secretary)", "quote": "The climate crisis is an urgent national security crisis that should be at the top of every cabinet room agenda."},
-    {"author": "Simon Stiell (UN Climate Change Executive Secretary)", "quote": "Surrender is not an option. And half measures are a recipe for failure."},
-    {"author": "Carl Sagan (Physicist)", "quote": "Anything else you're interested in is not going to happen if you can't breathe the air and drink the water."},
-    {"author": "Michio Kaku (Physicist)", "quote": "Global warming is real. It is a slow-moving catastrophe that will reshape the geography of the planet."},
-    {"author": "Robert Redford (Actor)", "quote": "The environment should be in the category of national security. Defense of our resources is just as important as defense abroad."},
-    {"author": "Cate Blanchett (Actor)", "quote": "Climate change is a tragedy that is unfolding before our eyes, yet we still look away."},
-    {"author": "Goran Bregovic (Musician)", "quote": "We treat the earth like a rented hotel room, making a mess because we think we won't be here tomorrow to clean it up."},
-    {"author": "Rade Serbedzija (Actor)", "quote": "We worry so much about borders and history, while the very nature supporting our lives is quietly collapsing beneath us."},
-    {"author": "Vlatko Stefanovski (Musician)", "quote": "We sing about the beauty of our mountains and rivers, but song is not enough to protect them from the changes we inflict."},
-    {"author": "Bora Dugic (Musician)", "quote": "Nature has its own harmony, and when humanity alters the climate, we introduce a devastating discord into the world."},
-    {"author": "Janis Varoufakis (Economist/Politician)", "quote": "Climate change is the ultimate market failure; capitalism is destroying the ecological foundations upon which it relies."},
-    {"author": "Dusan Kovacevic (Playwright)", "quote": "We are writing a tragic final act for the planet, pretending that the script can be changed at the last second."},
-    {"author": "Stephen Hawking (Physicist)", "quote": "We are close to the tipping point where global warming becomes irreversible."},
-    {"author": "Richard Feynman (Physicist)", "quote": "For a successful technology, reality must take precedence over public relations, for nature cannot be fooled."},
-    {"author": "Olafur Eliasson (Artist)", "quote": "Climate change is not an abstract concept; it is a physical reality that demands a creative response."},
-    {"author": "Jane Fonda (Actor)", "quote": "This is a collective crisis that requires collective action. The climate crisis is an all-hands-on-deck emergency."},
-    {"author": "Barack Obama (Politician)", "quote": "We are the first generation to feel the effect of climate change and the last generation who can do something about it."},
-    {"author": "Greta Thunberg (Activist)", "quote": "Our house is on fire. I am here to say, our house is on fire."},
-    {"author": "Marina Abramovic (Performance Artist)", "quote": "Adding climate change, it truly feels like the end of the world because we are destroying the planet."},
-    {"author": "Slavoj Zizek (Philosopher)", "quote": "We like to be guilty since, if we are guilty, it all depends on us. We engage in frantic activities just so we can be sure that we are doing something."},
-    {"author": "Stevo Pendarovski (Politician)", "quote": "Climate change is no longer a distant threat; it is a harsh reality affecting our ecosystems and requiring immediate global cooperation."},
-    {"author": "Milco Mancevski (Film Director)", "quote": "We treat nature as an endless resource for entertainment and profit, forgetting that when it breaks, we break with it."},
-    {"author": "Goran Stefanovski (Playwright)", "quote": "We are destroying the very soil and air that gave us a voice, acting as if we have another home waiting for us in the stars."},
-    {"author": "Paul McCartney (Musician)", "quote": "The person in the song will be symbolic of politicians who argue that climate change is a hoax. This idea of 'It's all gonna be fine, don't worry.' Oh yeah, sure, there are icebergs melting but it doesn't matter."},
-    {"author": "Billie Eilish (Musician)", "quote": "Hills burn in California. My turn to ignore ya. Don't say I didn't warn ya."},
-    {"author": "Neil Young (Musician)", "quote": "We heard the warning calls. Ignored them. We watched the weather change. We saw the fires and floods. We saw the people rise divided. We fought each other while we lost our coveted prize."},
-    {"author": "Lana Del Rey (Musician)", "quote": "L.A.'s in flames, it's getting hot. The world is getting hotter. Hope is a dwindling resource. We don't have much time left."},
-    {"author": "Pharrell Williams (Musician)", "quote": "We have to take care of the planet. We have one shot at this. We need to make eco-friendly choices and support sustainable fashion."},
-    {"author": "Eddie Vedder (Musician)", "quote": "We need to minimize our carbon footprint and raise awareness about global warming. Every action counts."},
-    {"author": "Dave Matthews (Musician)", "quote": "The environment is a shared responsibility. We must support organizations fighting for our planet's future."},
-    {"author": "Xiuhtezcatl Martinez (Musician & Activist)", "quote": "How will you look your child in the eyes and tell them their future wasn't worth fighting for, could've done more but didn't listen, didn't wake up, didn't speak up, didn't fight back when there was still time."},
-    {"author": "Jaden Smith (Actor & Musician)", "quote": "We have to save our planet. It's the only one we have."},
-    {"author": "Emma Thompson (Actor)", "quote": "We need urgent action on the climate crisis. There is no Planet B."},
-    {"author": "Julia Louis-Dreyfus (Actor)", "quote": "Corporate interests have sought to mislead the public about climate change. We must fight for the truth."},
-    {"author": "Shailene Woodley (Actor)", "quote": "We have to preserve natural resources for future generations. The time for action is now."},
-    {"author": "Cameron Diaz (Actor)", "quote": "Environmental issues from rainforest deforestation to water pollution affect us all. We must act responsibly."},
-    {"author": "Gwyneth Paltrow (Actor)", "quote": "We can make better choices that benefit our health and the environment. Every small step counts."},
-    {"author": "Matt Damon (Actor)", "quote": "Climate justice is essential. Clean water and a healthy environment are basic human rights."},
-    {"author": "Emma Watson (Actor)", "quote": "As consumers we have so much power to change the world by just being careful in what we buy."},
-    {"author": "Jane Goodall (Primatologist)", "quote": "Fortunately, nature is amazingly resilient: places we have destroyed, given time and help, can once again support life, and endangered species can be given a second chance."},
-    {"author": "Al Gore (Politician)", "quote": "Solutions to the climate crisis are within reach, but in order to capture them, we must take urgent action today across every level of society."},
-    {"author": "Joaquin Phoenix (Actor)", "quote": "We feel entitled to artificially inseminate a cow and steal her baby, even though her cries of anguish are unmistakable. We think we need to sacrifice something to change. But we can be inventive."},
-    {"author": "Harrison Ford (Actor)", "quote": "Nature doesn't need people. People need nature. Nature would survive the extinction of the human being and go on just fine, but human culture, human beings, cannot survive without nature."},
-    {"author": "Woody Harrelson (Actor)", "quote": "We have to start thinking about the planet as our home, not as something to conquer. We need to work with nature, not against it."},
-    {"author": "Meryl Streep (Actor)", "quote": "Climate change is real. We owe it to future generations to acknowledge the science and take action."},
-    {"author": "Jason Momoa (Actor)", "quote": "The ocean is dying. We need to do everything we can to protect our waters and our planet for our children."},
-    {"author": "Bono (Musician)", "quote": "Climate change is not just an environmental issue. It's a human rights issue, an economic issue, and a security issue."},
-    {"author": "Chris Martin — Coldplay (Musician)", "quote": "We've decided to put the tour on pause until we work out how to make it sustainable and beneficial for the environment."},
-    {"author": "Jack Johnson (Musician)", "quote": "We all have a responsibility to protect the planet. Small changes in our daily lives can make a big difference."},
-    {"author": "Sting (Musician)", "quote": "We are destroying our planet with such reckless abandon. The rainforests are the lungs of the world and we're cutting them down."}
+    {
+      "author": "Sylvia Earle (Oceanographer)",
+      "quote": "Even if you never have the chance to see or touch the ocean, the ocean touches you with every breath you take, every drop of water you drink, every bite you consume. Everyone everywhere is inextricably connected to and utterly dependent upon the existence of the sea."
+    },
+    {
+      "author": "Guy McPherson (Scientist)",
+      "quote": "If you really think that the environment is less important than the economy, try holding your breath while you count your money."
+    },
+    {
+      "author": "Albert Einstein (Physicist)",
+      "quote": "The world will not be destroyed by those who do evil, but by those who watch them without doing anything."
+    },
+    {
+      "author": "Tim Flannery (Scientist)",
+      "quote": "One of the biggest obstacles to making a start on climate change is that it has become a cliche before it has even been understood."
+    },
+    {
+      "author": "Desmond Tutu (Archbishop)",
+      "quote": "Twenty-five years ago, people could be excused for not knowing much, or doing much, about climate change. Today we have no excuse."
+    },
+    {
+      "author": "John Delaney (Politician)",
+      "quote": "Climate change is the environmental challenge of this generation, and it is imperative that we act before it's too late."
+    },
+    {
+      "author": "Native American Proverb",
+      "quote": "We do not inherit the earth from our ancestors. We borrow it from our children."
+    },
+    {
+      "author": "Jay Inslee (Politician)",
+      "quote": "We are the first generation to feel the sting of climate change, and we are the last generation that can do something about it."
+    },
+    {
+      "author": "Bill Nye (Science Communicator)",
+      "quote": "Climate change is happening, humans are causing it, and I think this is perhaps the most serious environmental issue facing us."
+    },
+    {
+      "author": "Frances Beinecke (Environmental Leader)",
+      "quote": "Wind and other clean, renewable energy will help end our reliance on fossil fuels and combat the severe threat that climate change poses to humans and wildlife alike."
+    },
+    {
+      "author": "David Suzuki (Scientist)",
+      "quote": "If we pollute the air, water and soil that keep us alive and well, and destroy the biodiversity that allows natural systems to function, no amount of money will save us."
+    },
+    {
+      "author": "Christian de Duve (Scientist)",
+      "quote": "The cost of our success is the exhaustion of natural resources, leading to energy crises, climate change, pollution, and the destruction of our habitat."
+    },
+    {
+      "author": "Al Gore (Former U.S. Vice President)",
+      "quote": "As human beings, we are vulnerable to confusing the unprecedented with the improbable - but the exceptions can kill you, and climate change is one of those exceptions."
+    },
+    {
+      "author": "Malcolm Turnbull (Politician)",
+      "quote": "Climate change is a global problem - truly catastrophic consequences are likely to ensue."
+    },
+    {
+      "author": "David Attenborough (Naturalist)",
+      "quote": "There is no question that climate change is happening; the only arguable point is what part humans are playing in it."
+    },
+    {
+      "author": "Barack Obama (Former U.S. President)",
+      "quote": "The shift to a cleaner energy economy won't happen overnight. But the debate is settled. Climate change is a fact."
+    },
+    {
+      "author": "Jack Dangermond (Environmental Technologist)",
+      "quote": "The world that you and I live in is increasingly challenged: climate change, loss of nature — these are not good stories."
+    },
+    {
+      "author": "Yuval Noah Harari (Historian)",
+      "quote": "We are all living together on a single planet, and if you don't have some kind of global cooperation, you can't tackle climate change."
+    },
+    {
+      "author": "Nicholas Stern (Economist)",
+      "quote": "Climate change is a result of the greatest market failure the world has seen."
+    },
+    {
+      "author": "Bill Gates (Business Leader)",
+      "quote": "By the time we see that climate change is really bad, your ability to fix it is extremely limited."
+    },
+    {
+      "author": "Leonardo DiCaprio (Actor)",
+      "quote": "I play fictitious characters often solving fictitious problems. I believe mankind has looked at climate change as if it were fiction."
+    },
+    {
+      "author": "Ernest Hemingway (Author)",
+      "quote": "The Earth is a fine place and worth fighting for."
+    },
+    {
+      "author": "Terri Swearingen (Activist)",
+      "quote": "We are living on this planet as if we had another one to go to."
+    },
+    {
+      "author": "Rob Stewart (Filmmaker)",
+      "quote": "The Earth should not be a worse place after my life than it was when I was born here."
+    },
+    {
+      "author": "Pope Francis (Religious Leader)",
+      "quote": "God gave us the earth, to till and to keep in a balanced and respectful way."
+    },
+    {
+      "author": "David King (Scientist)",
+      "quote": "Climate change is the most severe problem that we are facing today, more serious even than the threat of terrorism."
+    },
+    {
+      "author": "Marco Lambertini (Conservation Leader)",
+      "quote": "A planet being pushed to the edge will eventually turn on us."
+    },
+    {
+      "author": "Paul Krugman (Economist)",
+      "quote": "The planet will continue to cook."
+    },
+    {
+      "author": "Arnold Schwarzenegger (Actor & Politician)",
+      "quote": "The facts are there that we have created a self-inflicted wound through global warming."
+    },
+    {
+      "author": "Jonathon Porritt (Environmentalist)",
+      "quote": "The future will be green or not at all."
+    },
+    {
+      "author": "David Attenborough (Naturalist)",
+      "quote": "Dealing with global warming means that we have to stop waste."
+    },
+    {
+      "author": "Al Gore (Former U.S. Vice President)",
+      "quote": "We are running out of time, and we must have a planetary solution to a planetary crisis."
+    },
+    {
+      "author": "Alexandria Ocasio-Cortez (U.S. Politician)",
+      "quote": "We don't have time to sit on our hands as our planet burns. It's life or death."
+    },
+    {
+      "author": "Archana Soreng (Climate Advocate)",
+      "quote": "Indigenous people, local communities, young people, women and girls, should be leaders of climate action and not victims of climate policies."
+    },
+    {
+      "author": "Richard Branson (Business Leader)",
+      "quote": "Climate change is a huge challenge, but it can be brought in line if governments, businesses and individuals work together."
+    },
+    {
+      "author": "Leah Thomas (Environmental Communicator)",
+      "quote": "We can't save the planet without uplifting the voices of its people, especially those most often unheard."
+    },
+    {
+      "author": "John Lewis (U.S. Civil Rights Leader)",
+      "quote": "It is our responsibility to leave this planet cleaner and greener. That must be our legacy."
+    },
+    {
+      "author": "Greta Thunberg (Climate Activist)",
+      "quote": "We can no longer let the people in power decide what hope is. Hope is telling the truth. Hope is taking action."
+    },
+    {
+      "author": "Mark Ruffalo (Actor)",
+      "quote": "Climate change is the greatest threat to our existence in our short history on this planet. Nobody's going to buy their way out of its effects."
+    },
+    {
+      "author": "Tom Steyer (Investor)",
+      "quote": "Demanding that our leaders take action on climate change is safeguarding our health and protecting the future of our children."
+    },
+    {
+      "author": "Tony Blair (Former UK Prime Minister)",
+      "quote": "Global warming is too serious for the world any longer to ignore its danger."
+    },
+    {
+      "author": "Leonardo DiCaprio (Actor & Environmentalist)",
+      "quote": "Climate change is real. It is happening right now. We need to work collectively together and stop procrastinating."
+    },
+    {
+      "author": "Gisele Bundchen (UN Goodwill Ambassador)",
+      "quote": "Deforestation leads to climate change — it's a vicious cycle."
+    },
+    {
+      "author": "James Cameron (Film Director)",
+      "quote": "It's important for me, for my kids, that we're not going to leave them in a world that's in shambles."
+    },
+    {
+      "author": "Elizabeth May (Politician)",
+      "quote": "I hold a vision of this blue green planet, safe and in balance."
+    },
+    {
+      "author": "Barack Obama (Former U.S. President)",
+      "quote": "The United States not only recognises our role in creating this problem, we embrace our responsibility to do something about it."
+    },
+    {
+      "author": "Xi Jinping (Chinese President)",
+      "quote": "Tackling climate change is a shared mission for mankind."
+    },
+    {
+      "author": "Pope Francis (Religious Leader)",
+      "quote": "Now or never. Every year the problems are getting worse."
+    },
+    {
+      "author": "Edi Rama (Prime Minister, Albania)",
+      "quote": "Life goes on with its old habits and our speeches about fighting climate change change nothing."
+    },
+    {
+      "author": "Wopke Hoekstra (European Commissioner for Climate)",
+      "quote": "Climate neutrality is not just a slogan, it is also our commitment under the Paris Agreement."
+    },
+    {
+      "author": "Simon Stiell (UN Climate Change Executive Secretary)",
+      "quote": "The climate crisis is an urgent national security crisis that should be at the top of every cabinet room agenda."
+    },
+    {
+      "author": "Simon Stiell (UN Climate Change Executive Secretary)",
+      "quote": "Surrender is not an option. And half measures are a recipe for failure."
+    },
+    {
+      "author": "Carl Sagan (Physicist)",
+      "quote": "Anything else you're interested in is not going to happen if you can't breathe the air and drink the water."
+    },
+    {
+      "author": "Michio Kaku (Physicist)",
+      "quote": "Global warming is real. It is a slow-moving catastrophe that will reshape the geography of the planet."
+    },
+    {
+      "author": "Robert Redford (Actor)",
+      "quote": "The environment should be in the category of national security. Defense of our resources is just as important as defense abroad."
+    },
+    {
+      "author": "Cate Blanchett (Actor)",
+      "quote": "Climate change is a tragedy that is unfolding before our eyes, yet we still look away."
+    },
+    {
+      "author": "Goran Bregovic (Musician)",
+      "quote": "We treat the earth like a rented hotel room, making a mess because we think we won't be here tomorrow to clean it up."
+    },
+    {
+      "author": "Rade Serbedzija (Actor)",
+      "quote": "We worry so much about borders and history, while the very nature supporting our lives is quietly collapsing beneath us."
+    },
+    {
+      "author": "Vlatko Stefanovski (Musician)",
+      "quote": "We sing about the beauty of our mountains and rivers, but song is not enough to protect them from the changes we inflict."
+    },
+    {
+      "author": "Bora Dugic (Musician)",
+      "quote": "Nature has its own harmony, and when humanity alters the climate, we introduce a devastating discord into the world."
+    },
+    {
+      "author": "Janis Varoufakis (Economist/Politician)",
+      "quote": "Climate change is the ultimate market failure; capitalism is destroying the ecological foundations upon which it relies."
+    },
+    {
+      "author": "Dusan Kovacevic (Playwright)",
+      "quote": "We are writing a tragic final act for the planet, pretending that the script can be changed at the last second."
+    },
+    {
+      "author": "Stephen Hawking (Physicist)",
+      "quote": "We are close to the tipping point where global warming becomes irreversible."
+    },
+    {
+      "author": "Richard Feynman (Physicist)",
+      "quote": "For a successful technology, reality must take precedence over public relations, for nature cannot be fooled."
+    },
+    {
+      "author": "Olafur Eliasson (Artist)",
+      "quote": "Climate change is not an abstract concept; it is a physical reality that demands a creative response."
+    },
+    {
+      "author": "Jane Fonda (Actor)",
+      "quote": "This is a collective crisis that requires collective action. The climate crisis is an all-hands-on-deck emergency."
+    },
+    {
+      "author": "Barack Obama (Politician)",
+      "quote": "We are the first generation to feel the effect of climate change and the last generation who can do something about it."
+    },
+    {
+      "author": "Greta Thunberg (Activist)",
+      "quote": "Our house is on fire. I am here to say, our house is on fire."
+    },
+    {
+      "author": "Marina Abramovic (Performance Artist)",
+      "quote": "Adding climate change, it truly feels like the end of the world because we are destroying the planet."
+    },
+    {
+      "author": "Slavoj Zizek (Philosopher)",
+      "quote": "We like to be guilty since, if we are guilty, it all depends on us. We engage in frantic activities just so we can be sure that we are doing something."
+    },
+    {
+      "author": "Stevo Pendarovski (Politician)",
+      "quote": "Climate change is no longer a distant threat; it is a harsh reality affecting our ecosystems and requiring immediate global cooperation."
+    },
+    {
+      "author": "Milco Mancevski (Film Director)",
+      "quote": "We treat nature as an endless resource for entertainment and profit, forgetting that when it breaks, we break with it."
+    },
+    {
+      "author": "Goran Stefanovski (Playwright)",
+      "quote": "We are destroying the very soil and air that gave us a voice, acting as if we have another home waiting for us in the stars."
+    },
+    {
+      "author": "Paul McCartney (Musician)",
+      "quote": "The person in the song will be symbolic of politicians who argue that climate change is a hoax. This idea of 'It's all gonna be fine, don't worry.' Oh yeah, sure, there are icebergs melting but it doesn't matter."
+    },
+    {
+      "author": "Billie Eilish (Musician)",
+      "quote": "Hills burn in California. My turn to ignore ya. Don't say I didn't warn ya."
+    },
+    {
+      "author": "Neil Young (Musician)",
+      "quote": "We heard the warning calls. Ignored them. We watched the weather change. We saw the fires and floods. We saw the people rise divided. We fought each other while we lost our coveted prize."
+    },
+    {
+      "author": "Lana Del Rey (Musician)",
+      "quote": "L.A.'s in flames, it's getting hot. The world is getting hotter. Hope is a dwindling resource. We don't have much time left."
+    },
+    {
+      "author": "Pharrell Williams (Musician)",
+      "quote": "We have to take care of the planet. We have one shot at this. We need to make eco-friendly choices and support sustainable fashion."
+    },
+    {
+      "author": "Eddie Vedder (Musician)",
+      "quote": "We need to minimize our carbon footprint and raise awareness about global warming. Every action counts."
+    },
+    {
+      "author": "Dave Matthews (Musician)",
+      "quote": "The environment is a shared responsibility. We must support organizations fighting for our planet's future."
+    },
+    {
+      "author": "Xiuhtezcatl Martinez (Musician & Activist)",
+      "quote": "How will you look your child in the eyes and tell them their future wasn't worth fighting for, could've done more but didn't listen, didn't wake up, didn't speak up, didn't fight back when there was still time."
+    },
+    {
+      "author": "Jaden Smith (Actor & Musician)",
+      "quote": "We have to save our planet. It's the only one we have."
+    },
+    {
+      "author": "Emma Thompson (Actor)",
+      "quote": "We need urgent action on the climate crisis. There is no Planet B."
+    },
+    {
+      "author": "Julia Louis-Dreyfus (Actor)",
+      "quote": "Corporate interests have sought to mislead the public about climate change. We must fight for the truth."
+    },
+    {
+      "author": "Shailene Woodley (Actor)",
+      "quote": "We have to preserve natural resources for future generations. The time for action is now."
+    },
+    {
+      "author": "Cameron Diaz (Actor)",
+      "quote": "Environmental issues from rainforest deforestation to water pollution affect us all. We must act responsibly."
+    },
+    {
+      "author": "Gwyneth Paltrow (Actor)",
+      "quote": "We can make better choices that benefit our health and the environment. Every small step counts."
+    },
+    {
+      "author": "Matt Damon (Actor)",
+      "quote": "Climate justice is essential. Clean water and a healthy environment are basic human rights."
+    },
+    {
+      "author": "Emma Watson (Actor)",
+      "quote": "As consumers we have so much power to change the world by just being careful in what we buy."
+    },
+    {
+      "author": "Jane Goodall (Primatologist)",
+      "quote": "Fortunately, nature is amazingly resilient: places we have destroyed, given time and help, can once again support life, and endangered species can be given a second chance."
+    },
+    {
+      "author": "Al Gore (Politician)",
+      "quote": "Solutions to the climate crisis are within reach, but in order to capture them, we must take urgent action today across every level of society."
+    },
+    {
+      "author": "Joaquin Phoenix (Actor)",
+      "quote": "We feel entitled to artificially inseminate a cow and steal her baby, even though her cries of anguish are unmistakable. We think we need to sacrifice something to change. But we can be inventive."
+    },
+    {
+      "author": "Harrison Ford (Actor)",
+      "quote": "Nature doesn't need people. People need nature. Nature would survive the extinction of the human being and go on just fine, but human culture, human beings, cannot survive without nature."
+    },
+    {
+      "author": "Woody Harrelson (Actor)",
+      "quote": "We have to start thinking about the planet as our home, not as something to conquer. We need to work with nature, not against it."
+    },
+    {
+      "author": "Meryl Streep (Actor)",
+      "quote": "Climate change is real. We owe it to future generations to acknowledge the science and take action."
+    },
+    {
+      "author": "Jason Momoa (Actor)",
+      "quote": "The ocean is dying. We need to do everything we can to protect our waters and our planet for our children."
+    },
+    {
+      "author": "Bono (Musician)",
+      "quote": "Climate change is not just an environmental issue. It's a human rights issue, an economic issue, and a security issue."
+    },
+    {
+      "author": "Chris Martin — Coldplay (Musician)",
+      "quote": "We've decided to put the tour on pause until we work out how to make it sustainable and beneficial for the environment."
+    },
+    {
+      "author": "Jack Johnson (Musician)",
+      "quote": "We all have a responsibility to protect the planet. Small changes in our daily lives can make a big difference."
+    },
+    {
+      "author": "Sting (Musician)",
+      "quote": "We are destroying our planet with such reckless abandon. The rainforests are the lungs of the world and we're cutting them down."
+    }
   ],
   "effects": [
     "Hotter and longer summers with more frequent extreme heatwaves",
