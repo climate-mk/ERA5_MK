@@ -70,6 +70,71 @@ const state = {
   playing:    false,
 };
 
+// ── Preferences (localStorage persistence) ───────────────────────────────────
+
+const _PREFS_KEY = 'mk_prefs';
+
+function savePrefs() {
+  try {
+    localStorage.setItem(_PREFS_KEY, JSON.stringify({
+      selLocs: state.selLocs,
+      selVar:  state.selVar,
+      method:  state.method,
+      corr:    state.corr,
+      window:  state.window,
+      doy:     state.doy,
+    }));
+  } catch (_) {}
+}
+
+/**
+ * Restore saved prefs into state and sync all UI controls.
+ * Must be called after meta is loaded so we can validate locations/variables.
+ * Returns true if selLocs were restored (so init() can skip auto-select).
+ */
+function loadPrefs(validLocs, validVars) {
+  try {
+    const p = JSON.parse(localStorage.getItem(_PREFS_KEY) || 'null');
+    if (!p) return false;
+    let locsRestored = false;
+    if (Array.isArray(p.selLocs)) {
+      const valid = p.selLocs.filter(l => validLocs.includes(l));
+      if (valid.length) { state.selLocs = valid; locsRestored = true; }
+    }
+    if (p.selVar && validVars[p.selVar])                           state.selVar = p.selVar;
+    if (p.method && ['theilsen','ols'].includes(p.method))         state.method = p.method;
+    if (p.corr   && ['raw','corr'].includes(p.corr))               state.corr   = p.corr;
+    if (Number.isInteger(p.window) && p.window >= 1)               state.window = p.window;
+    if (Number.isInteger(p.doy)    && p.doy >= 1 && p.doy <= 365) state.doy    = p.doy;
+
+    // Sync UI controls to restored state
+    const varSel = document.getElementById('var-select');
+    if (varSel) varSel.value = state.selVar;
+
+    const methodEl = document.querySelector(`input[name='method'][value='${state.method}']`);
+    if (methodEl) {
+      methodEl.checked = true;
+      document.querySelectorAll('.pill-radio').forEach(p => p.classList.remove('active'));
+      methodEl.closest('.pill-radio')?.classList.add('active');
+      const checkTheilsen = document.getElementById('check-theilsen');
+      const checkOls      = document.getElementById('check-ols');
+      if (checkTheilsen) checkTheilsen.style.display = state.method === 'theilsen' ? '' : 'none';
+      if (checkOls)      checkOls.style.display      = state.method === 'ols'      ? '' : 'none';
+    }
+
+    const corrToggle = document.getElementById('corr-toggle');
+    if (corrToggle) corrToggle.checked = state.corr === 'corr';
+
+    const corrSection = document.getElementById('corr-section');
+    if (corrSection) corrSection.style.display = isTemp(state.selVar) ? '' : 'none';
+
+    const winInput = document.getElementById('window-input');
+    if (winInput) winInput.value = state.window;
+
+    return locsRestored;
+  } catch (_) { return false; }
+}
+
 // Calendar cache: key → data (avoids re-fetching)
 const calCache = {};
 
@@ -318,6 +383,7 @@ function renderMap(data) {
               updateLocCheckboxStates();
               updateLocDisplay();
               updateMapSelection();
+              savePrefs();
               refreshRegression();
               refreshCalendar();
             },
@@ -1077,7 +1143,7 @@ function setDoy(val) {
   updateCalDoyLine();
 
   clearTimeout(regDebounce);
-  regDebounce = setTimeout(() => { refreshRegression(); refreshMap(); }, 180);
+  regDebounce = setTimeout(() => { savePrefs(); refreshRegression(); refreshMap(); }, 180);
 }
 
 slider.addEventListener("input", () => setDoy(parseInt(slider.value)));
@@ -1277,6 +1343,7 @@ function handleLocCheckboxChange(e) {
   updateLocCheckboxStates();
   updateLocDisplay();
   updateMapSelection();
+  savePrefs();
   refreshRegression();
   refreshCalendar();
 }
@@ -1334,6 +1401,7 @@ document.getElementById("var-select").addEventListener("change", function() {
   document.getElementById("corr-section").style.display = isTemp(state.selVar) ? "" : "none";
   if (!isTemp(state.selVar)) state.corr = "raw";
   Object.keys(calCache).forEach(k => delete calCache[k]);
+  savePrefs();
   refreshRegression();
   refreshCalendar();
   refreshMap();
@@ -1351,6 +1419,7 @@ document.querySelectorAll("input[name='method']").forEach(el => {
     if (checkTheilsen) checkTheilsen.style.display = state.method === "theilsen" ? "" : "none";
     if (checkOls)      checkOls.style.display      = state.method === "ols"      ? "" : "none";
     Object.keys(calCache).forEach(k => delete calCache[k]);
+    savePrefs();
     refreshRegression();
     refreshCalendar();
     refreshMap();
@@ -1360,6 +1429,7 @@ document.querySelectorAll("input[name='method']").forEach(el => {
 document.getElementById("corr-toggle").addEventListener("change", function() {
   state.corr = this.checked ? "corr" : "raw";
   Object.keys(calCache).forEach(k => delete calCache[k]);
+  savePrefs();
   refreshRegression();
   refreshCalendar();
   refreshMap();
@@ -1370,6 +1440,7 @@ document.getElementById("window-input").addEventListener("change", function() {
   if (isNaN(v) || v < 1) return;
   state.window = v;
   Object.keys(calCache).forEach(k => delete calCache[k]);
+  savePrefs();
   refreshRegression();
   refreshCalendar();
   refreshMap();
@@ -1593,15 +1664,22 @@ async function init() {
   state.monthNames = meta.month_names;
   state.palette    = meta.palette;
 
+  // Restore saved preferences (locations, variable, method, corr, window, doy).
+  // loadPrefs() returns true when saved locations were found — skip auto-select in that case.
+  const _prefsHadLocs = loadPrefs(meta.locations, Object.keys(meta.variables));
+
   // Auto-select Skopje + the non-Skopje station with the highest max-temp warming trend
-  if (initTrends && Array.isArray(initTrends.points) && initTrends.points.length > 1) {
+  // — only when no saved prefs exist (first visit / cleared storage).
+  if (!_prefsHadLocs && initTrends && Array.isArray(initTrends.points) && initTrends.points.length > 1) {
     const sorted = [...initTrends.points].sort((a, b) => b.trend10 - a.trend10);
     const second = sorted.find(p => p.loc !== "Skopje");
     if (second) state.selLocs = ["Skopje", second.loc];
   }
 
-  // Set DOY to today
-  state.doy = getTodayDOY();
+  // Set DOY to today only if no saved DOY preference was found
+  if (!JSON.parse(localStorage.getItem(_PREFS_KEY) || 'null')?.doy) {
+    state.doy = getTodayDOY();
+  }
   slider.value = state.doy;
 
   // Populate variable select with server labels
