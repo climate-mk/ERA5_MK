@@ -18,6 +18,7 @@ ssh "$SERVER" "mkdir -p $APP_DIR/data $APP_DIR/static"
 # Sync Python app + requirements — capture itemised output to detect changes
 PY_CHANGES=$(rsync -az --checksum --itemize-changes \
   mk_api.py \
+  chat_config.py \
   requirements.txt \
   "$SERVER:$APP_DIR/")
 
@@ -32,10 +33,11 @@ PY_CHANGED=false
 REQS_CHANGED=false
 
 if echo "$PY_CHANGES" | grep -q "mk_api.py";       then PY_CHANGED=true;   fi
+if echo "$PY_CHANGES" | grep -q "chat_config.py";  then PY_CHANGED=true;   fi
 if echo "$PY_CHANGES" | grep -q "requirements.txt"; then REQS_CHANGED=true; fi
 
 echo ""
-if $PY_CHANGED;   then echo "  ✓ mk_api.py changed"; fi
+if $PY_CHANGED;   then echo "  ✓ Python files changed (mk_api.py / chat_config.py)"; fi
 if $REQS_CHANGED; then echo "  ✓ requirements.txt changed"; fi
 if ! $PY_CHANGED && ! $REQS_CHANGED; then
   echo "  — No Python changes detected. Skipping Flask restart."
