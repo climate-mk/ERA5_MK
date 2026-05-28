@@ -1467,7 +1467,10 @@ function _initWebChat(token, expiresIn) {
     if (action.type === "DIRECT_LINE/POST_ACTIVITY") {
       const act = action.payload?.activity;
       if (act?.type === "message" && act?.text) {
-        _logChatEvent("user", act.text, act?.conversation?.id || "");
+        // conversationId lives on the directLine instance, not on the activity
+        // at POST time (it gets assigned by the service after posting).
+        const convId = _chatDirectLine?.conversationId || "";
+        _logChatEvent("user", act.text, convId);
       }
     }
     // ───────────────────────────────────────────────────────────────────────
