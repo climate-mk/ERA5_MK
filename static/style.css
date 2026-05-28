@@ -127,6 +127,7 @@ body {
 .sec-heading                  { padding: 16px 40px 8px; font-family: 'Instrument Serif', serif; font-style: italic; font-weight: 400; font-size: 32px; letter-spacing: 0.01em; color: var(--ink); }
 .today-status .sec-heading    { padding-left: 0; padding-right: 0; }
 .sec-heading--sm              { font-size: 20px; }
+.sec-heading-sub              { padding: 0 40px 10px; font-family: 'JetBrains Mono', monospace; font-size: 11px; letter-spacing: 0.08em; text-transform: uppercase; color: var(--ink-soft); }
 .today-grid        { display: grid; grid-template-columns: repeat(3, 1fr); gap: 16px; }
 .today-card        { background: var(--card); border: 1px solid var(--rule); border-radius: var(--radius); padding: 22px 28px; display: flex; flex-direction: column; gap: 14px; min-width: 0; justify-content: space-between; }
 .today-h           { font-family: 'Instrument Serif', serif; font-style: italic; font-size: 32px; letter-spacing: 0.01em; color: var(--ink); line-height: 1.2; }
@@ -362,8 +363,9 @@ body {
 #map-chart { flex: 1; min-height: 0; }
 .map-legend { display: flex; align-items: center; gap: 12px; padding: 10px 20px 14px; font-family: 'JetBrains Mono', monospace; font-size: 10px; letter-spacing: 0.06em; text-transform: uppercase; color: var(--ink-soft); border-top: 1px solid var(--rule); flex-shrink: 0; }
 
-/* Regression chart — chart area paper, header/legend white */
+/* Regression chart — chart area paper, header/legend white; chart fills available height */
 #reg-panel .chart-stage { background: var(--paper); }
+#reg-panel .chart-wrap  { flex: 1; display: flex; flex-direction: column; }
 
 /* Calendar panels — chart area paper, header/legend white; cal legend bar */
 .cal-panel .chart-wrap { background: var(--paper); }
@@ -372,13 +374,20 @@ body {
 .leg-ramp { flex: 1; height: 4px; border-radius: 2px; background: linear-gradient(90deg, var(--c1), var(--c2), var(--c3), var(--c4), var(--c5), var(--c6)); }
 .leg-cool { color: var(--accent-cool); }
 .leg-warm { color: #962c1a; }
+/* Precipitation: positive=wetter=blue, negative=drier=brownish — reverse legend gradient and label colors */
+.map-legend.precip .leg-ramp     { background: linear-gradient(270deg, var(--c1), var(--c2), var(--c3), var(--c4), var(--c5), var(--c6)); }
+.map-legend.precip .leg-cool     { color: #962c1a; }
+.map-legend.precip .leg-warm     { color: var(--accent-cool); }
+.cal-legend.precip .cal-leg-ramp { background: linear-gradient(270deg, var(--accent-cool), #b0b8c8, #e0d0c0, var(--accent)); }
+.cal-legend.precip .leg-cool     { color: #962c1a; }
+.cal-legend.precip .leg-warm     { color: var(--accent-cool); }
 
 /* Regression panel */
 .chart-stage { position: relative; flex: 1; padding: 16px 20px 12px; display: flex; flex-direction: column; }
 .chart-stats-box { position: absolute; top: 16px; right: 20px; text-align: right; font-family: 'JetBrains Mono', monospace; font-size: 10px; color: var(--ink-soft); z-index: 5; pointer-events: none; }
 .chart-big { font-family: 'Space Grotesk', sans-serif; font-size: 20px; font-weight: 600; color: var(--accent); letter-spacing: -0.02em; line-height: 1; margin-bottom: 3px; }
 .chart-change-lbl { font-size: 10px; }
-#reg-chart { height: 300px; flex: 1; }
+#reg-chart { min-height: 300px; flex: 1; }
 .chart-footer { padding: 10px 20px 14px; display: flex; justify-content: space-between; align-items: center; font-family: 'JetBrains Mono', monospace; font-size: 10px; letter-spacing: 0.06em; text-transform: uppercase; color: var(--ink-soft); border-top: 1px solid var(--rule); flex-shrink: 0; flex-wrap: wrap; gap: 8px; }
 .chart-key { display: flex; gap: 12px; align-items: center; flex-wrap: wrap; }
 .swatch { display: inline-flex; align-items: center; gap: 5px; }

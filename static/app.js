@@ -163,9 +163,9 @@ function buildScales(points) {
 }
 
 function pointColor(trend10, scales) {
-  const neutral = [220, 220, 228];
-  const pos     = [160,   0,   0];
-  const neg     = [  0,  45, 175];
+  const neutral  = [220, 220, 228];
+  const pos      = isPrecipLike(state.selVar) ? [ 26,  95, 200] : [160,   0,   0];
+  const neg      = isPrecipLike(state.selVar) ? [160,  92,  32] : [  0,  45, 175];
   if (trend10 >= 0) {
     const t = Math.pow(trend10 / scales.maxPos, 0.65);
     return `rgb(${lerp(neutral[0],pos[0],t)},${lerp(neutral[1],pos[1],t)},${lerp(neutral[2],pos[2],t)})`;
@@ -238,6 +238,9 @@ function renderMap(data) {
   const countEl = document.getElementById("map-station-count");
   const mapVarLbl = (state.variables[state.selVar] || state.selVar).split("(")[0].trim();
   if (countEl) countEl.textContent = `${mapVarLbl} · ${points.length} STATIONS`;
+
+  const mapLeg = document.getElementById("map-legend");
+  if (mapLeg) mapLeg.classList.toggle("precip", isPrecipLike(state.selVar));
 
   if (mapChart) {
     mapChart.series[1].setData(mapPoints, true);
@@ -363,6 +366,10 @@ function getTodayDOY() {
 
 function isTemp(v) {
   return ["temperature_max","temperature_min","temperature_mean"].includes(v);
+}
+
+function isPrecipLike(v) {
+  return v === "precipitation_sum" || v === "et0_evapotranspiration";
 }
 
 function showLoading(id, show) {
@@ -510,7 +517,7 @@ function renderRegression(data) {
     const csg = chg >= 0 ? "+" : "−";
     const chgEl = document.getElementById("chart-change");
     if (chgEl) chgEl.textContent = `${csg}${Math.abs(chg).toFixed(2)} ${data.unit || ""}`;
-    if (chgEl) chgEl.style.color = chg >= 0 ? ACCENT : COOL;
+    if (chgEl) chgEl.style.color = isPrecipLike(state.selVar) ? (chg >= 0 ? COOL : ACCENT) : (chg >= 0 ? ACCENT : COOL);
 
     // Baseline plotlines — one per location, colored to match their series
     // Remove all existing baseline plotlines before re-adding (handles deselected locations)
@@ -578,7 +585,7 @@ function renderHeroCards(data) {
     const st    = res.stats;
     const isPos = st.trend10 >= 0;
     const sg    = isPos ? "+" : "−";
-    const col   = isPos ? ACCENT : COOL;
+    const col   = isPrecipLike(state.selVar) ? (isPos ? COOL : ACCENT) : (isPos ? ACCENT : COOL);
 
     // Verdict block — temperature variables only
     const tempVar = isTemp(state.selVar);
@@ -1010,7 +1017,7 @@ async function refreshCalendar() {
         </div>
       </div>
       ${t('hero.explain_cal') ? `<p class="panel-explain">${t('hero.explain_cal')}</p>` : ''}
-      <div class="cal-legend">
+      <div class="cal-legend${isPrecipLike(state.selVar) ? ' precip' : ''}">
         <span class="leg-cool">${isTemp(state.selVar) ? t('charts.cal_cooling') || 'Cooling' : t('charts.cal_decreasing') || 'Decreasing'}</span>
         <span class="cal-leg-ramp"></span>
         <span class="leg-warm">${isTemp(state.selVar) ? t('charts.cal_warming') || 'Warming' : t('charts.cal_increasing') || 'Increasing'}</span>
@@ -1513,6 +1520,7 @@ function renderStaticLabels() {
   const setTxt = (id, val) => { const el = document.getElementById(id); if (el && val) el.textContent = val; };
   setTxt('heading-location', u.heading_location);
   setTxt('heading-controls', u.heading_controls);
+  setTxt('heading-controls-sub', u.heading_controls_sub);
   // Map legend
   const legCool = document.querySelector('.leg-cool');
   const legWarm = document.querySelector('.leg-warm');

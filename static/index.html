@@ -52,6 +52,7 @@
 
   <!-- Controls / toolbar -->
   <div class="sec-heading sec-heading--sm" id="heading-controls">Location selection, Controls, and Charts</div>
+  <div class="sec-heading-sub" id="heading-controls-sub">(red = bad, blue = good)</div>
   <div class="toolbar" id="controls-bar">
 
     <!-- Location -->
@@ -142,7 +143,7 @@
           <div class="spinner"></div> Loading map…
         </div>
       </div>
-      <div class="map-legend">
+      <div class="map-legend" id="map-legend">
         <span class="leg-cool">falling</span>
         <span class="leg-ramp"></span>
         <span class="leg-warm">rising</span>
@@ -168,7 +169,6 @@
           </div>
         </div>
       </div>
-      <p id="reg-explain" class="panel-explain"></p>
       <div class="chart-footer">
         <div class="chart-key">
           <span class="swatch"><i id="swatch-neg" style="background:var(--accent-cool);border-radius:50%"></i><span id="lbl-under-mean">Under mean</span></span>
@@ -178,6 +178,7 @@
         </div>
         <span class="panel-sub" id="chart-year-range">—</span>
       </div>
+      <p id="reg-explain" class="panel-explain"></p>
     </div>
   </div>
 

@@ -95,8 +95,8 @@ VARIABLES   = {
 }
 MONTH_NAMES = ["Jan","Feb","Mar","Apr","May","Jun",
                "Jul","Aug","Sep","Oct","Nov","Dec"]
-PALETTE     = ["#4c52c9","#d94f4f","#2a9d5c","#e07b00",
-               "#0099bb","#9b4dca","#c9880a","#3a7a3a"]
+PALETTE     = ["#e07b00","#9b4dca","#c9880a","#d0408a",
+               "#20aab0","#b06830"]
 
 # ── Variable style ─────────────────────────────────────────────────────────────
 
@@ -108,10 +108,10 @@ _VSTYLE = {
         "cal_pos": (35, 100, 210), "cal_neg": (180, 105, 25),
     },
     "et0_evapotranspiration": {
-        "pos_rgb": (224, 123, 0),  "neg_rgb": (42, 157, 92),
+        "pos_rgb": (26, 95, 200),  "neg_rgb": (160, 92, 32),
         "pos_label": "higher ET₀ ↑", "neg_label": "lower ET₀ ↓",
         "chg_unit": "mm",
-        "cal_pos": (210, 120, 0),  "cal_neg": (42, 157, 92),
+        "cal_pos": (35, 100, 210), "cal_neg": (180, 105, 25),
     },
 }
 _TEMP = {
