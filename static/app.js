@@ -72,10 +72,15 @@ const state = {
 
 // ── Preferences (localStorage persistence) ───────────────────────────────────
 
-const _PREFS_KEY = 'mk_prefs';
-const _PREFS_TTL_MS = 3 * 24 * 60 * 60 * 1000;   // 3 days of inactivity → reset to defaults
+const _PREFS_KEY        = 'mk_prefs';
+const _PREFS_ENABLED_KEY = 'mk_save_prefs';
+const _PREFS_TTL_MS     = 3 * 24 * 60 * 60 * 1000;   // 3 days of inactivity → reset to defaults
+
+// Whether the user has opted in to saving preferences (default: off)
+let _savePrefsEnabled = localStorage.getItem(_PREFS_ENABLED_KEY) === 'true';
 
 function savePrefs() {
+  if (!_savePrefsEnabled) return;
   try {
     localStorage.setItem(_PREFS_KEY, JSON.stringify({
       ts:      Date.now(),
@@ -1852,6 +1857,21 @@ document.getElementById("mdr-style-select").addEventListener("change", function(
   document.documentElement.setAttribute("data-theme", theme === "default" ? "" : theme);
   localStorage.setItem("mk_theme", theme);
 });
+
+// Remember-settings toggle
+const _savePrefsToggle = document.getElementById('mdr-save-prefs-toggle');
+if (_savePrefsToggle) {
+  _savePrefsToggle.checked = _savePrefsEnabled;
+  _savePrefsToggle.addEventListener('change', function() {
+    _savePrefsEnabled = this.checked;
+    localStorage.setItem(_PREFS_ENABLED_KEY, _savePrefsEnabled);
+    if (_savePrefsEnabled) {
+      savePrefs();   // immediately save current state
+    } else {
+      localStorage.removeItem(_PREFS_KEY);   // wipe saved prefs when opting out
+    }
+  });
+}
 
 // Language + content-style switchers — each reloads page so all text updates
 const _langSel    = document.getElementById("mdr-lang-select");

@@ -302,8 +302,12 @@ body {
 .toggle { position: relative; width: 28px; height: 16px; flex-shrink: 0; display: inline-block; }
 .toggle-track { position: absolute; inset: 0; background: var(--ink-faint); border-radius: 999px; cursor: pointer; transition: background 0.2s; }
 .toggle-track::after { content: ''; position: absolute; width: 12px; height: 12px; border-radius: 50%; background: #fff; top: 2px; left: 2px; transition: transform 0.2s; }
-#corr-toggle:checked ~ .toggle-track { background: var(--accent); }
-#corr-toggle:checked ~ .toggle-track::after { transform: translateX(12px); }
+#corr-toggle:checked ~ .toggle-track,
+#mdr-save-prefs-toggle:checked ~ .toggle-track { background: var(--accent); }
+#corr-toggle:checked ~ .toggle-track::after,
+#mdr-save-prefs-toggle:checked ~ .toggle-track::after { transform: translateX(12px); }
+.mdr-toggle-row { display: flex; align-items: center; justify-content: space-between; cursor: pointer; }
+.mdr-sublabel { font-family: 'JetBrains Mono', monospace; font-size: 9px; color: var(--ink-faint); margin-top: 8px; line-height: 1.5; }
 
 .spacer { flex: 1; min-width: 8px; }
 
