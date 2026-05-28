@@ -961,7 +961,11 @@ def api_analytics_chat():
         return jsonify({"ok": True})   # silently ignore bot messages
     if not message:
         return jsonify({"ok": False}), 400
-    ip = get_remote_address()
+    # X-Real-IP is set by Nginx to the true client IP (after Cloudflare processing).
+    # Fall back to get_remote_address() when running locally without a proxy.
+    ip = (request.headers.get("X-Real-IP") or
+          request.headers.get("X-Forwarded-For", "").split(",")[0].strip() or
+          get_remote_address())
     threading.Thread(
         target=_log_chat_event,
         args=(ip, message, conv_id),
