@@ -73,10 +73,12 @@ const state = {
 // ── Preferences (localStorage persistence) ───────────────────────────────────
 
 const _PREFS_KEY = 'mk_prefs';
+const _PREFS_TTL_MS = 3 * 24 * 60 * 60 * 1000;   // 3 days of inactivity → reset to defaults
 
 function savePrefs() {
   try {
     localStorage.setItem(_PREFS_KEY, JSON.stringify({
+      ts:      Date.now(),
       selLocs: state.selLocs,
       selVar:  state.selVar,
       method:  state.method,
@@ -96,6 +98,11 @@ function loadPrefs(validLocs, validVars) {
   try {
     const p = JSON.parse(localStorage.getItem(_PREFS_KEY) || 'null');
     if (!p) return false;
+    // Expired — treat as new user, clear stored prefs
+    if (p.ts && Date.now() - p.ts > _PREFS_TTL_MS) {
+      localStorage.removeItem(_PREFS_KEY);
+      return false;
+    }
     let locsRestored = false;
     if (Array.isArray(p.selLocs)) {
       const valid = p.selLocs.filter(l => validLocs.includes(l));
