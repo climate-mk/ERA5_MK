@@ -43,6 +43,7 @@ jobs:
         run: |
           ssh root@46.224.208.142 "cat > /opt/mk_climate/.env << 'EOF'
           DIRECT_LINE_SECRET=${{ secrets.DIRECT_LINE_SECRET }}
+          ANALYTICS_EXPORT_KEY=${{ secrets.ANALYTICS_EXPORT_KEY }}
           EOF
           chmod 600 /opt/mk_climate/.env"
 
