@@ -193,7 +193,8 @@ Highcharts.setOptions({
 
 let regChart  = null;
 let calCharts = [];
-let mapChart  = null;
+let mapChart      = null;
+let _mapHoveredLoc = null;   // last station confirmed by nearest-center hover
 let _mkTopo  = null;
 let _mapUnit  = "";
 
@@ -383,21 +384,13 @@ function renderMap(data) {
         },
         point: {
           events: {
-            click(e) {
-              // Highcharts fires this on whichever bubble's radius area contains
-              // the click — not necessarily the nearest center.  Re-resolve the
-              // nearest station center from the actual pixel click position.
-              const chart  = this.series.chart;
-              const series = this.series;
-              let nearest  = this;   // safe fallback
-              let minDist  = Infinity;
-              series.points.forEach(pt => {
-                const dx = (pt.plotX + chart.plotLeft) - e.chartX;
-                const dy = (pt.plotY + chart.plotTop)  - e.chartY;
-                const d  = dx * dx + dy * dy;   // squared — no sqrt needed
-                if (d < minDist) { minDist = d; nearest = pt; }
-              });
-              const loc = nearest.name;
+            // findNearestPointBy:'xy' ensures mouseOver fires on the correct
+            // nearest-center station — record it so click can use it reliably.
+            mouseOver() { _mapHoveredLoc = this.name; },
+            click() {
+              // Use the last hovered station (nearest-center) rather than
+              // 'this', which Highcharts resolves via bubble-radius hit area.
+              const loc = _mapHoveredLoc || this.name;
               if (state.selLocs.includes(loc)) {
                 if (state.selLocs.length > 1)
                   state.selLocs = state.selLocs.filter(l => l !== loc);
