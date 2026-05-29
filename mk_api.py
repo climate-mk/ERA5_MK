@@ -998,6 +998,147 @@ def api_season_heatmap():
     return jsonify(compute_season_heatmap())
 
 
+def compute_precip_heatmap():
+    """
+    For each completed (year, meteorological season) compute the seasonal
+    precipitation total using the national daily mean (mean across all ERA5
+    stations per day, then summed over the season in mm).
+    Percentile-ranked against the 1950–1980 baseline.
+    Dry seasons rank low (cold colour = blue), wet seasons rank high (warm = orange/red).
+    Colour palette is inverted vs temperature: dry = orange, wet = blue.
+    """
+    BASELINE_START, BASELINE_END = 1950, 1980
+    cache_key = "precip_heatmap_baseline_1950_1980"
+    if cache_key in _TODAY_CACHE:
+        return _TODAY_CACHE[cache_key]
+
+    last_era5 = data["date"].max()
+
+    # National daily precip = mean across all stations
+    daily_nat = (
+        data.groupby("date")["precipitation_sum"]
+        .mean()
+        .reset_index(name="precip")
+    )
+    daily_nat["year"]  = daily_nat["date"].dt.year
+    daily_nat["month"] = daily_nat["date"].dt.month
+
+    year_min = int(daily_nat["year"].min())
+    year_max = int(daily_nat["year"].max())
+
+    SEASONS = [
+        ("Winter", 0, None, 2,  lambda y: pd.Timestamp(y, 2, 29 if _is_leap(y) else 28)),
+        ("Spring", 1, 3,    5,  lambda y: pd.Timestamp(y, 5, 31)),
+        ("Summer", 2, 6,    8,  lambda y: pd.Timestamp(y, 8, 31)),
+        ("Autumn", 3, 9,    11, lambda y: pd.Timestamp(y, 11, 30)),
+    ]
+
+    records = []
+    for yr in range(year_min, year_max + 1):
+        for s_name, s_xi, s_start, s_end_m, end_fn in SEASONS:
+            season_end = end_fn(yr)
+            if season_end > last_era5:
+                continue
+
+            if s_name == "Winter":
+                chunk = daily_nat[
+                    ((daily_nat["year"] == yr - 1) & (daily_nat["month"] == 12)) |
+                    ((daily_nat["year"] == yr)     & (daily_nat["month"].isin([1, 2])))
+                ]
+            else:
+                chunk = daily_nat[
+                    (daily_nat["year"] == yr) &
+                    (daily_nat["month"] >= s_start) &
+                    (daily_nat["month"] <= s_end_m)
+                ]
+
+            if len(chunk) < 30:
+                continue
+
+            records.append({
+                "year":   yr,
+                "xi":     s_xi,
+                "season": s_name,
+                "total":  round(float(chunk["precip"].sum()), 1),  # mm
+                "n_days": len(chunk),
+            })
+
+    if not records:
+        result = {"available": False}
+        _TODAY_CACHE[cache_key] = result
+        return result
+
+    rec_df = pd.DataFrame(records)
+
+    def _pct_cat_precip(pct):
+        # Inverted: low pct = dry, high pct = wet
+        if   pct < 10: return "extreme_dry"
+        elif pct < 20: return "dry"
+        elif pct < 80: return "normal"
+        elif pct < 95: return "wet"
+        else:          return "extreme_wet"
+
+    def _pct_color_precip(pct):
+        return {
+            "extreme_dry": "#8b3a0f",
+            "dry":         "#c2713a",
+            "normal":      "#e7e0d0",
+            "wet":         "#4a80b0",
+            "extreme_wet": "#1e4d78",
+        }[_pct_cat_precip(pct)]
+
+    out = []
+    for xi in range(4):
+        sub = rec_df[rec_df["xi"] == xi].copy()
+        if sub.empty:
+            continue
+        all_vals      = sub["total"].values
+        n_total       = len(all_vals)
+        baseline_sub  = sub[(sub["year"] >= BASELINE_START) & (sub["year"] <= BASELINE_END)]
+        baseline_vals = baseline_sub["total"].values
+        sorted_asc    = np.sort(all_vals)          # ascending rank: 1 = driest
+
+        for _, row in sub.iterrows():
+            if len(baseline_vals) > 0:
+                pct = float((baseline_vals < row["total"]).mean() * 100)
+            else:
+                pct = float((all_vals < row["total"]).mean() * 100)
+            # rank 1 = driest
+            rank = int(np.searchsorted(sorted_asc, row["total"])) + 1
+            cat  = _pct_cat_precip(pct)
+            out.append({
+                "x":          int(row["xi"]),
+                "y":          int(row["year"]),
+                "total":      row["total"],
+                "percentile": round(pct, 1),
+                "cat":        cat,
+                "rank":       rank,
+                "total_years": n_total,
+                "color":      _pct_color_precip(pct),
+                "season":     row["season"],
+                "n_days":     int(row["n_days"]),
+            })
+
+    result = {
+        "available":      True,
+        "data":           out,
+        "year_min":       year_min,
+        "year_max":       year_max,
+        "seasons":        ["Winter", "Spring", "Summer", "Autumn"],
+        "era5_last":      last_era5.date().isoformat(),
+        "baseline":       f"{BASELINE_START}–{BASELINE_END}",
+        "baseline_start": BASELINE_START,
+        "baseline_end":   BASELINE_END,
+    }
+    _TODAY_CACHE[cache_key] = result
+    return result
+
+
+@app.route("/api/precip_heatmap")
+def api_precip_heatmap():
+    return jsonify(compute_precip_heatmap())
+
+
 @app.route("/api/annual_trend")
 def api_annual_trend():
     return jsonify(compute_annual_trend())

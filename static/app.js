@@ -1752,7 +1752,8 @@ async function init() {
   refreshCalendar();    // async, don't await
   refreshMap();         // async, don't await
   renderTodayStatus();  // async, don't await — country-wide, doesn't depend on selection
-  renderSeasonHeatmap(); // async, don't await
+  renderPrecipHeatmap();  // async, don't await
+  renderSeasonHeatmap();  // async, don't await
 
   // Quote + effects use locale data — must run after loadLocale() resolves
   loadQuote();
@@ -2007,6 +2008,243 @@ async function renderSeasonHeatmap() {
 
   } catch(e) {
     console.warn("Season heatmap error:", e);
+  }
+}
+
+async function renderPrecipHeatmap() {
+  const section = document.getElementById("precip-heatmap-section");
+  if (!section) return;
+  try {
+    const d = await fetch("api/precip_heatmap").then(r => r.json());
+    if (!d.available || !d.data?.length) return;
+
+    function ordinal(n) {
+      const s = ["th","st","nd","rd"], v = n % 100;
+      return n + (s[(v - 20) % 10] || s[v] || s[0]);
+    }
+    const CAT_LABELS = {
+      extreme_dry: "Extremely dry (<10th pct)",
+      dry:         "Dry (10–20th pct)",
+      normal:      "Normal (20–80th pct)",
+      wet:         "Wet (80–95th pct)",
+      extreme_wet: "Extremely wet (>95th pct)",
+    };
+    const CAT_COLORS = {
+      extreme_dry: "#8b3a0f",
+      dry:         "#c2713a",
+      normal:      "#e7e0d0",
+      wet:         "#4a80b0",
+      extreme_wet: "#1e4d78",
+    };
+
+    const SEASON_ORDER = ["Autumn", "Summer", "Spring", "Winter"];
+    const lookup = {};
+    d.data.forEach(p => { lookup[`${p.season}|${p.y}`] = p; });
+
+    const allYears = [];
+    for (let y = d.year_min; y <= d.year_max; y++) allYears.push(y);
+
+    let currentMode = "all";
+    let revealedYears = new Set(allYears);
+    let animRunning = false, animYear = d.year_min, animTimer = null;
+
+    // subtitle
+    const sub = document.getElementById("phm-sub");
+    const baselineLabel = d.baseline ? `1950–1980 baseline` : `all years since ${d.year_min}`;
+    if (sub) sub.textContent =
+      `Seasonal total vs ${baselineLabel} · ERA5-Land · data to ${d.era5_last}`;
+
+    // controls
+    const ctrlEl = document.getElementById("phm-controls");
+    const MODES = [
+      { key:"all",      label:"All seasons" },
+      { key:"extremes", label:"Extremes only" },
+      { key:"Autumn",   label:"Autumn" },
+      { key:"Summer",   label:"Summer" },
+      { key:"Spring",   label:"Spring" },
+      { key:"Winter",   label:"Winter" },
+    ];
+    ctrlEl.innerHTML = MODES.map(m =>
+      `<button class="shm-btn${m.key==='all'?' shm-btn--active':''}" data-phm-mode="${m.key}">${m.label}</button>`
+    ).join("") +
+      `<button class="shm-btn shm-btn--anim" id="phm-anim-btn">▶ Animate</button>`;
+
+    ctrlEl.addEventListener("click", e => {
+      const btn = e.target.closest(".shm-btn[data-phm-mode]");
+      if (btn) {
+        currentMode = btn.dataset.phmMode;
+        ctrlEl.querySelectorAll(".shm-btn[data-phm-mode]").forEach(b =>
+          b.classList.toggle("shm-btn--active", b.dataset.phmMode === currentMode));
+        reapply();
+      }
+      if (e.target.closest("#phm-anim-btn")) toggleAnimate();
+    });
+
+    // grid
+    const outer = document.getElementById("phm-chart-outer");
+    outer.innerHTML = `
+      <div class="shm-grid" id="phm-grid"></div>
+      <div class="shm-year-axis">
+        <div class="shm-lbl-spacer"></div>
+        <div class="shm-year-ticks" id="phm-year-ticks"></div>
+      </div>
+      <div class="shm-legend">
+        ${Object.entries(CAT_COLORS).map(([k,c]) =>
+          `<span class="shm-leg-item"><span class="shm-leg-sw" style="background:${c}${k==='normal'?';border:1px solid var(--rule-2)':''}"></span>${CAT_LABELS[k]}</span>`
+        ).join("")}
+      </div>`;
+
+    buildGrid();
+    buildTicks();
+    updateStats();
+    section.hidden = false;
+    window.addEventListener("resize", buildTicks);
+
+    function buildGrid() {
+      const grid = document.getElementById("phm-grid");
+      grid.innerHTML = "";
+      SEASON_ORDER.forEach(sName => {
+        const lbl = document.createElement("div");
+        lbl.className = "shm-season-lbl";
+        lbl.textContent = sName;
+        grid.appendChild(lbl);
+
+        const row = document.createElement("div");
+        row.className = "shm-row";
+        row.dataset.season = sName;
+
+        allYears.forEach(y => {
+          const p = lookup[`${sName}|${y}`];
+          if (!p) {
+            const empty = document.createElement("div");
+            empty.className = "shm-cell shm-cell--empty";
+            row.appendChild(empty);
+            return;
+          }
+          const cell = document.createElement("div");
+          cell.className = "shm-cell";
+          cell.style.background = p.color;
+          cell.dataset.year   = y;
+          cell.dataset.season = sName;
+          cell.dataset.cat    = p.cat;
+          applyMode(cell, sName, p.cat, y);
+          cell.addEventListener("mouseenter", ev => showTip(ev, p));
+          cell.addEventListener("mousemove",  moveTip);
+          cell.addEventListener("mouseleave", hideTip);
+          row.appendChild(cell);
+        });
+        grid.appendChild(row);
+      });
+    }
+
+    function buildTicks() {
+      const tickEl = document.getElementById("phm-year-ticks");
+      if (!tickEl) return;
+      const row = document.querySelector("#phm-grid .shm-row");
+      if (!row) return;
+      tickEl.innerHTML = "";
+      const n = allYears.length;
+      allYears.forEach((y, i) => {
+        if (y % 10 !== 0) return;
+        const span = document.createElement("span");
+        span.className = "shm-tick";
+        span.textContent = y;
+        span.style.left = ((i / n) * 100) + "%";
+        tickEl.appendChild(span);
+      });
+    }
+
+    function applyMode(cell, season, cat, year) {
+      cell.classList.remove("shm-cell--dim", "shm-cell--hl", "shm-cell--pulse");
+      if (!revealedYears.has(year)) { cell.classList.add("shm-cell--dim"); return; }
+      if (currentMode === "all") return;
+      if (currentMode === "extremes") {
+        if (cat === "extreme_dry" || cat === "extreme_wet") cell.classList.add("shm-cell--pulse");
+        else                                                cell.classList.add("shm-cell--dim");
+        return;
+      }
+      if (season !== currentMode) cell.classList.add("shm-cell--dim");
+      else                        cell.classList.add("shm-cell--hl");
+    }
+
+    function reapply() {
+      document.querySelectorAll("#phm-grid .shm-cell:not(.shm-cell--empty)").forEach(c =>
+        applyMode(c, c.dataset.season, c.dataset.cat, +c.dataset.year));
+    }
+
+    function toggleAnimate() { animRunning ? stopAnimate() : startAnimate(); }
+    function startAnimate() {
+      animRunning = true; animYear = d.year_min; revealedYears = new Set();
+      document.getElementById("phm-anim-btn").textContent = "⏹ Stop";
+      document.querySelectorAll("#phm-grid .shm-cell:not(.shm-cell--empty)").forEach(c =>
+        c.classList.add("shm-cell--dim"));
+      updateStats(); step();
+    }
+    function step() {
+      if (!animRunning) return;
+      revealedYears.add(animYear);
+      document.querySelectorAll(`#phm-grid .shm-cell[data-year="${animYear}"]`).forEach(c =>
+        applyMode(c, c.dataset.season, c.dataset.cat, animYear));
+      updateStats();
+      if (animYear >= d.year_max) { stopAnimate(); return; }
+      animYear++;
+      const delay = animYear > 2005 ? 55 : animYear > 1985 ? 80 : 110;
+      animTimer = setTimeout(step, delay);
+    }
+    function stopAnimate() {
+      animRunning = false; clearTimeout(animTimer);
+      revealedYears = new Set(allYears);
+      document.getElementById("phm-anim-btn").textContent = "▶ Animate";
+      reapply(); updateStats();
+    }
+
+    function updateStats() {
+      let extDry = 0, extWet = 0, extDrySince2000 = 0, dryRecent = 0;
+      const recentFrom = d.year_max - 9;
+      revealedYears.forEach(y => {
+        SEASON_ORDER.forEach(s => {
+          const p = lookup[`${s}|${y}`];
+          if (!p) return;
+          if (p.cat === "extreme_dry") extDry++;
+          if (p.cat === "extreme_wet") extWet++;
+          if (p.cat === "extreme_dry" && y >= 2000) extDrySince2000++;
+          if ((p.cat === "extreme_dry" || p.cat === "dry") && y >= recentFrom) dryRecent++;
+        });
+      });
+      document.getElementById("phm-stats").innerHTML = [
+        [extDry,        "Extremely dry seasons"],
+        [extWet,        "Extremely wet seasons"],
+        [extDrySince2000, "Extremely dry since 2000"],
+        [dryRecent,     `Dry or extremely dry (${recentFrom}–${d.year_max})`],
+      ].map(([n, lbl]) => `
+        <div class="shm-stat">
+          <div class="shm-stat-num">${n}</div>
+          <div class="shm-stat-lbl">${lbl}</div>
+        </div>`).join("");
+    }
+
+    const tip = document.getElementById("phm-tip");
+    function showTip(ev, p) {
+      tip.innerHTML = `
+        <strong>${p.season} ${p.y}</strong>
+        <div class="shm-tip-row">
+          <span class="shm-tip-sw" style="background:${p.color}"></span>
+          ${CAT_LABELS[p.cat]}
+        </div>
+        Seasonal total: <b>${p.total.toFixed(1)} mm</b><br>
+        ${ordinal(p.rank)} driest ${p.season} in ${p.total_years} years`;
+      tip.hidden = false;
+      moveTip(ev);
+    }
+    function moveTip(ev) {
+      const x = ev.clientX + 16, y = ev.clientY - 52;
+      tip.style.left = Math.min(x, window.innerWidth - 210) + "px";
+      tip.style.top  = Math.max(8, y) + "px";
+    }
+    function hideTip() { tip.hidden = true; }
+
+  } catch(e) {
+    console.warn("Precip heatmap error:", e);
   }
 }
 

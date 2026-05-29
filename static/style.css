@@ -429,6 +429,7 @@ body {
 /* ── Season heatmap ─────────────────────────────────────────────────────────── */
 
 .season-heatmap-section { padding: 24px 40px 36px; border-top: 1px solid var(--rule); }
+.precip-heatmap-section { background: var(--paper-2); }
 
 /* Controls */
 .shm-controls { display: flex; gap: 7px; flex-wrap: wrap; align-items: center; margin: 14px 0 18px; }
