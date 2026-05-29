@@ -2258,9 +2258,17 @@ async function renderSpeiTrendChart() {
   // show section immediately so chart div has dimensions when Highcharts renders
   section.hidden = false;
 
+  // show loading state while computing (can take ~15s on first run)
+  const chartDiv = document.getElementById("spei-trend-chart");
+  if (chartDiv) chartDiv.innerHTML =
+    `<div style="display:flex;align-items:center;justify-content:center;height:280px;color:var(--ink-soft);font-family:'JetBrains Mono',monospace;font-size:11px;gap:10px">
+      <div class="spinner"></div> Computing drought index for all stations…
+    </div>`;
+
   try {
     const d = await fetch("/api/spei_station_seasonal").then(r => r.json());
     if (!d.available) { section.hidden = true; return; }
+    if (chartDiv) chartDiv.innerHTML = "";
 
     const SEASONS = ["Annual", "Winter", "Spring", "Summer", "Autumn"];
     const MONTHS  = ["Jan","Feb","Mar","Apr","May","Jun","Jul","Aug","Sep","Oct","Nov","Dec"];
