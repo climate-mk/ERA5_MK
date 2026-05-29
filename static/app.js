@@ -2263,6 +2263,7 @@ async function renderSpeiTrendChart() {
     if (!d.available) { section.hidden = true; return; }
 
     const SEASONS = ["Annual", "Winter", "Spring", "Summer", "Autumn"];
+    const MONTHS  = ["Jan","Feb","Mar","Apr","May","Jun","Jul","Aug","Sep","Oct","Nov","Dec"];
     const stations = Object.keys(d.stations).sort();
     let currentStation = stations.includes("Skopje") ? "Skopje" : stations[0];
     let currentSeason  = "Summer";
@@ -2270,20 +2271,29 @@ async function renderSpeiTrendChart() {
 
     // subtitle
     document.getElementById("spei-trend-sub").textContent =
-      `Seasonal water balance (P−ET₀) standardised vs ${d.baseline} baseline · ERA5-Land · data to ${d.era5_last}`;
+      `Seasonal (SPEI-3) and monthly (SPEI-30) water balance standardised vs ${d.baseline} baseline · ERA5-Land · data to ${d.era5_last}`;
 
     // controls
     const ctrlEl = document.getElementById("spei-trend-controls");
 
     function buildControls() {
       ctrlEl.innerHTML =
+        // row 1: locations
+        `<div class="spei-ctrl-row">` +
         stations.map(s =>
           `<button class="shm-btn spei-loc-btn${s===currentStation?' shm-btn--active':''}" data-spei-loc="${s}">${s.replace(/_/g," ")}</button>`
         ).join("") +
-        `<span style="display:inline-block;width:1px;height:18px;background:var(--rule);margin:0 8px;vertical-align:middle"></span>` +
+        `</div>` +
+        // row 2: seasons + months
+        `<div class="spei-ctrl-row" style="margin-top:6px">` +
         SEASONS.map(s =>
           `<button class="shm-btn spei-sea-btn${s===currentSeason?' shm-btn--active':''}" data-spei-sea="${s}">${s}</button>`
-        ).join("");
+        ).join("") +
+        `<span class="spei-ctrl-sep"></span>` +
+        MONTHS.map(m =>
+          `<button class="shm-btn spei-sea-btn${m===currentSeason?' shm-btn--active':''}" data-spei-sea="${m}">${m}</button>`
+        ).join("") +
+        `</div>`;
     }
     buildControls();
 
@@ -2327,8 +2337,10 @@ async function renderSpeiTrendChart() {
       const obsEl   = document.getElementById("spei-trend-obs");
       const explEl  = document.getElementById("spei-trend-explain");
 
-      titleEl.textContent = `${currentStation.replace(/_/g," ")} — ${currentSeason} SPEI`;
-      obsEl.textContent   = `${n} seasons · ${years[0]}–${years[n-1]}`;
+      const isMonth = MONTHS.includes(currentSeason);
+      const scaleLabel = isMonth ? "SPEI-30" : "SPEI-3";
+      titleEl.textContent = `${currentStation.replace(/_/g," ")} — ${currentSeason} ${scaleLabel}`;
+      obsEl.textContent   = `${n} ${isMonth ? "months" : "seasons"} · ${years[0]}–${years[n-1]}`;
 
       if (trend?.slope_per_decade != null) {
         const s = trend.slope_per_decade;

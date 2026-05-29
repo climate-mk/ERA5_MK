@@ -1185,12 +1185,12 @@ def compute_spei_station_seasonal():
     Result is cached to disk keyed by era5_last date.
     """
     BASELINE_START, BASELINE_END = 1950, 1980
-    cache_key = "spei_station_seasonal_v1"
+    cache_key = "spei_station_seasonal_v2"   # bumped: adds monthly SPEI-30
     if cache_key in _TODAY_CACHE:
         return _TODAY_CACHE[cache_key]
 
     last_era5 = data["date"].max()
-    fs_path   = os.path.join(_CACHE_DIR, f"spei_station_seasonal_{last_era5.date().isoformat()}.json")
+    fs_path   = os.path.join(_CACHE_DIR, f"spei_station_seasonal_v2_{last_era5.date().isoformat()}.json")
     fs_cached = _fs_load(fs_path)
     if fs_cached is not None:
         _TODAY_CACHE[cache_key] = fs_cached
@@ -1300,6 +1300,62 @@ def compute_spei_station_seasonal():
                 pass
 
         season_series["Annual"] = {"years": ann_years, "spei": ann_spei, "trend": ann_trend}
+
+        # ── SPEI-30: monthly (calendar month water balance) ────────────────────
+        MONTH_NAMES_SHORT = ["Jan","Feb","Mar","Apr","May","Jun",
+                             "Jul","Aug","Sep","Oct","Nov","Dec"]
+        for m_idx, m_name in enumerate(MONTH_NAMES_SHORT, start=1):
+            records = []
+            for yr in range(year_min, year_max + 1):
+                # last day of this month
+                if m_idx == 12:
+                    m_end = pd.Timestamp(yr, 12, 31)
+                else:
+                    m_end = pd.Timestamp(yr, m_idx + 1, 1) - pd.Timedelta(days=1)
+                if m_end > last_era5:
+                    continue
+                chunk = sd[(sd["year"] == yr) & (sd["month"] == m_idx)]
+                if len(chunk) < 20:   # allow slightly short months (Feb)
+                    continue
+                records.append({"year": yr, "balance": float(chunk["balance"].sum())})
+
+            if len(records) < 10:
+                continue
+
+            rec_df      = pd.DataFrame(records)
+            baseline_df = rec_df[(rec_df["year"] >= BASELINE_START) & (rec_df["year"] <= BASELINE_END)]
+            b_vals      = baseline_df["balance"].values if len(baseline_df) >= 5 else rec_df["balance"].values
+
+            gamma_shift = float(b_vals.min()) - 1e-6
+            try:
+                c_par, _, scale_par = stats.fisk.fit(b_vals - gamma_shift, floc=0)
+            except Exception:
+                c_par, scale_par = 1.0, max(float((b_vals - gamma_shift).mean()), 1e-6)
+
+            spei_vals = []
+            for bal in rec_df["balance"].values:
+                sv = max(float(bal) - gamma_shift, 1e-9)
+                p  = float(np.clip(stats.fisk.cdf(sv, c_par, loc=0, scale=scale_par), 1e-6, 1 - 1e-6))
+                spei_vals.append(round(float(np.clip(stats.norm.ppf(p), -3.0, 3.0)), 2))
+
+            years = [int(y) for y in rec_df["year"].tolist()]
+
+            trend = {}
+            if len(spei_vals) >= 10:
+                try:
+                    ts     = theilslopes(spei_vals, years)
+                    mk_res = mk_test.original_test(np.array(spei_vals))
+                    trend  = {
+                        "slope_per_decade": round(float(ts.slope) * 10, 3),
+                        "p_value":          round(float(mk_res.p), 3),
+                        "mk_trend":         mk_res.trend,
+                        "intercept":        round(float(ts.intercept), 3),
+                    }
+                except Exception:
+                    pass
+
+            season_series[m_name] = {"years": years, "spei": spei_vals, "trend": trend}
+
         result_stations[station] = season_series
 
     result = {

@@ -479,6 +479,8 @@ body {
 .wip-badge { font-family: 'JetBrains Mono', monospace; font-size: 9px; letter-spacing: 0.06em; text-transform: uppercase; background: var(--accent); color: #fff; border-radius: 4px; padding: 2px 6px; vertical-align: middle; margin-left: 8px; }
 .spei-trend-panel { margin-top: 16px; }
 #spei-trend-chart { min-height: 280px; }
+.spei-ctrl-row { display: flex; flex-wrap: wrap; gap: 4px; align-items: center; }
+.spei-ctrl-sep { display: inline-block; width: 1px; height: 18px; background: var(--rule); margin: 0 6px; flex-shrink: 0; }
 @media (max-width: 700px) {
   .spei-trend-section { padding: 16px 14px 28px; }
 }
