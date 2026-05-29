@@ -8,13 +8,33 @@ Interactive web dashboard for exploring long-term climate trends across 20 locat
 
 ## What it does
 
-- Visualises daily temperature, precipitation and evapotranspiration trends for 20 MK locations
-- Day-of-year slider with ±N day window filter and year-end wraparound
-- Two regression methods: **OLS** and **Theil-Sen + Mann-Kendall TFPW** (corrects for AR(1) autocorrelation)
-- Year-round trend calendar — one bar per day of year, coloured by trend direction and significance
-- Multi-location overlay with colour-coded scatter + confidence band (up to 6 locations simultaneously)
-- Lapse-rate elevation correction for temperature comparisons
-- Fully responsive — works on desktop and mobile
+### Core charts
+- **Regression chart** — daily temperature, precipitation and evapotranspiration trends per station with Theil-Sen + Mann-Kendall or OLS; scatter points, CI band, ±N-day window filter
+- **Year-round trend calendar** — one bar per day of year, coloured by trend direction and significance; one panel per selected location
+- **Station map** — all 20 stations coloured by trend slope; click or tap to select
+- **Hero cards** — trend slope, p-value and significance summary for each selected location
+
+### Today section
+- **"Is it hot in Macedonia today?"** — compares the current national daily maximum temperature against the ERA5-Land historical distribution for the same calendar day (±window), with KDE curve, percentile rank and a plain-language verdict
+- **N-day window toggle (1 / 7 / 30 / 90)** — switches between single-day and rolling average comparison; the N-day mode averages the last N days of ERA5 data and compares against the historical distribution for the same N-day window; 100% ERA5 data, no Open-Meteo forecast mixing
+
+### Seasonal heatmaps (new)
+- **Seasonal heat ranking** — one coloured cell per (year, season) from 1950 to present; percentile rank of each season's mean national daily-maximum temperature against the **1950–1980 baseline**; colour: blue = cold, orange/red = hot/extreme; animate, filter, stats, tooltip
+- **Seasonal drought index (SPEI)** — same grid layout but showing the **SPEI** (Standardized Precipitation-Evapotranspiration Index) per season; dry = orange, wet = blue; 1950–1980 baseline
+
+### Drought trend chart (work in progress)
+- **Per-station SPEI trend** — Highcharts scatter + Theil-Sen trend line per station and period; two time scales:
+  - **SPEI-3** (seasonal, ~90 days): Annual, Winter, Spring, Summer, Autumn
+  - **SPEI-30** (monthly, calendar month): Jan through Dec
+- Stats box: slope per decade, Mann-Kendall trend direction, significance
+- Extrapolation: estimates the year the trend line crosses the extreme drought (SPEI −1.5) or extremely wet (SPEI +1.5) threshold, guarded against zero-slope division
+
+### Other features
+- Multi-language UI: English, Macedonian (МК), Albanian (SQ) via JSON locale files
+- Mobile-responsive with hamburger drawer, vertical season labels on heatmaps
+- Chat with **Ognen** — AI climate assistant (Azure Bot Framework / Direct Line)
+- Welcome modal, "In the next episodes…" teaser section
+- Dark/light variable theming via CSS custom properties
 
 ---
 
@@ -36,13 +56,16 @@ Interactive web dashboard for exploring long-term climate trends across 20 locat
 ERA5_MK/
 ├── mk_collect.py          # Data collection — fetches ERA5-Land CSVs from Open-Meteo
 ├── mk_api.py              # Flask API — all statistics and route handlers
-├── mk_dashboard.py        # Original Dash/Plotly dashboard (local use)
 ├── requirements.txt       # Python dependencies
+├── cron/
+│   └── mk_collect         # cron.d file — runs mk_collect.py nightly
 ├── static/
 │   ├── index.html         # Single-page app shell
-│   ├── app.js             # Highcharts charts, API calls, play animation
-│   └── style.css          # Light-theme responsive CSS
-└── data/                  # ERA5-Land CSVs (see Data section)
+│   ├── app.js             # All chart logic, API calls, UI interactions
+│   ├── style.css          # Light-theme responsive CSS
+│   └── locales/           # JSON translation files (en, mk, sq)
+├── data/                  # ERA5-Land CSVs, one per station (gitignored on server)
+└── cache/                 # Auto-generated JSON cache files (gitignored)
 ```
 
 ---
@@ -54,99 +77,114 @@ ERA5_MK/
 | `GET /api/meta` | — | Location list, variable labels, colour palette |
 | `GET /api/regression` | `loc`, `var`, `doy`, `window`, `corr`, `method` | Scatter points, trend line, CI band, stats |
 | `GET /api/calendar` | `loc`, `var`, `window`, `corr`, `method` | 365-day trend array for the calendar chart |
-| `GET /api/trends` | `var`, `doy`, `window` | Trend slope per station for the map |
+| `GET /api/trends` | `var`, `doy`, `window`, `method` | Trend slope per station for the map |
+| `GET /api/annual_trend` | — | Annual mean temperature trend (national) |
+| `GET /api/today_status` | — | Today's temperature vs historical distribution (KDE, percentile, category) |
+| `GET /api/today_window_avg` | `window` | N-day ERA5 average vs historical N-day window distribution |
+| `GET /api/season_heatmap` | — | Seasonal temperature percentiles vs 1950–1980 baseline (all years) |
+| `GET /api/spei_heatmap` | — | Seasonal SPEI vs 1950–1980 baseline (all years) |
+| `GET /api/spei_station_seasonal` | — | Per-station SPEI-3 (seasonal) + SPEI-30 (monthly) series with Theil-Sen trend |
 | `GET /api/token` | — | Short-lived Direct Line token for the chatbot (rate-limited) |
+
+---
+
+## Caching
+
+Computed results are cached at two levels:
+
+1. **In-memory** (`_TODAY_CACHE` dict) — survives for the lifetime of the process; clears on restart
+2. **Disk** (`cache/` directory, JSON files) — survives restarts; filename contains the `era5_last` date so the cache auto-invalidates when new ERA5 data arrives
+
+| Cache file | Typical size | Cold compute time |
+|---|---|---|
+| `today_YYYY-MM-DD.json` | 4 KB | ~1s |
+| `season_heatmap_YYYY-MM-DD.json` | 45 KB | ~0.2s |
+| `spei_heatmap_YYYY-MM-DD.json` | 45 KB | ~0.2s |
+| `spei_station_seasonal_v2_YYYY-MM-DD.json` | 357 KB | ~6 min on server |
+
+The GitHub Actions deploy workflow automatically warms all slow caches after each deployment so users never hit the cold path.
+
+---
+
+## SPEI methodology
+
+**SPEI** (Standardized Precipitation-Evapotranspiration Index) was introduced by Vicente-Serrano, Beguería & López-Moreno (2010, *Journal of Climate*, doi:[10.1175/2009JCLI2909.1](https://doi.org/10.1175/2009JCLI2909.1)).
+
+Implementation here:
+1. Daily water balance **D = P − ET₀** (national mean precipitation minus mean reference evapotranspiration across all 20 stations, or per-station for the trend chart)
+2. Seasonal / monthly sum of D (mm)
+3. **3-parameter log-logistic distribution** fitted to the **1950–1980 baseline** values per season/month using `scipy.stats.fisk` with a shift parameter so all values are positive
+4. CDF transformed to standard normal via `scipy.stats.norm.ppf` → SPEI score, clipped to ±3
+
+Thresholds follow WMO convention:
+
+| SPEI | Category |
+|------|----------|
+| < −1.5 | Extreme drought |
+| −1.5 to −1.0 | Dry |
+| −1.0 to +1.0 | Normal |
+| +1.0 to +1.5 | Wet |
+| > +1.5 | Extremely wet |
+
+Using a fixed 1950–1980 baseline (rather than the full record) means colours reflect change relative to the pre-warming reference period, making the drying trend visually explicit.
 
 ---
 
 ## Data
 
-ERA5-Land reanalysis data is fetched per location via the Open-Meteo archive API and stored as one CSV per location in `./data/`. The data directory is included in version control.
+ERA5-Land reanalysis data is fetched per location via the Open-Meteo archive API and stored as one CSV per location in `./data/`. Variables: `temperature_max`, `temperature_min`, `temperature_mean`, `precipitation_sum`, `et0_evapotranspiration`.
 
 ### Updating data
 
-The data collection script supports **differential updates** — it automatically detects the latest date in existing files and fetches only new data from that point forward:
+The collection script supports **differential updates**:
 
 ```bash
 source venv/bin/activate
 python3 mk_collect.py
 ```
 
-This will:
-- Detect the last date in each existing CSV
-- Fetch new data from the day after that date until today - 10 days
-- Append new data to existing files
-- Automatically migrate legacy filenames to the new simplified format (e.g., `Skopje_41.9965_21.4314_19500101_20260401.csv` → `Skopje.csv`)
+This detects the latest date in each CSV and fetches only new data. A cron job on the server runs this nightly.
 
-**Force a complete re-fetch** (rebuilds all files from 1950-01-01):
-
+**Force a complete re-fetch:**
 ```bash
 python3 mk_collect.py --force-refresh
 ```
-
-**Enable debug output**:
-
-```bash
-python3 mk_collect.py --verbose
-```
-
-Variables collected: `temperature_2m_max`, `temperature_2m_min`, `temperature_2m_mean`, `precipitation_sum`, `et0_fao_evapotranspiration`.
 
 ---
 
 ## Local setup
 
 ```bash
-# Clone
 git clone git@github.com:kesma01/ERA5_MK.git
 cd ERA5_MK
 
-# Create virtualenv and install dependencies
 python3 -m venv venv
-source venv/bin/activate 
-# or, in powershell: .\venv\Scripts\Activate.ps1
+source venv/bin/activate
 pip install -r requirements.txt
 
-# Update data to today-10 days (differential mode, requires internet)
-python3 mk_collect.py
-# or force a complete rebuild:
-# python3 mk_collect.py --force-refresh
-
-# Run the API server
-python3 mk_api.py
-# Open http://127.0.0.1:5050
-# To enable the AI climate assistant chatbot, create a .env file with your Direct Line secret — see .env.example
+python3 mk_collect.py        # fetch/update data
+python3 mk_api.py            # start server → http://127.0.0.1:5050
 ```
 
-### Testing the full web app locally
-
-With the server running (`python3 mk_api.py`), open **http://127.0.0.1:5050** in your browser. You should see the full dashboard with the regression chart loading for Skopje on Apr 15.
-
-Quick checklist:
-- Regression chart loads with scatter points and a trend line
-- Hero section at the top shows trend slope, p-value and significance for each selected location
-- Switching variable (e.g. Precipitation) updates the chart and changes colours
-- Moving the DOY slider updates the chart after a short debounce
-- ▶ Play animates through the year automatically
-- Year-round calendar auto-loads below the main charts, one panel per selected location
-- Selecting a second location adds a second series to the regression chart
-
-To also test on a phone or tablet on the same Wi-Fi, find your local IP:
-
+To test on a phone on the same Wi-Fi:
 ```bash
-ipconfig getifaddr en0   # Mac
+ipconfig getifaddr en0       # find your local IP
+# then open http://<local-ip>:5050 on the device
 ```
 
-Then open `http://<your-local-ip>:5050` on the second device. The `host="0.0.0.0"` setting in `mk_api.py` already allows this.
+To enable the AI chatbot, create a `.env` file:
+```
+DIRECT_LINE_SECRET=your_secret_here
+```
 
 ---
 
 ## Statistical methods
 
-**Theil-Sen + TFPW Mann-Kendall** is the default and recommended method:
+**Theil-Sen + TFPW Mann-Kendall** (default):
 - Theil-Sen slope is robust to outliers
-- Yue-Wang TFPW (Trend-Free Pre-Whitening) corrects for AR(1) autocorrelation (~0.20 in annual temperature series), giving properly calibrated p-values
-- Slope and R²/τ² are computed on annual means to avoid pseudo-replication from daily values
+- Yue-Wang TFPW corrects for AR(1) autocorrelation, giving properly calibrated p-values
+- Computed on annual means to avoid pseudo-replication from daily values
 
 **OLS** is provided for comparison.
 
@@ -154,121 +192,20 @@ Then open `http://<your-local-ip>:5050` on the second device. The `host="0.0.0.0
 
 ## Deployment
 
-The app runs on a Hetzner CX23 VPS behind nginx, served via Cloudflare with Full (strict) SSL.
+CI/CD via GitHub Actions (`.github/workflows/deploy.yml`): on push to `main`, rsync files to the Hetzner server, write `.env`, restart systemd service, run health check, warm slow caches.
+
+The app runs on Hetzner CX23 behind nginx, served through Cloudflare with Full (strict) SSL:
 
 ```
 Browser → Cloudflare (HTTPS) → nginx (HTTPS, Origin Cert) → Flask (HTTP, localhost:5050)
 ```
 
-### Server requirements
-
-- Ubuntu 24.04
-- Python 3.12 + venv
-- nginx
-- A domain managed by Cloudflare (for free HTTPS via Origin Certificate)
-
-### First-time deploy
-
-1. Provision a VPS (tested on Hetzner CX23) with Ubuntu 24.04 and SSH access.
-2. Add your SSH public key to the server during provisioning.
-3. Upload the project files and data:
-
-```bash
-SERVER="root@<your-server-ip>"
-APP_DIR="/opt/mk_climate"
-
-ssh $SERVER "mkdir -p $APP_DIR/data $APP_DIR/static"
-rsync -az mk_api.py requirements.txt $SERVER:$APP_DIR/
-rsync -az data/   $SERVER:$APP_DIR/data/
-rsync -az static/ $SERVER:$APP_DIR/static/
-```
-
-4. On the server, set up Python, nginx and the systemd service:
-
-```bash
-apt-get install -y python3 python3-venv nginx
-cd /opt/mk_climate
-python3 -m venv venv
-venv/bin/pip install -r requirements.txt
-```
-
-5. Create `/etc/systemd/system/mk_climate.service`:
-
-```ini
-[Unit]
-Description=MK Climate Explorer
-After=network.target
-
-[Service]
-User=www-data
-WorkingDirectory=/opt/mk_climate
-ExecStart=/opt/mk_climate/venv/bin/python3 mk_api.py
-Restart=always
-
-[Install]
-WantedBy=multi-user.target
-```
-
-```bash
-chown -R www-data:www-data /opt/mk_climate
-systemctl enable --now mk_climate
-```
-
-6. Create `/etc/nginx/sites-available/mk_climate` (replace `climate.example.com` with your domain):
-
-```nginx
-server {
-    listen 80;
-    server_name climate.example.com;
-    return 301 https://$host$request_uri;
-}
-
-server {
-    listen 443 ssl;
-    server_name climate.example.com;
-
-    ssl_certificate     /etc/nginx/ssl/origin.crt;   # Cloudflare Origin Certificate
-    ssl_certificate_key /etc/nginx/ssl/origin.key;
-
-    location / {
-        proxy_pass         http://127.0.0.1:5050/;
-        proxy_set_header   Host $host;
-        proxy_set_header   X-Real-IP $remote_addr;
-        proxy_read_timeout 120s;
-    }
-}
-```
-
-```bash
-ln -s /etc/nginx/sites-available/mk_climate /etc/nginx/sites-enabled/
-nginx -t && systemctl reload nginx
-```
-
-7. In **Cloudflare → DNS**, add an `A` record pointing your subdomain to the server IP (Proxied).
-8. In **Cloudflare → SSL/TLS → Origin Server**, create an Origin Certificate, save it to `/etc/nginx/ssl/origin.crt` and `/etc/nginx/ssl/origin.key` on the server.
-9. Set **Cloudflare SSL/TLS mode** to **Full (strict)**.
-
-### Re-deploying after code changes
-
-Upload changed files and restart the service:
-
-```bash
-rsync -az mk_api.py static/ $SERVER:$APP_DIR/
-ssh $SERVER "systemctl restart mk_climate"
-```
-
-### Verifying the deployment
-
-```bash
-# Check the service is running
-ssh $SERVER "systemctl status mk_climate --no-pager"
-
-# Confirm nginx proxies correctly
-ssh $SERVER "curl -s http://localhost/ | head -3"
-```
+See the workflow file for the full deploy sequence.
 
 ---
 
 ## Data source credit
 
 Climate data: [Open-Meteo ERA5-Land](https://open-meteo.com/) — free, open reanalysis data from ECMWF.
+
+SPEI index: Vicente-Serrano, S.M., Beguería, S., López-Moreno, J.I. (2010). *A Multiscalar Drought Index Sensitive to Global Warming: The Standardized Precipitation Evapotranspiration Index.* Journal of Climate, 23(7), 1696–1718.
