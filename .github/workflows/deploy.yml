@@ -75,3 +75,10 @@ jobs:
           d = json.load(sys.stdin)
           print('Health OK —', len(d['locations']), 'locations loaded')
           "
+
+      - name: Warm slow caches
+        run: |
+          echo "Warming SPEI station seasonal cache (can take several minutes)..."
+          ssh root@46.224.208.142 "curl -sf http://localhost:5050/api/spei_station_seasonal > /dev/null && echo 'spei_station_seasonal: OK'"
+          ssh root@46.224.208.142 "curl -sf http://localhost:5050/api/spei_heatmap > /dev/null && echo 'spei_heatmap: OK'"
+          ssh root@46.224.208.142 "curl -sf http://localhost:5050/api/season_heatmap > /dev/null && echo 'season_heatmap: OK'"
