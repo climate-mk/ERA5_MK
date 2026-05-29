@@ -2015,7 +2015,7 @@ async function renderPrecipHeatmap() {
   const section = document.getElementById("precip-heatmap-section");
   if (!section) return;
   try {
-    const d = await fetch("api/precip_heatmap").then(r => r.json());
+    const d = await fetch("api/spei_heatmap").then(r => r.json());
     if (!d.available || !d.data?.length) return;
 
     function ordinal(n) {
@@ -2023,11 +2023,11 @@ async function renderPrecipHeatmap() {
       return n + (s[(v - 20) % 10] || s[v] || s[0]);
     }
     const CAT_LABELS = {
-      extreme_dry: "Extremely dry (<10th pct)",
-      dry:         "Dry (10–20th pct)",
-      normal:      "Normal (20–80th pct)",
-      wet:         "Wet (80–95th pct)",
-      extreme_wet: "Extremely wet (>95th pct)",
+      extreme_dry: "Extreme drought (SPEI < −1.5)",
+      dry:         "Dry (SPEI −1.5 to −1.0)",
+      normal:      "Normal (SPEI −1.0 to 1.0)",
+      wet:         "Wet (SPEI 1.0 to 1.5)",
+      extreme_wet: "Extremely wet (SPEI > 1.5)",
     };
     const CAT_COLORS = {
       extreme_dry: "#8b3a0f",
@@ -2052,7 +2052,7 @@ async function renderPrecipHeatmap() {
     const sub = document.getElementById("phm-sub");
     const baselineLabel = d.baseline ? `1950–1980 baseline` : `all years since ${d.year_min}`;
     if (sub) sub.textContent =
-      `Seasonal total vs ${baselineLabel} · ERA5-Land · data to ${d.era5_last}`;
+      `P − ET₀ water balance, log-logistic standardised vs ${baselineLabel} · ERA5-Land · data to ${d.era5_last}`;
 
     // controls
     const ctrlEl = document.getElementById("phm-controls");
@@ -2212,10 +2212,10 @@ async function renderPrecipHeatmap() {
         });
       });
       document.getElementById("phm-stats").innerHTML = [
-        [extDry,        "Extremely dry seasons"],
-        [extWet,        "Extremely wet seasons"],
-        [extDrySince2000, "Extremely dry since 2000"],
-        [dryRecent,     `Dry or extremely dry (${recentFrom}–${d.year_max})`],
+        [extDry,          "Extreme drought seasons (SPEI < −1.5)"],
+        [extWet,          "Extremely wet seasons (SPEI > 1.5)"],
+        [extDrySince2000, "Extreme drought seasons since 2000"],
+        [dryRecent,       `Dry or drought (${recentFrom}–${d.year_max})`],
       ].map(([n, lbl]) => `
         <div class="shm-stat">
           <div class="shm-stat-num">${n}</div>
@@ -2225,14 +2225,16 @@ async function renderPrecipHeatmap() {
 
     const tip = document.getElementById("phm-tip");
     function showTip(ev, p) {
+      const speiSign = p.spei >= 0 ? "+" : "";
       tip.innerHTML = `
         <strong>${p.season} ${p.y}</strong>
         <div class="shm-tip-row">
           <span class="shm-tip-sw" style="background:${p.color}"></span>
           ${CAT_LABELS[p.cat]}
         </div>
-        Seasonal total: <b>${p.total.toFixed(1)} mm</b><br>
-        ${ordinal(p.rank)} driest ${p.season} in ${p.total_years} years`;
+        SPEI: <b>${speiSign}${p.spei.toFixed(2)}</b><br>
+        Water balance: <b>${p.balance.toFixed(0)} mm P−ET₀</b><br>
+        ${ordinal(p.rank)} driest ${p.season} in ${p.total} years`;
       tip.hidden = false;
       moveTip(ev);
     }

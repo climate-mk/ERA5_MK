@@ -998,33 +998,39 @@ def api_season_heatmap():
     return jsonify(compute_season_heatmap())
 
 
-def compute_precip_heatmap():
+def compute_spei_heatmap():
     """
-    For each completed (year, meteorological season) compute the seasonal
-    precipitation total using the national daily mean (mean across all ERA5
-    stations per day, then summed over the season in mm).
-    Percentile-ranked against the 1950–1980 baseline.
-    Dry seasons rank low (cold colour = blue), wet seasons rank high (warm = orange/red).
-    Colour palette is inverted vs temperature: dry = orange, wet = blue.
+    Seasonal SPEI (Standardized Precipitation-Evapotranspiration Index).
+
+    Method:
+      1. National daily water balance D = mean(P) − mean(ET₀) across all stations
+      2. Seasonal D sum (mm) for each completed season
+      3. Fit a 3-parameter log-logistic distribution to the 1950–1980 baseline
+         values for each season type (shift γ so all values are positive, then
+         fit scipy.stats.fisk with floc=0)
+      4. Transform via the fitted CDF → standard normal (SPEI score)
+      5. Colour by WMO drought thresholds: SPEI < −1.5 extreme drought,
+         −1.5–−1.0 severe, −1.0–1.0 normal, 1.0–1.5 wet, > 1.5 extremely wet
+
+    Positive SPEI = wetter than 1950–1980; negative = drier.
     """
     BASELINE_START, BASELINE_END = 1950, 1980
-    cache_key = "precip_heatmap_baseline_1950_1980"
+    cache_key = "spei_heatmap_v1"
     if cache_key in _TODAY_CACHE:
         return _TODAY_CACHE[cache_key]
 
     last_era5 = data["date"].max()
 
-    # National daily precip = mean across all stations
-    daily_nat = (
-        data.groupby("date")["precipitation_sum"]
-        .mean()
-        .reset_index(name="precip")
-    )
-    daily_nat["year"]  = daily_nat["date"].dt.year
-    daily_nat["month"] = daily_nat["date"].dt.month
+    # National daily water balance: mean P − mean ET0 across all stations
+    daily_p   = data.groupby("date")["precipitation_sum"].mean()
+    daily_et0 = data.groupby("date")["et0_evapotranspiration"].mean()
+    daily_bal = (daily_p - daily_et0).reset_index()
+    daily_bal.columns = ["date", "balance"]
+    daily_bal["year"]  = daily_bal["date"].dt.year
+    daily_bal["month"] = daily_bal["date"].dt.month
 
-    year_min = int(daily_nat["year"].min())
-    year_max = int(daily_nat["year"].max())
+    year_min = int(daily_bal["year"].min())
+    year_max = int(daily_bal["year"].max())
 
     SEASONS = [
         ("Winter", 0, None, 2,  lambda y: pd.Timestamp(y, 2, 29 if _is_leap(y) else 28)),
@@ -1041,26 +1047,26 @@ def compute_precip_heatmap():
                 continue
 
             if s_name == "Winter":
-                chunk = daily_nat[
-                    ((daily_nat["year"] == yr - 1) & (daily_nat["month"] == 12)) |
-                    ((daily_nat["year"] == yr)     & (daily_nat["month"].isin([1, 2])))
+                chunk = daily_bal[
+                    ((daily_bal["year"] == yr - 1) & (daily_bal["month"] == 12)) |
+                    ((daily_bal["year"] == yr)     & (daily_bal["month"].isin([1, 2])))
                 ]
             else:
-                chunk = daily_nat[
-                    (daily_nat["year"] == yr) &
-                    (daily_nat["month"] >= s_start) &
-                    (daily_nat["month"] <= s_end_m)
+                chunk = daily_bal[
+                    (daily_bal["year"] == yr) &
+                    (daily_bal["month"] >= s_start) &
+                    (daily_bal["month"] <= s_end_m)
                 ]
 
             if len(chunk) < 30:
                 continue
 
             records.append({
-                "year":   yr,
-                "xi":     s_xi,
-                "season": s_name,
-                "total":  round(float(chunk["precip"].sum()), 1),  # mm
-                "n_days": len(chunk),
+                "year":    yr,
+                "xi":      s_xi,
+                "season":  s_name,
+                "balance": round(float(chunk["balance"].sum()), 1),  # mm P-ET0
+                "n_days":  len(chunk),
             })
 
     if not records:
@@ -1070,53 +1076,69 @@ def compute_precip_heatmap():
 
     rec_df = pd.DataFrame(records)
 
-    def _pct_cat_precip(pct):
-        # Inverted: low pct = dry, high pct = wet
-        if   pct < 10: return "extreme_dry"
-        elif pct < 20: return "dry"
-        elif pct < 80: return "normal"
-        elif pct < 95: return "wet"
-        else:          return "extreme_wet"
+    def _spei_cat(spei):
+        if   spei < -1.5: return "extreme_dry"
+        elif spei < -1.0: return "dry"
+        elif spei <  1.0: return "normal"
+        elif spei <  1.5: return "wet"
+        else:             return "extreme_wet"
 
-    def _pct_color_precip(pct):
+    def _spei_color(spei):
         return {
             "extreme_dry": "#8b3a0f",
             "dry":         "#c2713a",
             "normal":      "#e7e0d0",
             "wet":         "#4a80b0",
             "extreme_wet": "#1e4d78",
-        }[_pct_cat_precip(pct)]
+        }[_spei_cat(spei)]
 
     out = []
     for xi in range(4):
         sub = rec_df[rec_df["xi"] == xi].copy()
         if sub.empty:
             continue
-        all_vals      = sub["total"].values
-        n_total       = len(all_vals)
-        baseline_sub  = sub[(sub["year"] >= BASELINE_START) & (sub["year"] <= BASELINE_END)]
-        baseline_vals = baseline_sub["total"].values
-        sorted_asc    = np.sort(all_vals)          # ascending rank: 1 = driest
+
+        all_vals     = sub["balance"].values
+        n_total      = len(all_vals)
+        baseline_sub = sub[(sub["year"] >= BASELINE_START) & (sub["year"] <= BASELINE_END)]
+        b_vals       = baseline_sub["balance"].values
+
+        if len(b_vals) < 5:
+            b_vals = all_vals  # fallback to all years if baseline too short
+
+        # 3-parameter log-logistic: shift so all values positive, fit fisk(floc=0)
+        gamma_shift = float(b_vals.min()) - 1e-6
+        b_shifted   = b_vals - gamma_shift
+
+        try:
+            c_par, _, scale_par = stats.fisk.fit(b_shifted, floc=0)
+        except Exception:
+            c_par, scale_par = 1.0, float(b_shifted.mean())
+
+        # Rank (1 = driest) against all years
+        sorted_asc = np.sort(all_vals)
 
         for _, row in sub.iterrows():
-            if len(baseline_vals) > 0:
-                pct = float((baseline_vals < row["total"]).mean() * 100)
-            else:
-                pct = float((all_vals < row["total"]).mean() * 100)
-            # rank 1 = driest
-            rank = int(np.searchsorted(sorted_asc, row["total"])) + 1
-            cat  = _pct_cat_precip(pct)
+            shifted_val = float(row["balance"]) - gamma_shift
+            shifted_val = max(shifted_val, 1e-9)  # guard against ≤0 after shift
+            p = float(stats.fisk.cdf(shifted_val, c_par, loc=0, scale=scale_par))
+            p = float(np.clip(p, 1e-6, 1 - 1e-6))
+            spei_val = float(stats.norm.ppf(p))
+            spei_val = float(np.clip(spei_val, -3.0, 3.0))
+
+            rank = int(np.searchsorted(sorted_asc, row["balance"])) + 1
+            cat  = _spei_cat(spei_val)
             out.append({
-                "x":          int(row["xi"]),
-                "y":          int(row["year"]),
-                "total":      row["total"],
-                "percentile": round(pct, 1),
-                "cat":        cat,
-                "rank":       rank,
-                "total_years": n_total,
-                "color":      _pct_color_precip(pct),
-                "season":     row["season"],
-                "n_days":     int(row["n_days"]),
+                "x":       int(row["xi"]),
+                "y":       int(row["year"]),
+                "spei":    round(spei_val, 2),
+                "balance": row["balance"],
+                "cat":     cat,
+                "rank":    rank,
+                "total":   n_total,
+                "color":   _spei_color(spei_val),
+                "season":  row["season"],
+                "n_days":  int(row["n_days"]),
             })
 
     result = {
@@ -1134,9 +1156,9 @@ def compute_precip_heatmap():
     return result
 
 
-@app.route("/api/precip_heatmap")
-def api_precip_heatmap():
-    return jsonify(compute_precip_heatmap())
+@app.route("/api/spei_heatmap")
+def api_spei_heatmap():
+    return jsonify(compute_spei_heatmap())
 
 
 @app.route("/api/annual_trend")
