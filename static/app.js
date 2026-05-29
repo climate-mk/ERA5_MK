@@ -2254,9 +2254,13 @@ async function renderPrecipHeatmap() {
 async function renderSpeiTrendChart() {
   const section = document.getElementById("spei-trend-section");
   if (!section) return;
+
+  // show section immediately so chart div has dimensions when Highcharts renders
+  section.hidden = false;
+
   try {
-    const d = await fetch("api/spei_station_seasonal").then(r => r.json());
-    if (!d.available) return;
+    const d = await fetch("/api/spei_station_seasonal").then(r => r.json());
+    if (!d.available) { section.hidden = true; return; }
 
     const SEASONS = ["Annual", "Winter", "Spring", "Summer", "Autumn"];
     const stations = Object.keys(d.stations).sort();
@@ -2300,7 +2304,6 @@ async function renderSpeiTrendChart() {
       }
     });
 
-    section.hidden = false;
     renderChart();
 
     function speiColor(v) {
