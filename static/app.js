@@ -2355,9 +2355,42 @@ async function renderSpeiTrendChart() {
         slopeEl.textContent = (s >= 0 ? "+" : "") + s.toFixed(2);
         slopeEl.style.color = s < 0 ? "var(--accent)" : "#4a80b0";
         const sig = trend.p_value < 0.05 ? "statistically significant (p < 0.05)" : `not significant (p = ${trend.p_value})`;
+
+        // Extrapolate when trend line crosses ±1.5 threshold
+        let thresholdLine = "";
+        const slopePerYear = s / 10;
+        if (slopePerYear !== 0) {
+          const ic        = trend.intercept;
+          const lastYear  = years[n - 1];
+          const curVal    = slopePerYear * lastYear + ic;
+
+          if (slopePerYear < 0) {
+            // Drying — heading toward extreme drought (−1.5)
+            if (curVal <= -1.5) {
+              thresholdLine = "The trend line has already crossed the extreme drought threshold (SPEI −1.5).";
+            } else {
+              const targetYear = Math.round((-1.5 - ic) / slopePerYear);
+              if (targetYear > lastYear && targetYear < 2200) {
+                thresholdLine = `At this rate the trend reaches extreme drought (SPEI −1.5) around ${targetYear}.`;
+              }
+            }
+          } else {
+            // Wetting — heading toward extremely wet (+1.5)
+            if (curVal >= 1.5) {
+              thresholdLine = "The trend line has already crossed the extremely wet threshold (SPEI +1.5).";
+            } else {
+              const targetYear = Math.round((1.5 - ic) / slopePerYear);
+              if (targetYear > lastYear && targetYear < 2200) {
+                thresholdLine = `At this rate the trend reaches extremely wet (SPEI +1.5) around ${targetYear}.`;
+              }
+            }
+          }
+        }
+
         explEl.textContent =
           `Theil-Sen slope: ${(s>=0?"+":"")}${s.toFixed(3)} SPEI/decade · Mann-Kendall: ${trend.mk_trend} · ${sig}. ` +
-          `Negative trend means conditions are becoming drier relative to the 1950–1980 baseline.`;
+          `Negative trend means conditions are becoming drier relative to the 1950–1980 baseline.` +
+          (thresholdLine ? ` ${thresholdLine}` : "");
       } else {
         slopeEl.textContent = "—";
         explEl.textContent  = "";
