@@ -874,7 +874,12 @@ def compute_season_heatmap():
     if cache_key in _TODAY_CACHE:
         return _TODAY_CACHE[cache_key]
 
-    last_era5 = data["date"].max()
+    last_era5  = data["date"].max()
+    fs_path    = os.path.join(_CACHE_DIR, f"season_heatmap_{last_era5.date().isoformat()}.json")
+    fs_cached  = _fs_load(fs_path)
+    if fs_cached is not None:
+        _TODAY_CACHE[cache_key] = fs_cached
+        return fs_cached
 
     # National daily max (max across all stations) — compute once
     daily_nat = (
@@ -990,6 +995,7 @@ def compute_season_heatmap():
         "baseline_end":   BASELINE_END,
     }
     _TODAY_CACHE[cache_key] = result
+    _fs_save(fs_path, result)
     return result
 
 
@@ -1019,7 +1025,12 @@ def compute_spei_heatmap():
     if cache_key in _TODAY_CACHE:
         return _TODAY_CACHE[cache_key]
 
-    last_era5 = data["date"].max()
+    last_era5  = data["date"].max()
+    fs_path    = os.path.join(_CACHE_DIR, f"spei_heatmap_{last_era5.date().isoformat()}.json")
+    fs_cached  = _fs_load(fs_path)
+    if fs_cached is not None:
+        _TODAY_CACHE[cache_key] = fs_cached
+        return fs_cached
 
     # National daily water balance: mean P − mean ET0 across all stations
     daily_p   = data.groupby("date")["precipitation_sum"].mean()
@@ -1153,6 +1164,7 @@ def compute_spei_heatmap():
         "baseline_end":   BASELINE_END,
     }
     _TODAY_CACHE[cache_key] = result
+    _fs_save(fs_path, result)
     return result
 
 
