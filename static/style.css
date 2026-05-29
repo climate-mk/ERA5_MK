@@ -426,6 +426,62 @@ body {
 
 /* ── Contact strip ───────────────────────────────────────────────────────────── */
 
+/* ── Season heatmap ─────────────────────────────────────────────────────────── */
+
+.season-heatmap-section { padding: 24px 40px 36px; border-top: 1px solid var(--rule); }
+
+/* Controls */
+.shm-controls { display: flex; gap: 7px; flex-wrap: wrap; align-items: center; margin: 14px 0 18px; }
+.shm-btn { background: transparent; border: 1px solid var(--rule-2); border-radius: 20px; padding: 4px 14px; font-size: 11px; font-family: 'JetBrains Mono', monospace; letter-spacing: 0.05em; text-transform: uppercase; color: var(--ink-soft); cursor: pointer; transition: background 0.15s, color 0.15s, border-color 0.15s; }
+.shm-btn:hover { border-color: var(--ink-soft); color: var(--ink); }
+.shm-btn--active { background: var(--ink); color: var(--bg, #F5F2EC); border-color: var(--ink); }
+.shm-btn--anim { margin-left: auto; }
+
+/* Grid */
+.shm-grid { display: grid; grid-template-columns: 68px 1fr; row-gap: 3px; }
+.shm-season-lbl { font-family: 'JetBrains Mono', monospace; font-size: 11px; font-weight: 600; letter-spacing: 0.04em; color: var(--ink-soft); display: flex; align-items: center; padding-right: 10px; white-space: nowrap; }
+.shm-row { display: flex; gap: 1.5px; }
+.shm-cell { flex: 1; height: 36px; border-radius: 2px; cursor: pointer; transition: transform 0.12s, filter 0.12s, opacity 0.2s; }
+.shm-cell:hover { transform: scaleY(1.2); z-index: 10; filter: brightness(1.14); }
+.shm-cell--empty { background: transparent; cursor: default; }
+.shm-cell--dim { opacity: 0.08; }
+.shm-cell--hl { filter: brightness(1.1); }
+@keyframes shm-pulse { 0%,100%{filter:brightness(1)} 50%{filter:brightness(1.6)} }
+.shm-cell--pulse { animation: shm-pulse 0.8s ease-in-out infinite; }
+
+/* Year axis */
+.shm-year-axis { display: grid; grid-template-columns: 68px 1fr; margin-top: 4px; }
+.shm-lbl-spacer { }
+.shm-year-ticks { position: relative; height: 18px; }
+.shm-tick { position: absolute; font-family: 'JetBrains Mono', monospace; font-size: 10px; color: var(--ink-faint); transform: translateX(-50%); }
+
+/* Legend */
+.shm-legend { display: flex; gap: 16px; flex-wrap: wrap; align-items: center; margin-top: 12px; }
+.shm-leg-item { display: flex; align-items: center; gap: 5px; font-family: 'JetBrains Mono', monospace; font-size: 10px; letter-spacing: 0.05em; text-transform: uppercase; color: var(--ink-soft); }
+.shm-leg-sw { width: 13px; height: 13px; border-radius: 2px; flex-shrink: 0; }
+
+/* Stats */
+.shm-stats { display: flex; gap: 10px; flex-wrap: wrap; margin-top: 20px; }
+.shm-stat { flex: 1; min-width: 120px; background: var(--card); border: 1px solid var(--rule); border-radius: var(--radius); padding: 14px 16px; text-align: center; }
+.shm-stat-num { font-family: 'Space Grotesk', sans-serif; font-size: 30px; font-weight: 600; color: var(--ink); line-height: 1; }
+.shm-stat-lbl { font-family: 'JetBrains Mono', monospace; font-size: 9px; letter-spacing: 0.08em; text-transform: uppercase; color: var(--ink-soft); margin-top: 6px; }
+
+/* Tooltip */
+.shm-tip { position: fixed; pointer-events: none; background: var(--card); border: 1px solid var(--rule-2); border-radius: 8px; padding: 9px 13px; font-family: 'Space Grotesk', sans-serif; font-size: 12px; line-height: 1.6; color: var(--ink); z-index: 9999; box-shadow: 0 4px 18px rgba(0,0,0,0.1); max-width: 200px; }
+.shm-tip strong { display: block; font-weight: 600; font-size: 13px; margin-bottom: 3px; }
+.shm-tip-row { display: flex; align-items: center; gap: 6px; color: var(--ink-soft); font-size: 11px; margin-bottom: 3px; }
+.shm-tip-sw { width: 10px; height: 10px; border-radius: 2px; flex-shrink: 0; }
+
+/* ── In the next episodes ────────────────────────────────────────────────────── */
+.next-episodes-section { padding: 48px 40px 56px; background: var(--paper-2); border-top: 1px solid var(--rule); }
+.next-episodes-section .sec-heading { padding: 0 0 24px 0; }
+.next-episodes-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 20px; }
+.nep-card { background: var(--card); border: 1px solid var(--rule); border-radius: 10px; padding: 22px 20px 24px; display: flex; flex-direction: column; gap: 10px; transition: border-color 0.15s, box-shadow 0.15s; }
+.nep-card:hover { border-color: var(--accent); box-shadow: 0 4px 16px rgba(0,0,0,0.08); }
+.nep-icon { font-size: 28px; line-height: 1; }
+.nep-title { font-family: 'Space Grotesk', sans-serif; font-weight: 600; font-size: 14px; color: var(--ink); }
+.nep-body  { font-family: 'Space Grotesk', sans-serif; font-size: 12px; color: var(--ink-soft); line-height: 1.6; }
+
 .contact-strip { display: flex; justify-content: center; align-items: center; gap: 20px; padding: 10px 40px; border-top: 1px solid var(--rule); border-bottom: 1px solid var(--rule); background: var(--paper-2); }
 .contact-strip a { display: inline-flex; align-items: center; justify-content: center; color: var(--ink-soft); padding: 8px; text-decoration: none; }
 .contact-strip a:hover { color: var(--accent); }
@@ -499,6 +555,30 @@ body.chat-modal-open { overflow: hidden; }
   .today-grid { grid-template-columns: repeat(2, 1fr); }
 }
 
+@media (max-width: 700px) {
+  /* Season heatmap: vertical labels free up horizontal space for cells */
+  .season-heatmap-section { padding: 16px 14px 24px; }
+  .shm-grid       { grid-template-columns: 20px 1fr; row-gap: 4px; }
+  .shm-year-axis  { grid-template-columns: 20px 1fr; }
+  .shm-season-lbl {
+    writing-mode: vertical-rl;
+    transform: rotate(180deg);
+    justify-content: center;
+    font-size: 9px;
+    letter-spacing: 0.08em;
+    padding-right: 0;
+    padding-top: 4px;
+  }
+  .shm-row  { gap: 1px; }
+  .shm-cell { height: 44px; border-radius: 1px; }
+  .shm-stats { gap: 7px; }
+  .shm-stat  { padding: 10px 10px; }
+  .shm-stat-num { font-size: 24px; }
+  .shm-controls { gap: 5px; }
+  .shm-btn  { padding: 3px 10px; font-size: 10px; }
+  .shm-btn--anim { margin-left: 0; }
+}
+
 @media (max-width: 600px) {
   .top-cards-row { grid-template-columns: 1fr; }
   .top-card + .top-card { border-left: none; border-top: 1px solid var(--rule); }
@@ -538,6 +618,9 @@ body.chat-modal-open { overflow: hidden; }
   .today-chart-title { font-size: 12px; }
   #today-dist-chart  { min-height: 200px; }
   .contact-strip { padding: 10px 14px; gap: 14px; }
+  .next-episodes-section { padding: 32px 16px 40px; }
+  .next-episodes-grid { grid-template-columns: repeat(2, 1fr); gap: 12px; }
+  .nep-card { padding: 16px 14px 18px; }
 }
 
 /* ── Hamburger button ────────────────────────────────────────────────────────── */

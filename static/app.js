@@ -1752,10 +1752,262 @@ async function init() {
   refreshCalendar();    // async, don't await
   refreshMap();         // async, don't await
   renderTodayStatus();  // async, don't await — country-wide, doesn't depend on selection
+  renderSeasonHeatmap(); // async, don't await
 
   // Quote + effects use locale data — must run after loadLocale() resolves
   loadQuote();
   loadEffects();
+}
+
+// ── Season heatmap ────────────────────────────────────────────────────────────
+
+async function renderSeasonHeatmap() {
+  const section = document.getElementById("season-heatmap-section");
+  if (!section) return;
+  try {
+    const d = await fetch("api/season_heatmap").then(r => r.json());
+    if (!d.available || !d.data?.length) return;
+
+    // ── helpers ────────────────────────────────────────────────────────────
+    function ordinal(n) {
+      const s = ["th","st","nd","rd"], v = n % 100;
+      return n + (s[(v - 20) % 10] || s[v] || s[0]);
+    }
+    const CAT_LABELS = {
+      cold:    "Cold (<10th pct)",
+      cool:    "Cool (10–20th pct)",
+      normal:  "Normal (20–80th pct)",
+      hot:     "Hot (80–95th pct)",
+      extreme: "Extreme (>95th pct)",
+    };
+    const CAT_COLORS = {
+      cold:"#3a5a8a", cool:"#6c8fb6", normal:"#e7d9b8", hot:"#c25a2c", extreme:"#962c1a",
+    };
+
+    // Display order: Autumn → Summer → Spring → Winter (top to bottom)
+    const SEASON_ORDER = ["Autumn", "Summer", "Spring", "Winter"];
+
+    // Index data by "Season|year"
+    const lookup = {};
+    d.data.forEach(p => { lookup[`${p.season}|${p.y}`] = p; });
+
+    const allYears = [];
+    for (let y = d.year_min; y <= d.year_max; y++) allYears.push(y);
+
+    // ── state ──────────────────────────────────────────────────────────────
+    let currentMode = "all";
+    let revealedYears = new Set(allYears);
+    let animRunning = false, animYear = d.year_min, animTimer = null;
+
+    // ── subtitle ───────────────────────────────────────────────────────────
+    const sub = document.getElementById("shm-sub");
+    const baselineLabel = d.baseline ? `1950–1980 baseline` : `all years since ${d.year_min}`;
+    if (sub) sub.textContent =
+      `Percentile rank vs ${baselineLabel} · ERA5-Land · data to ${d.era5_last}`;
+
+    // ── controls ───────────────────────────────────────────────────────────
+    const ctrlEl = document.getElementById("shm-controls");
+    const MODES = [
+      { key:"all",      label:"All seasons" },
+      { key:"extremes", label:"Extremes only" },
+      { key:"Autumn",   label:"Autumn" },
+      { key:"Summer",   label:"Summer" },
+      { key:"Spring",   label:"Spring" },
+      { key:"Winter",   label:"Winter" },
+    ];
+    ctrlEl.innerHTML = MODES.map(m =>
+      `<button class="shm-btn${m.key==='all'?' shm-btn--active':''}" data-shm-mode="${m.key}">${m.label}</button>`
+    ).join("") +
+      `<button class="shm-btn shm-btn--anim" id="shm-anim-btn">▶ Animate</button>`;
+
+    ctrlEl.addEventListener("click", e => {
+      const btn = e.target.closest(".shm-btn[data-shm-mode]");
+      if (btn) {
+        currentMode = btn.dataset.shmMode;
+        ctrlEl.querySelectorAll(".shm-btn[data-shm-mode]").forEach(b =>
+          b.classList.toggle("shm-btn--active", b.dataset.shmMode === currentMode));
+        reapply();
+      }
+      if (e.target.closest("#shm-anim-btn")) toggleAnimate();
+    });
+
+    // ── build grid ─────────────────────────────────────────────────────────
+    const outer = document.getElementById("shm-chart-outer");
+    outer.innerHTML = `
+      <div class="shm-grid" id="shm-grid"></div>
+      <div class="shm-year-axis">
+        <div class="shm-lbl-spacer"></div>
+        <div class="shm-year-ticks" id="shm-year-ticks"></div>
+      </div>
+      <div class="shm-legend">
+        ${Object.entries(CAT_COLORS).map(([k,c]) =>
+          `<span class="shm-leg-item"><span class="shm-leg-sw" style="background:${c}${k==='normal'?';border:1px solid var(--rule-2)':''}"></span>${CAT_LABELS[k]}</span>`
+        ).join("")}
+      </div>`;
+
+    buildGrid();
+    buildTicks();
+
+    // ── stats ──────────────────────────────────────────────────────────────
+    updateStats();
+
+    section.hidden = false;
+    window.addEventListener("resize", buildTicks);
+
+    // ── grid builder ───────────────────────────────────────────────────────
+    function buildGrid() {
+      const grid = document.getElementById("shm-grid");
+      grid.innerHTML = "";
+      SEASON_ORDER.forEach(sName => {
+        const lbl = document.createElement("div");
+        lbl.className = "shm-season-lbl";
+        lbl.textContent = sName;
+        grid.appendChild(lbl);
+
+        const row = document.createElement("div");
+        row.className = "shm-row";
+        row.dataset.season = sName;
+
+        allYears.forEach(y => {
+          const p = lookup[`${sName}|${y}`];
+          if (!p) {
+            const empty = document.createElement("div");
+            empty.className = "shm-cell shm-cell--empty";
+            row.appendChild(empty);
+            return;
+          }
+          const cell = document.createElement("div");
+          cell.className = "shm-cell";
+          cell.style.background = p.color;
+          cell.dataset.year   = y;
+          cell.dataset.season = sName;
+          cell.dataset.cat    = p.cat;
+          applyMode(cell, sName, p.cat, y);
+          cell.addEventListener("mouseenter", ev => showTip(ev, p));
+          cell.addEventListener("mousemove",  moveTip);
+          cell.addEventListener("mouseleave", hideTip);
+          row.appendChild(cell);
+        });
+        grid.appendChild(row);
+      });
+    }
+
+    function buildTicks() {
+      const tickEl = document.getElementById("shm-year-ticks");
+      if (!tickEl) return;
+      const row = document.querySelector(".shm-row");
+      if (!row) return;
+      tickEl.innerHTML = "";
+      const n = allYears.length;
+      allYears.forEach((y, i) => {
+        if (y % 10 !== 0) return;
+        const span = document.createElement("span");
+        span.className = "shm-tick";
+        span.textContent = y;
+        span.style.left = ((i / n) * 100) + "%";
+        tickEl.appendChild(span);
+      });
+    }
+
+    // ── mode application ───────────────────────────────────────────────────
+    function applyMode(cell, season, cat, year) {
+      cell.classList.remove("shm-cell--dim", "shm-cell--hl", "shm-cell--pulse");
+      if (!revealedYears.has(year)) { cell.classList.add("shm-cell--dim"); return; }
+      if (currentMode === "all") return;
+      if (currentMode === "extremes") {
+        if (cat === "extreme") cell.classList.add("shm-cell--pulse");
+        else                   cell.classList.add("shm-cell--dim");
+        return;
+      }
+      // single-season filter
+      if (season !== currentMode) cell.classList.add("shm-cell--dim");
+      else                        cell.classList.add("shm-cell--hl");
+    }
+
+    function reapply() {
+      document.querySelectorAll(".shm-cell:not(.shm-cell--empty)").forEach(c =>
+        applyMode(c, c.dataset.season, c.dataset.cat, +c.dataset.year));
+    }
+
+    // ── animate ────────────────────────────────────────────────────────────
+    function toggleAnimate() {
+      animRunning ? stopAnimate() : startAnimate();
+    }
+    function startAnimate() {
+      animRunning = true; animYear = d.year_min; revealedYears = new Set();
+      document.getElementById("shm-anim-btn").textContent = "⏹ Stop";
+      document.querySelectorAll(".shm-cell:not(.shm-cell--empty)").forEach(c =>
+        c.classList.add("shm-cell--dim"));
+      updateStats(); step();
+    }
+    function step() {
+      if (!animRunning) return;
+      revealedYears.add(animYear);
+      document.querySelectorAll(`.shm-cell[data-year="${animYear}"]`).forEach(c =>
+        applyMode(c, c.dataset.season, c.dataset.cat, animYear));
+      updateStats();
+      if (animYear >= d.year_max) { stopAnimate(); return; }
+      animYear++;
+      const delay = animYear > 2005 ? 55 : animYear > 1985 ? 80 : 110;
+      animTimer = setTimeout(step, delay);
+    }
+    function stopAnimate() {
+      animRunning = false; clearTimeout(animTimer);
+      revealedYears = new Set(allYears);
+      document.getElementById("shm-anim-btn").textContent = "▶ Animate";
+      reapply(); updateStats();
+    }
+
+    // ── stats ──────────────────────────────────────────────────────────────
+    function updateStats() {
+      let ext = 0, cold = 0, extSince2010 = 0, hotRecent = 0;
+      const recentFrom = d.year_max - 9;
+      revealedYears.forEach(y => {
+        SEASON_ORDER.forEach(s => {
+          const p = lookup[`${s}|${y}`];
+          if (!p) return;
+          if (p.cat === "extreme") ext++;
+          if (p.cat === "cold")    cold++;
+          if (p.cat === "extreme" && y >= 2010) extSince2010++;
+          if ((p.cat === "extreme" || p.cat === "hot") && y >= recentFrom) hotRecent++;
+        });
+      });
+      document.getElementById("shm-stats").innerHTML = [
+        [ext,         "Extreme seasons"],
+        [cold,        "Cold seasons"],
+        [extSince2010,"Extreme since 2010"],
+        [hotRecent,   `Hot or extreme (${recentFrom}–${d.year_max})`],
+      ].map(([n, lbl]) => `
+        <div class="shm-stat">
+          <div class="shm-stat-num">${n}</div>
+          <div class="shm-stat-lbl">${lbl}</div>
+        </div>`).join("");
+    }
+
+    // ── tooltip ────────────────────────────────────────────────────────────
+    const tip = document.getElementById("shm-tip");
+    function showTip(ev, p) {
+      tip.innerHTML = `
+        <strong>${p.season} ${p.y}</strong>
+        <div class="shm-tip-row">
+          <span class="shm-tip-sw" style="background:${p.color}"></span>
+          ${CAT_LABELS[p.cat]}
+        </div>
+        Avg national max: <b>${p.avg.toFixed(1)} °C</b><br>
+        ${ordinal(p.rank)} hottest ${p.season} in ${p.total} years`;
+      tip.hidden = false;
+      moveTip(ev);
+    }
+    function moveTip(ev) {
+      const x = ev.clientX + 16, y = ev.clientY - 52;
+      tip.style.left = Math.min(x, window.innerWidth - 210) + "px";
+      tip.style.top  = Math.max(8, y) + "px";
+    }
+    function hideTip() { tip.hidden = true; }
+
+  } catch(e) {
+    console.warn("Season heatmap error:", e);
+  }
 }
 
 init().catch(console.error);

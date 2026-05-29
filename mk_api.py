@@ -848,6 +848,156 @@ def api_today_status():
     return jsonify(compute_today_status())
 
 
+# ── Season heatmap ─────────────────────────────────────────────────────────────
+
+def _is_leap(y: int) -> bool:
+    return (y % 4 == 0 and y % 100 != 0) or (y % 400 == 0)
+
+
+def compute_season_heatmap():
+    """
+    For each completed (year, meteorological season) compute the mean of the
+    national daily-maximum temperature (max across all ERA5 stations per day).
+    Percentile-rank each season within its own season type across all years.
+
+    Seasons:
+      Winter YYYY  = Dec(YYYY-1) + Jan + Feb(YYYY)   ends last day of Feb
+      Spring YYYY  = Mar + Apr + May                  ends May 31
+      Summer YYYY  = Jun + Jul + Aug                  ends Aug 31
+      Autumn YYYY  = Sep + Oct + Nov                  ends Nov 30
+
+    A season is included only when its end date ≤ last ERA5 date in the dataset.
+    100 % ERA5-Land — no Open-Meteo mixing.
+    """
+    BASELINE_START, BASELINE_END = 1950, 1980
+    cache_key = "season_heatmap_baseline_1950_1980"
+    if cache_key in _TODAY_CACHE:
+        return _TODAY_CACHE[cache_key]
+
+    last_era5 = data["date"].max()
+
+    # National daily max (max across all stations) — compute once
+    daily_nat = (
+        data.groupby("date")["temperature_max"]
+        .max()
+        .reset_index(name="tmax")
+    )
+    daily_nat["year"]  = daily_nat["date"].dt.year
+    daily_nat["month"] = daily_nat["date"].dt.month
+
+    year_min = int(daily_nat["year"].min())
+    year_max = int(daily_nat["year"].max())
+
+    # Season definitions: (label, x-index, start_month, end_month, end_day_fn)
+    SEASONS = [
+        ("Winter", 0, None, 2,  lambda y: pd.Timestamp(y, 2, 29 if _is_leap(y) else 28)),
+        ("Spring", 1, 3,    5,  lambda y: pd.Timestamp(y, 5, 31)),
+        ("Summer", 2, 6,    8,  lambda y: pd.Timestamp(y, 8, 31)),
+        ("Autumn", 3, 9,    11, lambda y: pd.Timestamp(y, 11, 30)),
+    ]
+
+    records = []
+    for yr in range(year_min, year_max + 1):
+        for s_name, s_xi, s_start, s_end_m, end_fn in SEASONS:
+            season_end = end_fn(yr)
+            if season_end > last_era5:
+                continue  # not yet fully present in ERA5
+
+            if s_name == "Winter":
+                chunk = daily_nat[
+                    ((daily_nat["year"] == yr - 1) & (daily_nat["month"] == 12)) |
+                    ((daily_nat["year"] == yr)     & (daily_nat["month"].isin([1, 2])))
+                ]
+            else:
+                chunk = daily_nat[
+                    (daily_nat["year"] == yr) &
+                    (daily_nat["month"] >= s_start) &
+                    (daily_nat["month"] <= s_end_m)
+                ]
+
+            if len(chunk) < 30:  # skip seasons with too many missing days
+                continue
+
+            records.append({
+                "year":   yr,
+                "xi":     s_xi,       # x position in heatmap
+                "season": s_name,
+                "avg":    round(float(chunk["tmax"].mean()), 2),
+                "n_days": len(chunk),
+            })
+
+    if not records:
+        result = {"available": False}
+        _TODAY_CACHE[cache_key] = result
+        return result
+
+    rec_df = pd.DataFrame(records)
+
+    def _pct_cat(pct):
+        if   pct < 10: return "cold"
+        elif pct < 20: return "cool"
+        elif pct < 80: return "normal"
+        elif pct < 95: return "hot"
+        else:          return "extreme"
+
+    def _pct_color(pct):
+        return {"cold":"#3a5a8a","cool":"#6c8fb6","normal":"#e7d9b8",
+                "hot":"#c25a2c","extreme":"#962c1a"}[_pct_cat(pct)]
+
+    out = []
+    for xi in range(4):
+        sub   = rec_df[rec_df["xi"] == xi].copy()
+        if sub.empty:
+            continue
+        all_avgs    = sub["avg"].values
+        total       = len(all_avgs)
+        # Baseline: 1950–1980 only — fixed reference period to show warming trend
+        baseline_sub  = sub[(sub["year"] >= BASELINE_START) & (sub["year"] <= BASELINE_END)]
+        baseline_avgs = baseline_sub["avg"].values
+        # Descending rank: 1 = hottest (ranked against all years)
+        sorted_desc = np.sort(all_avgs)[::-1]
+
+        for _, row in sub.iterrows():
+            if len(baseline_avgs) > 0:
+                pct = float((baseline_avgs < row["avg"]).mean() * 100)
+            else:
+                # Fallback if no baseline data for this season
+                pct = float((all_avgs < row["avg"]).mean() * 100)
+            rank = int(np.searchsorted(-sorted_desc, -row["avg"])) + 1
+            cat  = _pct_cat(pct)
+            out.append({
+                "x":          int(row["xi"]),
+                "y":          int(row["year"]),
+                "avg":        row["avg"],
+                "percentile": round(pct, 1),
+                "cat":        cat,
+                "rank":       rank,
+                "total":      total,
+                "color":      _pct_color(pct),
+                "season":     row["season"],
+                "n_days":     int(row["n_days"]),
+            })
+
+    result = {
+        "available":      True,
+        "data":           out,
+        "year_min":       year_min,
+        "year_max":       year_max,
+        "seasons":        ["Winter", "Spring", "Summer", "Autumn"],
+        "era5_last":      last_era5.date().isoformat(),
+        "baseline":       f"{BASELINE_START}–{BASELINE_END}",
+        "baseline_start": BASELINE_START,
+        "baseline_end":   BASELINE_END,
+    }
+    _TODAY_CACHE[cache_key] = result
+    return result
+
+
+@app.route("/api/season_heatmap")
+def api_season_heatmap():
+    return jsonify(compute_season_heatmap())
+
+
 @app.route("/api/annual_trend")
 def api_annual_trend():
     return jsonify(compute_annual_trend())
