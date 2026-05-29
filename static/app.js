@@ -1021,6 +1021,8 @@ function _calChartOptions() {
     subtitle: { text: null },
     xAxis: {
       title: { text: null },
+      // Exact 365-unit range so bar width auto-fills: plotWidth ÷ 365 per bar
+      min: 0.5, max: 365.5,
       tickPositions: [0,31,59,90,120,151,181,212,243,273,304,334].map(d => d + 15),
       labels: {
         formatter() {
@@ -1036,7 +1038,8 @@ function _calChartOptions() {
     yAxis:  { title: { text: null }, plotLines: [{ value: 0, color: "rgba(14,14,12,0.2)", width: 1 }] },
     legend: { enabled: false },
     plotOptions: {
-      column: { animation: false, grouping: false, borderWidth: 0, pointPadding: 0, groupPadding: 0, pointWidth: 1.5 },
+      // No pointWidth — Highcharts auto-sizes to fill plotWidth ÷ 365, resizes on reflow
+      column: { animation: false, grouping: false, borderWidth: 0, pointPadding: 0, groupPadding: 0 },
     },
     series: [],
     tooltip: {
@@ -1054,7 +1057,7 @@ function renderCalendarPanel(calData, containerId) {
   const colData = calData.days.map(d => ({ x: d.doy, y: d.slope10, color: d.color, p: d.p }));
 
   const chart = Highcharts.chart(containerId, _calChartOptions());
-  chart.addSeries({ type: "column", name: "trend/decade", data: colData, borderWidth: 0, pointWidth: 1 }, false);
+  chart.addSeries({ type: "column", name: "trend/decade", data: colData, borderWidth: 0 }, false);
   chart.xAxis[0].addPlotLine({ id: "doy-line", value: state.doy, color: ACCENT, width: 2, zIndex: 5, dashStyle: "ShortDash" });
   chart.yAxis[0].setTitle({ text: `${unit}/decade` }, false);
   chart.redraw(false);
