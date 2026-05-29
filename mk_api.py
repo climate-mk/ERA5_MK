@@ -1173,6 +1173,153 @@ def api_spei_heatmap():
     return jsonify(compute_spei_heatmap())
 
 
+def compute_spei_station_seasonal():
+    """
+    Per-station seasonal SPEI.
+    For each station × meteorological season:
+      - sum daily (P − ET₀) over the season
+      - fit 3-parameter log-logistic to 1950–1980 baseline values
+      - transform all years → SPEI score
+      - Theil-Sen slope + Mann-Kendall significance on annual series
+    Also computes an "Annual" series = mean of the 4 seasonal SPEI values per year.
+    Result is cached to disk keyed by era5_last date.
+    """
+    BASELINE_START, BASELINE_END = 1950, 1980
+    cache_key = "spei_station_seasonal_v1"
+    if cache_key in _TODAY_CACHE:
+        return _TODAY_CACHE[cache_key]
+
+    last_era5 = data["date"].max()
+    fs_path   = os.path.join(_CACHE_DIR, f"spei_station_seasonal_{last_era5.date().isoformat()}.json")
+    fs_cached = _fs_load(fs_path)
+    if fs_cached is not None:
+        _TODAY_CACHE[cache_key] = fs_cached
+        return fs_cached
+
+    year_min = int(data["year"].min())
+    year_max = int(data["year"].max())
+
+    SEASONS = [
+        ("Winter", None, 2,  lambda y: pd.Timestamp(y, 2, 29 if _is_leap(y) else 28)),
+        ("Spring", 3,    5,  lambda y: pd.Timestamp(y, 5, 31)),
+        ("Summer", 6,    8,  lambda y: pd.Timestamp(y, 8, 31)),
+        ("Autumn", 9,    11, lambda y: pd.Timestamp(y, 11, 30)),
+    ]
+
+    stations = sorted(data["location"].unique())
+    result_stations = {}
+
+    for station in stations:
+        sd = data[data["location"] == station].copy()
+        sd["balance"] = sd["precipitation_sum"] - sd["et0_evapotranspiration"]
+
+        season_series = {}
+
+        for s_name, s_start, s_end_m, end_fn in SEASONS:
+            records = []
+            for yr in range(year_min, year_max + 1):
+                if end_fn(yr) > last_era5:
+                    continue
+
+                if s_name == "Winter":
+                    chunk = sd[
+                        ((sd["year"] == yr - 1) & (sd["month"] == 12)) |
+                        ((sd["year"] == yr)     & (sd["month"].isin([1, 2])))
+                    ]
+                else:
+                    chunk = sd[
+                        (sd["year"] == yr) &
+                        (sd["month"] >= s_start) &
+                        (sd["month"] <= s_end_m)
+                    ]
+
+                if len(chunk) < 30:
+                    continue
+
+                records.append({"year": yr, "balance": float(chunk["balance"].sum())})
+
+            if len(records) < 10:
+                continue
+
+            rec_df       = pd.DataFrame(records)
+            baseline_df  = rec_df[(rec_df["year"] >= BASELINE_START) & (rec_df["year"] <= BASELINE_END)]
+            b_vals       = baseline_df["balance"].values if len(baseline_df) >= 5 else rec_df["balance"].values
+
+            gamma_shift = float(b_vals.min()) - 1e-6
+            try:
+                c_par, _, scale_par = stats.fisk.fit(b_vals - gamma_shift, floc=0)
+            except Exception:
+                c_par, scale_par = 1.0, max(float((b_vals - gamma_shift).mean()), 1e-6)
+
+            spei_vals = []
+            for bal in rec_df["balance"].values:
+                sv = max(float(bal) - gamma_shift, 1e-9)
+                p  = float(np.clip(stats.fisk.cdf(sv, c_par, loc=0, scale=scale_par), 1e-6, 1 - 1e-6))
+                spei_vals.append(round(float(np.clip(stats.norm.ppf(p), -3.0, 3.0)), 2))
+
+            years = [int(y) for y in rec_df["year"].tolist()]
+
+            # Theil-Sen + Mann-Kendall
+            trend = {}
+            if len(spei_vals) >= 10:
+                try:
+                    ts       = theilslopes(spei_vals, years)
+                    mk_res   = mk_test.original_test(np.array(spei_vals))
+                    trend    = {
+                        "slope_per_decade": round(float(ts.slope) * 10, 3),
+                        "p_value":          round(float(mk_res.p), 3),
+                        "mk_trend":         mk_res.trend,
+                        "intercept":        round(float(ts.intercept), 3),
+                    }
+                except Exception:
+                    pass
+
+            season_series[s_name] = {"years": years, "spei": spei_vals, "trend": trend}
+
+        # Annual = mean of the available seasonal SPEI values per year
+        by_year = {}
+        for s in season_series.values():
+            for yr, sp in zip(s["years"], s["spei"]):
+                by_year.setdefault(yr, []).append(sp)
+
+        ann_years = sorted(yr for yr, vals in by_year.items() if len(vals) >= 2)
+        ann_spei  = [round(float(np.mean(by_year[yr])), 2) for yr in ann_years]
+
+        ann_trend = {}
+        if len(ann_spei) >= 10:
+            try:
+                ts     = theilslopes(ann_spei, ann_years)
+                mk_res = mk_test.original_test(np.array(ann_spei))
+                ann_trend = {
+                    "slope_per_decade": round(float(ts.slope) * 10, 3),
+                    "p_value":          round(float(mk_res.p), 3),
+                    "mk_trend":         mk_res.trend,
+                    "intercept":        round(float(ts.intercept), 3),
+                }
+            except Exception:
+                pass
+
+        season_series["Annual"] = {"years": ann_years, "spei": ann_spei, "trend": ann_trend}
+        result_stations[station] = season_series
+
+    result = {
+        "available":  True,
+        "stations":   result_stations,
+        "era5_last":  last_era5.date().isoformat(),
+        "baseline":   f"{BASELINE_START}–{BASELINE_END}",
+        "year_min":   year_min,
+        "year_max":   year_max,
+    }
+    _TODAY_CACHE[cache_key] = result
+    _fs_save(fs_path, result)
+    return result
+
+
+@app.route("/api/spei_station_seasonal")
+def api_spei_station_seasonal():
+    return jsonify(compute_spei_station_seasonal())
+
+
 @app.route("/api/annual_trend")
 def api_annual_trend():
     return jsonify(compute_annual_trend())

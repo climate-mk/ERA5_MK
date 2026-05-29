@@ -1752,8 +1752,9 @@ async function init() {
   refreshCalendar();    // async, don't await
   refreshMap();         // async, don't await
   renderTodayStatus();  // async, don't await — country-wide, doesn't depend on selection
-  renderPrecipHeatmap();  // async, don't await
-  renderSeasonHeatmap();  // async, don't await
+  renderPrecipHeatmap();    // async, don't await
+  renderSeasonHeatmap();    // async, don't await
+  renderSpeiTrendChart();   // async, don't await
 
   // Quote + effects use locale data — must run after loadLocale() resolves
   loadQuote();
@@ -2247,6 +2248,171 @@ async function renderPrecipHeatmap() {
 
   } catch(e) {
     console.warn("Precip heatmap error:", e);
+  }
+}
+
+async function renderSpeiTrendChart() {
+  const section = document.getElementById("spei-trend-section");
+  if (!section) return;
+  try {
+    const d = await fetch("api/spei_station_seasonal").then(r => r.json());
+    if (!d.available) return;
+
+    const SEASONS = ["Annual", "Winter", "Spring", "Summer", "Autumn"];
+    const stations = Object.keys(d.stations).sort();
+    let currentStation = stations.includes("Skopje") ? "Skopje" : stations[0];
+    let currentSeason  = "Summer";
+    let chart          = null;
+
+    // subtitle
+    document.getElementById("spei-trend-sub").textContent =
+      `Seasonal water balance (P−ET₀) standardised vs ${d.baseline} baseline · ERA5-Land · data to ${d.era5_last}`;
+
+    // controls
+    const ctrlEl = document.getElementById("spei-trend-controls");
+
+    function buildControls() {
+      ctrlEl.innerHTML =
+        stations.map(s =>
+          `<button class="shm-btn spei-loc-btn${s===currentStation?' shm-btn--active':''}" data-spei-loc="${s}">${s.replace(/_/g," ")}</button>`
+        ).join("") +
+        `<span style="display:inline-block;width:1px;height:18px;background:var(--rule);margin:0 8px;vertical-align:middle"></span>` +
+        SEASONS.map(s =>
+          `<button class="shm-btn spei-sea-btn${s===currentSeason?' shm-btn--active':''}" data-spei-sea="${s}">${s}</button>`
+        ).join("");
+    }
+    buildControls();
+
+    ctrlEl.addEventListener("click", e => {
+      const locBtn = e.target.closest(".spei-loc-btn");
+      const seaBtn = e.target.closest(".spei-sea-btn");
+      if (locBtn) {
+        currentStation = locBtn.dataset.speiLoc;
+        ctrlEl.querySelectorAll(".spei-loc-btn").forEach(b =>
+          b.classList.toggle("shm-btn--active", b.dataset.speiLoc === currentStation));
+        renderChart();
+      }
+      if (seaBtn) {
+        currentSeason = seaBtn.dataset.speiSea;
+        ctrlEl.querySelectorAll(".spei-sea-btn").forEach(b =>
+          b.classList.toggle("shm-btn--active", b.dataset.speiSea === currentSeason));
+        renderChart();
+      }
+    });
+
+    section.hidden = false;
+    renderChart();
+
+    function speiColor(v) {
+      if (v < -1.5) return "#8b3a0f";
+      if (v < -1.0) return "#c2713a";
+      if (v <  1.0) return "#aaa49a";
+      if (v <  1.5) return "#4a80b0";
+      return "#1e4d78";
+    }
+
+    function renderChart() {
+      const series = d.stations[currentStation]?.[currentSeason];
+      if (!series) return;
+
+      const { years, spei, trend } = series;
+      const n = years.length;
+
+      // stats box
+      const slopeEl = document.getElementById("spei-trend-slope");
+      const titleEl = document.getElementById("spei-trend-title");
+      const obsEl   = document.getElementById("spei-trend-obs");
+      const explEl  = document.getElementById("spei-trend-explain");
+
+      titleEl.textContent = `${currentStation.replace(/_/g," ")} — ${currentSeason} SPEI`;
+      obsEl.textContent   = `${n} seasons · ${years[0]}–${years[n-1]}`;
+
+      if (trend?.slope_per_decade != null) {
+        const s = trend.slope_per_decade;
+        slopeEl.textContent = (s >= 0 ? "+" : "") + s.toFixed(2);
+        slopeEl.style.color = s < 0 ? "var(--accent)" : "#4a80b0";
+        const sig = trend.p_value < 0.05 ? "statistically significant (p < 0.05)" : `not significant (p = ${trend.p_value})`;
+        explEl.textContent =
+          `Theil-Sen slope: ${(s>=0?"+":"")}${s.toFixed(3)} SPEI/decade · Mann-Kendall: ${trend.mk_trend} · ${sig}. ` +
+          `Negative trend means conditions are becoming drier relative to the 1950–1980 baseline.`;
+      } else {
+        slopeEl.textContent = "—";
+        explEl.textContent  = "";
+      }
+
+      // build trend line points
+      const trendPoints = trend?.slope_per_decade != null ? (() => {
+        const sl = trend.slope_per_decade / 10;
+        const ic = trend.intercept;
+        return [[years[0], +(sl * years[0] + ic).toFixed(2)],
+                [years[n-1], +(sl * years[n-1] + ic).toFixed(2)]];
+      })() : [];
+
+      // scatter data
+      const scatter = years.map((y, i) => ({
+        x: y, y: spei[i],
+        color: speiColor(spei[i]),
+        marker: { radius: 4 },
+      }));
+
+      const opts = {
+        chart: {
+          type: "scatter",
+          height: 280,
+          backgroundColor: "transparent",
+          style: { fontFamily: "'Space Grotesk', sans-serif" },
+          animation: false,
+        },
+        title:    { text: "" },
+        credits:  { enabled: false },
+        legend:   { enabled: false },
+        tooltip: {
+          formatter() {
+            const cat = this.y < -1.5 ? "Extreme drought" : this.y < -1.0 ? "Dry" :
+                        this.y <  1.0 ? "Normal" : this.y < 1.5 ? "Wet" : "Extremely wet";
+            return `<b>${currentSeason} ${this.x}</b><br>SPEI: <b>${this.y >= 0 ? "+" : ""}${this.y.toFixed(2)}</b><br>${cat}`;
+          },
+        },
+        xAxis: {
+          title: { text: "" },
+          labels: { style: { fontSize: "10px", color: "var(--ink-soft)" } },
+          gridLineWidth: 0,
+          tickColor: "var(--rule)",
+        },
+        yAxis: {
+          title: { text: "SPEI", style: { fontSize: "10px", color: "var(--ink-soft)" } },
+          min: -3, max: 3,
+          plotLines: [
+            { value: 0,    color: "var(--ink)", width: 1, dashStyle: "Solid", zIndex: 3 },
+            { value: -1.5, color: "#8b3a0f", width: 1, dashStyle: "Dash", zIndex: 3,
+              label: { text: "extreme drought", style: { fontSize: "9px", color: "#8b3a0f" } } },
+            { value:  1.5, color: "#1e4d78", width: 1, dashStyle: "Dash", zIndex: 3,
+              label: { text: "extremely wet", style: { fontSize: "9px", color: "#1e4d78" }, align: "right" } },
+          ],
+          gridLineColor: "var(--rule)",
+          labels: { style: { fontSize: "10px", color: "var(--ink-soft)" } },
+        },
+        series: [
+          { type: "scatter", data: scatter, zIndex: 4 },
+          ...(trendPoints.length ? [{
+            type: "line",
+            data: trendPoints,
+            color: "var(--ink)",
+            lineWidth: 2,
+            dashStyle: "Solid",
+            marker: { enabled: false },
+            enableMouseTracking: false,
+            zIndex: 5,
+          }] : []),
+        ],
+      };
+
+      if (chart) { chart.destroy(); chart = null; }
+      chart = Highcharts.chart("spei-trend-chart", opts);
+    }
+
+  } catch(e) {
+    console.warn("SPEI trend chart error:", e);
   }
 }
 
