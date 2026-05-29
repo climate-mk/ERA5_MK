@@ -16,7 +16,6 @@ Interactive web dashboard for exploring long-term climate trends across 20 locat
 
 ### Today section
 - **"Is it hot in Macedonia today?"** — compares the current national daily maximum temperature against the ERA5-Land historical distribution for the same calendar day (±window), with KDE curve, percentile rank and a plain-language verdict
-- **N-day window toggle (1 / 7 / 30 / 90)** — switches between single-day and rolling average comparison; the N-day mode averages the last N days of ERA5 data and compares against the historical distribution for the same N-day window; 100% ERA5 data, no Open-Meteo forecast mixing
 
 ### Seasonal heatmaps (new)
 - **Seasonal heat ranking** — one coloured cell per (year, season) from 1950 to present; percentile rank of each season's mean national daily-maximum temperature against the **1950–1980 baseline**; colour: blue = cold, orange/red = hot/extreme; animate, filter, stats, tooltip
@@ -80,7 +79,6 @@ ERA5_MK/
 | `GET /api/trends` | `var`, `doy`, `window`, `method` | Trend slope per station for the map |
 | `GET /api/annual_trend` | — | Annual mean temperature trend (national) |
 | `GET /api/today_status` | — | Today's temperature vs historical distribution (KDE, percentile, category) |
-| `GET /api/today_window_avg` | `window` | N-day ERA5 average vs historical N-day window distribution |
 | `GET /api/season_heatmap` | — | Seasonal temperature percentiles vs 1950–1980 baseline (all years) |
 | `GET /api/spei_heatmap` | — | Seasonal SPEI vs 1950–1980 baseline (all years) |
 | `GET /api/spei_station_seasonal` | — | Per-station SPEI-3 (seasonal) + SPEI-30 (monthly) series with Theil-Sen trend |
