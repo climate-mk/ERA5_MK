@@ -4,7 +4,7 @@ Run:  source venv/bin/activate && python3 mk_api.py
 Open: http://127.0.0.1:5050
 """
 
-import os, glob, time, hashlib, json, threading, ipaddress, sqlite3, csv, io
+import os, glob, time, hashlib, json, threading, ipaddress, sqlite3, csv, io, datetime
 import numpy as np
 import pandas as pd
 import requests as http_requests
@@ -83,6 +83,8 @@ data = pd.concat(dfs, ignore_index=True)
 data = data[data["date"] <= pd.Timestamp.today()]
 data["year"]  = data["date"].dt.year
 data["month"] = data["date"].dt.month
+
+_CSV_MAX_DATE = data["date"].max().date()
 
 LAPSE_RATE = 0.0065
 for _c in ["temperature_max", "temperature_min", "temperature_mean"]:
@@ -348,21 +350,26 @@ def _today_mk():
 
 _ANNUAL_TREND_CACHE = {}
 
-def compute_annual_trend():
-    today     = _today_mk()
-    cache_key = today.date().isoformat()
+def compute_annual_trend(target_date=None):
+    if target_date is None:
+        target_date = _today_mk().date()
+
+    month, day = target_date.month, target_date.day
+    # Keyed by day-of-year (MM-DD) — the trend window is identical for any
+    # year's May 28, so we don't re-compute when the year changes.
+    cache_key = f"{month:02d}-{day:02d}"
+
     if cache_key in _ANNUAL_TREND_CACHE:
         return _ANNUAL_TREND_CACHE[cache_key]
 
-    # FS cache: survives restarts
+    # FS cache: survives restarts; day-of-year files are permanent (no cleanup needed)
     fs_path = os.path.join(_CACHE_DIR, f"annual_trend_{cache_key}.json")
     cached  = _fs_load(fs_path)
     if cached is not None:
         _ANNUAL_TREND_CACHE[cache_key] = cached
         return cached
 
-    month, day = today.month, today.day
-    dlabel     = f"{MONTH_NAMES[month - 1]} {day}"
+    dlabel = f"{MONTH_NAMES[month - 1]} {day}"
 
     # Daily max across all stations, then mean of top-15 days per year
     window = window_filter(data, month, day, 7)
@@ -432,9 +439,7 @@ def compute_annual_trend():
         },
     }
     _ANNUAL_TREND_CACHE[cache_key] = result
-    _fs_save(fs_path, result,
-             glob_pattern=os.path.join(_CACHE_DIR, "annual_trend_*.json"),
-             anchor_date=cache_key)
+    _fs_save(fs_path, result)  # no cleanup — day-of-year files are permanent
     return result
 
 # ── Generic filesystem cache helpers ──────────────────────────────────────────
@@ -518,63 +523,84 @@ def _save_today_to_disk(date_str, result):
     except Exception:
         pass  # disk write failure is non-fatal
 
-def compute_today_status():
-    today = _today_mk()
-    cache_key = today.date().isoformat()
+def compute_today_status(target_date=None):
+    from concurrent.futures import ThreadPoolExecutor, as_completed
 
-    # 1. Check in-memory cache (fast path — survives within a single process lifetime)
+    today_ts   = _today_mk()
+    today_date = today_ts.date()
+
+    if target_date is None:
+        target_date = today_date
+    is_today = (target_date == today_date)
+
+    # Reject future dates
+    if target_date > today_date:
+        return {"available": False}
+
+    cache_key = target_date.isoformat()
+
+    # 1. In-memory cache
     if cache_key in _TODAY_CACHE:
         return _TODAY_CACHE[cache_key]
 
-    # 2. Check filesystem cache (survives service restarts — written after first
-    #    successful Open-Meteo fetch, so the 20-station call only happens once/day)
+    # 2. Filesystem cache
     cached = _load_today_from_disk(cache_key)
     if cached is not None:
         _TODAY_CACHE[cache_key] = cached
         return cached
 
-    # 3. Fetch from Open-Meteo for all 20 stations — fetched in
-    #    parallel individual requests (one per station) to avoid 502s that
-    #    Open-Meteo's proxy returns for long multi-coordinate query strings.
-    from concurrent.futures import ThreadPoolExecutor, as_completed
+    # Shared helper: parallel 20-station fetch from any Open-Meteo endpoint.
+    # extra_params is merged into the per-station request (e.g. forecast_days or start/end_date).
+    def _fetch_om(url, extra_params):
+        def _one(lat, lon):
+            try:
+                resp = http_requests.get(url, params={
+                    "latitude":  f"{lat:.4f}",
+                    "longitude": f"{lon:.4f}",
+                    "daily":     "temperature_2m_max",
+                    "timezone":  "Europe/Skopje",
+                    **extra_params,
+                }, timeout=10)
+                resp.raise_for_status()
+                arr = resp.json().get("daily", {}).get("temperature_2m_max", [])
+                return float(arr[0]) if arr and arr[0] is not None else None
+            except Exception:
+                return None
+        temps = []
+        with ThreadPoolExecutor(max_workers=20) as pool:
+            futures = {pool.submit(_one, c["lat"], c["lon"]): n for n, c in LOC_COORDS.items()}
+            for fut in as_completed(futures):
+                v = fut.result()
+                if v is not None:
+                    temps.append(v)
+        return temps
 
-    def _fetch_one(loc_name, lat, lon):
-        try:
-            r = http_requests.get(
-                "https://api.open-meteo.com/v1/forecast",
-                params={
-                    "latitude":      f"{lat:.4f}",
-                    "longitude":     f"{lon:.4f}",
-                    "daily":         "temperature_2m_max",
-                    "timezone":      "Europe/Skopje",
-                    "forecast_days": 1,
-                },
-                timeout=10,
-            )
-            r.raise_for_status()
-            arr = r.json().get("daily", {}).get("temperature_2m_max", [])
-            return float(arr[0]) if arr and arr[0] is not None else None
-        except Exception:
-            return None
+    # 3. Get today_temp via the right source
+    if is_today:
+        # Live forecast from Open-Meteo
+        temps = _fetch_om("https://api.open-meteo.com/v1/forecast", {"forecast_days": 1})
+        if not temps:
+            _TODAY_CACHE[cache_key] = {"available": False}
+            return _TODAY_CACHE[cache_key]
+        today_temp = max(temps)
+    elif target_date > _CSV_MAX_DATE:
+        # Gap between CSV coverage and today — use Open-Meteo archive (ERA5-T near-real-time)
+        ds = cache_key
+        temps = _fetch_om("https://archive-api.open-meteo.com/v1/archive",
+                          {"start_date": ds, "end_date": ds})
+        if not temps:
+            _TODAY_CACHE[cache_key] = {"available": False}
+            return _TODAY_CACHE[cache_key]
+        today_temp = max(temps)
+    else:
+        # Within CSV coverage — read directly from ERA5 in-memory data
+        day_rows = data[data["date"] == pd.Timestamp(target_date)]
+        if day_rows.empty or day_rows["temperature_max"].isna().all():
+            return {"available": False}
+        today_temp = float(day_rows["temperature_max"].max())
 
-    today_temps = []
-    with ThreadPoolExecutor(max_workers=20) as pool:
-        futures = {
-            pool.submit(_fetch_one, name, c["lat"], c["lon"]): name
-            for name, c in LOC_COORDS.items()
-        }
-        for fut in as_completed(futures):
-            v = fut.result()
-            if v is not None:
-                today_temps.append(v)
-
-    if not today_temps:
-        _TODAY_CACHE[cache_key] = {"available": False}
-        return _TODAY_CACHE[cache_key]
-    today_temp = max(today_temps)
-
-    # 2. Historical distribution: ±7-day window across all years, averaged across stations per date
-    month, day = today.month, today.day
+    # 4. Historical distribution: ±7-day window across all years
+    month, day = target_date.month, target_date.day
     window = window_filter(data, month, day, 7)
     daily_max = window.groupby("date")["temperature_max"].max().dropna()
     samples = daily_max.to_numpy()
@@ -582,12 +608,12 @@ def compute_today_status():
         _TODAY_CACHE[cache_key] = {"available": False}
         return _TODAY_CACHE[cache_key]
 
-    # 3. Percentile + category
+    # 5. Percentile + category
     pct = float((samples < today_temp).mean() * 100)
     dlabel = f"{MONTH_NAMES[month - 1]} {day}"
     cat_key, name, color, desc = _categorize_today(pct, dlabel)
 
-    # 4. KDE curve + percentile cutoffs for the distribution chart
+    # 6. KDE curve + percentile cutoffs
     cutoffs = {
         "p5":  round(float(np.percentile(samples,  5)), 2),
         "p10": round(float(np.percentile(samples, 10)), 2),
@@ -608,6 +634,7 @@ def compute_today_status():
 
     result = {
         "available":    True,
+        "date":         cache_key,
         "today_temp":   round(today_temp, 1),
         "percentile":   round(pct, 1),
         "category_key": cat_key,
@@ -624,7 +651,7 @@ def compute_today_status():
         "day_num":      day,
     }
     _TODAY_CACHE[cache_key] = result
-    _save_today_to_disk(cache_key, result)   # persist so restarts don't re-fetch
+    _save_today_to_disk(cache_key, result)
     return result
 
 # ── Chat analytics ────────────────────────────────────────────────────────────
@@ -845,7 +872,14 @@ def api_trends():
 
 @app.route("/api/today_status")
 def api_today_status():
-    return jsonify(compute_today_status())
+    date_str = request.args.get("date")
+    target = None
+    if date_str:
+        try:
+            target = pd.Timestamp(date_str).date()
+        except Exception:
+            return jsonify({"available": False}), 400
+    return jsonify(compute_today_status(target))
 
 
 # ── Season heatmap ─────────────────────────────────────────────────────────────
@@ -1378,7 +1412,14 @@ def api_spei_station_seasonal():
 
 @app.route("/api/annual_trend")
 def api_annual_trend():
-    return jsonify(compute_annual_trend())
+    date_str = request.args.get("date")
+    target = None
+    if date_str:
+        try:
+            target = pd.Timestamp(date_str).date()
+        except Exception:
+            pass
+    return jsonify(compute_annual_trend(target))
 
 
 @app.route("/api/token")
@@ -1545,6 +1586,15 @@ def _prewarm():
     except Exception: pass
     try: compute_today_status()
     except Exception: pass
+    # Pre-warm gap dates (CSV max + 1 day → yesterday) so the archive API is
+    # called once per date on startup rather than on first user navigation click.
+    # Cache hits from disk are instant so restarts don't re-fetch already-cached dates.
+    _gap = _CSV_MAX_DATE + datetime.timedelta(days=1)
+    _today = _today_mk().date()
+    while _gap < _today:
+        try: compute_today_status(_gap)
+        except Exception: pass
+        _gap += datetime.timedelta(days=1)
     # Calendar for all locations with default params (temperature_max, w=7, theilsen)
     for _loc in list(LOC_COORDS.keys()):
         try: compute_calendar(_loc, "temperature_max", "temperature_max", 7, "theilsen")
