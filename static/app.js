@@ -732,17 +732,164 @@ function renderHeroCards(data) {
 
 }
 
+let _todayOffset   = 0;
+let _todayViewDate = null; // null = today, 'YYYY-MM-DD' = browsed past date
+
+// ── Today flag SVG builder ────────────────────────────────────────────────────
+const _TF_SUN = "m-140 14v-28l280 28v-28zm126-84h28L0-15zM14 70h-28L0 15zM-140-70h42L12.86 7.72zm0 140h42L12.86-7.72zM140-70H98L-12.86 7.72zm0 140H98L-12.86-7.72z";
+function _tfSnowPath(r) {
+  const f = n => n.toFixed(2); let d = '';
+  for (let i = 0; i < 6; i++) {
+    const a = i*Math.PI/3, ax = Math.cos(a), ay = Math.sin(a);
+    d += `M0,0L${f(r*ax)},${f(r*ay)}`;
+    const bx1=0.4*r*ax, by1=0.4*r*ay, b1=0.3*r;
+    d += `M${f(bx1)},${f(by1)}L${f(bx1+b1*Math.cos(a+Math.PI/3))},${f(by1+b1*Math.sin(a+Math.PI/3))}`;
+    d += `M${f(bx1)},${f(by1)}L${f(bx1+b1*Math.cos(a-Math.PI/3))},${f(by1+b1*Math.sin(a-Math.PI/3))}`;
+    const bx2=0.7*r*ax, by2=0.7*r*ay, b2=0.2*r;
+    d += `M${f(bx2)},${f(by2)}L${f(bx2+b2*Math.cos(a+Math.PI/3))},${f(by2+b2*Math.sin(a+Math.PI/3))}`;
+    d += `M${f(bx2)},${f(by2)}L${f(bx2+b2*Math.cos(a-Math.PI/3))},${f(by2+b2*Math.sin(a-Math.PI/3))}`;
+  }
+  return d;
+}
+const _TF_SNOW_POS = [
+  [-118,52,8,1.9,0.00],[-60,24,6,2.3,0.45],[-20,60,9,1.6,0.90],[28,-52,7,2.1,0.25],
+  [82,44,8,1.8,1.10],[118,-32,7,2.4,0.60],[132,56,6,1.7,1.50],[-82,-50,9,2.2,0.35],
+  [-6,-62,7,2.0,0.95],[62,-60,8,1.5,0.50],[-132,-22,7,1.9,1.20],[102,65,9,2.1,0.05],
+  [-38,-28,6,1.7,1.40],[52,66,7,2.3,0.75],[-2,40,6,1.6,1.65],[138,-58,7,2.0,0.30],
+];
+const _TF_CLOUD_DEF = {
+  s: '<ellipse cx="6" cy="0" rx="8" ry="6"/><ellipse cx="16" cy="-4" rx="10" ry="8"/><ellipse cx="27" cy="0" rx="8" ry="6"/><rect x="-2" y="3" width="38" height="7" rx="2"/>',
+  m: '<ellipse cx="8" cy="1" rx="9" ry="7"/><ellipse cx="20" cy="-5" rx="13" ry="10"/><ellipse cx="34" cy="-3" rx="11" ry="9"/><ellipse cx="46" cy="1" rx="9" ry="7"/><rect x="-1" y="4" width="57" height="8" rx="2"/>',
+  l: '<ellipse cx="9" cy="2" rx="10" ry="8"/><ellipse cx="22" cy="-5" rx="14" ry="11"/><ellipse cx="38" cy="-7" rx="16" ry="12"/><ellipse cx="54" cy="-3" rx="13" ry="10"/><ellipse cx="68" cy="2" rx="10" ry="8"/><rect x="-1" y="4" width="80" height="9" rx="2"/>',
+};
+function _buildTodayFlag(catKey) {
+  const P = _TF_SUN;
+  const snow = catKey === 'freezing' ? _TF_SNOW_POS.map(([x,y,r,dur,del]) =>
+    `<g transform="translate(${x},${y})"><path class="tf-snowflake" d="${_tfSnowPath(r)}" fill="none" stroke="rgba(210,235,255,0.95)" stroke-width="0.9" stroke-linecap="round" style="--dur:${dur}s;--delay:${del}s"/></g>`
+  ).join('') : '';
+  const clouds = catKey === 'cold' ? [
+    [-48,1.0,0.72,38,0,'m'],[-22,0.65,0.52,52,8,'s'],[8,1.25,0.62,30,18,'l'],
+    [38,0.80,0.48,44,4,'m'],[-60,0.55,0.38,58,26,'s'],[58,1.0,0.55,34,13,'l'],
+  ].map(([y,sc,op,dur,del,sh]) =>
+    `<g opacity="${op}" fill="rgba(255,248,248,0.82)"><g transform="scale(${sc})">${_TF_CLOUD_DEF[sh]}</g><animateTransform attributeName="transform" type="translate" from="-220 ${y}" to="220 ${y}" dur="${dur}s" begin="${del}s" repeatCount="indefinite"/></g>`
+  ).join('') : '';
+  const C = {
+    freezing: {
+      bg: '#0b1926',
+      defs: '<filter id="tf-cg" x="-40%" y="-40%" width="180%" height="180%"><feGaussianBlur in="SourceGraphic" stdDeviation="3.5" result="b"/><feMerge><feMergeNode in="b"/><feMergeNode in="SourceGraphic"/></feMerge></filter>',
+      body: `<g class="tf-cold-sun" filter="url(#tf-cg)"><path d="${P}" fill="#8ec4e0"/><circle r="22.5" fill="#b4d8f0" stroke="#0b1926" stroke-width="5"/></g>`,
+    },
+    cold: {
+      bg: '#1c3460', defs: '',
+      body: `<g class="tf-cool-sun"><path d="${P}" fill="#f0d830"/><circle r="22.5" fill="#f0d830" stroke="#1c3460" stroke-width="5"/></g>`,
+    },
+    nope: {
+      bg: '#d82126', defs: '',
+      body: `<g><path d="${P}" fill="#f8e92e"/><circle class="tf-avg-circle" r="22.5" fill="#f8e92e" stroke="#d82126" stroke-width="5"/></g>`,
+    },
+    hot: {
+      bg: '#7d1000',
+      defs: '<filter id="tf-hg" x="-45%" y="-45%" width="190%" height="190%"><feGaussianBlur in="SourceGraphic" stdDeviation="6.5" result="b"/><feMerge><feMergeNode in="b"/><feMergeNode in="SourceGraphic"/></feMerge></filter><filter id="tf-hh" x="-5%" y="-5%" width="110%" height="110%"><feTurbulence type="turbulence" baseFrequency="0.010 0.022" numOctaves="2" result="t"><animate attributeName="seed" from="0" to="40" dur="4s" repeatCount="indefinite"/></feTurbulence><feDisplacementMap in="SourceGraphic" in2="t" scale="2.2" xChannelSelector="R" yChannelSelector="G"/></filter>',
+      body: `<g filter="url(#tf-hh)"><g class="tf-hot-sun" filter="url(#tf-hg)"><path d="${P}" fill="#ff8020"/><circle r="22.5" fill="#ffa030" stroke="#7d1000" stroke-width="5"/></g></g>`,
+    },
+    hell: {
+      bg: 'url(#tf-hellg)',
+      defs: '<radialGradient id="tf-hellg" cx="50%" cy="50%" r="58%"><stop offset="0%" stop-color="#420700"/><stop offset="100%" stop-color="#0d0100"/></radialGradient><filter id="tf-hhg" x="-55%" y="-55%" width="210%" height="210%"><feGaussianBlur in="SourceGraphic" stdDeviation="12" result="b"/><feMerge><feMergeNode in="b"/><feMergeNode in="SourceGraphic"/></feMerge></filter><filter id="tf-hhh" x="-7%" y="-7%" width="114%" height="114%"><feTurbulence type="turbulence" baseFrequency="0.022 0.046" numOctaves="3" result="t"><animate attributeName="seed" from="0" to="80" dur="1.6s" repeatCount="indefinite"/></feTurbulence><feDisplacementMap in="SourceGraphic" in2="t" scale="7" xChannelSelector="R" yChannelSelector="G"/></filter>',
+      body: `<g filter="url(#tf-hhh)"><g class="tf-hell-sun" filter="url(#tf-hhg)"><path d="${P}" fill="#ff4c00"/><circle r="22.5" fill="#ffbe30" stroke="#160300" stroke-width="5"/><circle r="28" fill="rgba(255,100,0,0.18)" class="tf-hell-ember" style="animation-delay:0s"/><circle r="18" fill="rgba(255,140,0,0.22)" class="tf-hell-ember" style="animation-delay:.4s"/><circle fill="#fff" opacity=".92"><animate attributeName="r" values="7;13;7" dur="1.1s" repeatCount="indefinite"/><animate attributeName="opacity" values=".7;1;.7" dur="1.1s" repeatCount="indefinite"/></circle></g></g>`,
+    },
+  };
+  const cfg = C[catKey] || C.nope;
+  return `<svg xmlns="http://www.w3.org/2000/svg" viewBox="-140 -70 280 140"><defs>${cfg.defs}</defs><rect x="-140" y="-70" width="280" height="140" fill="${cfg.bg}"/>${cfg.body}${clouds}${snow}</svg>`;
+}
+
 // ── Render "Is it Hot in Macedonia Today?" ────────────────────────────────────
+
+function _buildTodayCardInner(r) {
+  return `
+    <div class="today-h-row">
+      <div class="today-h">${t('ui.title_today')}</div>
+      <div class="today-temp-badge" style="background:${r.color};color:${r.category_key === 'nope' ? 'var(--ink)' : '#fff'}">${r.today_temp.toFixed(1)}°C</div>
+    </div>
+    <div class="today-body">
+      <div class="today-flag-wrap">${_buildTodayFlag(r.category_key)}</div>
+      <div class="today-text">
+        <span class="today-cat">${_locale?.categories?.[r.category_key || r.category.toLowerCase()]?.name || r.category}</span><span class="today-sep-dot" style="background:${r.color}"></span><span class="today-desc">${(_locale?.categories?.[r.category_key || r.category.toLowerCase()]?.desc || r.description).replace('{d}', _fmtDay(r.month_num, r.day_num, r.day_label))}</span>
+      </div>
+    </div>
+    <p class="today-explain">${t('today.explain1')}</p>
+    ${t('today.climate_context') ? `<p class="today-context">${t('today.climate_context')}</p>` : ''}
+    <div class="today-foot">
+      ${_locale?.today?.foot
+        ? t('today.foot', {temp: r.today_temp.toFixed(1), pct: r.percentile.toFixed(0), samples: r.n_samples.toLocaleString(), year_min: r.year_min, year_max: r.year_max})
+        : `${r.today_temp.toFixed(1)} °C · ${r.percentile.toFixed(0)}th percentile · ${r.n_samples.toLocaleString()} samples (${r.year_min}–${r.year_max})`}
+    </div>`;
+}
+
+function _updateTodayCard(r) {
+  const dateEl = document.querySelector('#today-status .sec-heading-date');
+  if (dateEl) dateEl.textContent = ` · ${_fmtDay(r.month_num, r.day_num, r.day_label)}`;
+
+  const card = document.getElementById('today-main-card');
+  if (card) card.innerHTML = _buildTodayCardInner(r);
+
+  const distCard = document.getElementById('today-dist-card');
+  if (distCard) {
+    distCard.innerHTML = `<div class="today-chart-title">${t('today.chart_title', {day_label: _fmtDay(r.month_num, r.day_num, r.day_label), year_min: r.year_min})}</div><div id="today-dist-chart"></div>`;
+    renderTodayChart(r);
+  }
+
+  const trendCard = document.getElementById('today-trend-card');
+  if (trendCard) {
+    trendCard.innerHTML = `<div class="today-chart-title" id="today-trend-title">Macedonia annual peak temperature · loading…</div><div id="today-trend-chart"></div>`;
+    renderTodayTrendChart(_todayViewDate);
+  }
+
+  const prevBtn = document.getElementById('today-prev');
+  const nextBtn = document.getElementById('today-next');
+  if (prevBtn) prevBtn.disabled = false;
+  if (nextBtn) nextBtn.disabled = _todayOffset === 0;
+}
+
+async function _navigateTodayTo(newOffset) {
+  if (newOffset > 0) return;
+  const prevBtn = document.getElementById('today-prev');
+  const nextBtn = document.getElementById('today-next');
+  if (prevBtn) prevBtn.disabled = true;
+  if (nextBtn) nextBtn.disabled = true;
+  try {
+    const d = new Date();
+    d.setDate(d.getDate() + newOffset);
+    const dateStr = d.toISOString().slice(0, 10);
+    const r = await fetch(`api/today_status?date=${dateStr}`).then(res => res.json());
+    if (!r.available) {
+      if (prevBtn) prevBtn.disabled = false;
+      if (nextBtn) nextBtn.disabled = _todayOffset === 0;
+      return;
+    }
+    _todayOffset   = newOffset;
+    _todayViewDate = newOffset === 0 ? null : dateStr;
+    _updateTodayCard(r);
+  } catch {
+    if (prevBtn) prevBtn.disabled = false;
+    if (nextBtn) nextBtn.disabled = _todayOffset === 0;
+  }
+}
 
 async function renderTodayStatus() {
   const el = document.getElementById("today-status");
   if (!el) return;
   try {
-    const r = await fetch("api/today_status").then(r => r.json());
+    const r = await fetch("api/today_status").then(res => res.json());
     if (!r.available) return;
     el.innerHTML = `
       <div class="sec-heading">
-        <span>${t('ui.heading_today')}</span>
+        <div class="today-heading-left">
+          <span>${t('ui.heading_today')}<span class="sec-heading-date"></span></span>
+          <div class="today-nav">
+            <button id="today-prev" class="today-nav-btn" aria-label="Previous day"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="15 18 9 12 15 6"/></svg></button>
+            <button id="today-next" class="today-nav-btn" aria-label="Next day" disabled><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="9 18 15 12 9 6"/></svg></button>
+          </div>
+        </div>
         <div id="share-widget">
           <button id="share-toggle" aria-label="Share this site">
             <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><circle cx="18" cy="5" r="3"/><circle cx="6" cy="12" r="3"/><circle cx="18" cy="19" r="3"/><line x1="8.59" y1="13.51" x2="15.42" y2="17.49"/><line x1="15.41" y1="6.51" x2="8.59" y2="10.49"/></svg>
@@ -772,35 +919,19 @@ async function renderTodayStatus() {
         </div>
       </div>
       <div class="today-grid">
-        <div class="today-card">
-          <div class="today-h">${t('ui.title_today')}</div>
-          <div class="today-body">
-            <span class="today-dot" style="background:${r.color}"></span>
-            <div class="today-text">
-              <div class="today-cat">${_locale?.categories?.[r.category_key || r.category.toLowerCase()]?.name || r.category}</div>
-              <div class="today-desc">${(_locale?.categories?.[r.category_key || r.category.toLowerCase()]?.desc || r.description).replace('{d}', _fmtDay(r.month_num, r.day_num, r.day_label))}</div>
-            </div>
-          </div>
-          <p class="today-explain">${t('today.explain1')}</p>
-          ${t('today.climate_context') ? `<p class="today-context">${t('today.climate_context')}</p>` : ''}
-          <div class="today-foot">
-            ${_locale?.today?.foot
-              ? t('today.foot', {temp: r.today_temp.toFixed(1), pct: r.percentile.toFixed(0), samples: r.n_samples.toLocaleString(), year_min: r.year_min, year_max: r.year_max})
-              : `${r.today_temp.toFixed(1)} °C · ${r.percentile.toFixed(0)}th percentile · ${r.n_samples.toLocaleString()} samples (${r.year_min}–${r.year_max})`}
-          </div>
-        </div>
-        <div class="today-chart">
-          <div class="today-chart-title">${t('today.chart_title', {day_label: _fmtDay(r.month_num, r.day_num, r.day_label), year_min: r.year_min})}</div>
-          <div id="today-dist-chart"></div>
-        </div>
+        <div class="today-card" id="today-main-card"></div>
+        <div class="today-chart" id="today-dist-card"></div>
         <div class="today-chart" id="today-trend-card">
           <div class="today-chart-title" id="today-trend-title">Macedonia annual peak temperature · loading…</div>
           <div id="today-trend-chart"></div>
         </div>
       </div>`;
     el.hidden = false;
-    renderTodayChart(r);
-    renderTodayTrendChart();
+    _todayOffset   = 0;
+    _todayViewDate = null;
+    _updateTodayCard(r);
+    document.getElementById('today-prev').addEventListener('click', () => _navigateTodayTo(_todayOffset - 1));
+    document.getElementById('today-next').addEventListener('click', () => _navigateTodayTo(_todayOffset + 1));
   } catch {
     /* network error — section stays hidden */
   }
@@ -917,9 +1048,10 @@ function renderTodayChart(r) {
   document.querySelector(".today-chart").appendChild(foot2);
 }
 
-async function renderTodayTrendChart() {
+async function renderTodayTrendChart(dateStr = null) {
   try {
-    const d = await fetch("api/annual_trend").then(r => r.json());
+    const url = dateStr ? `api/annual_trend?date=${dateStr}` : 'api/annual_trend';
+    const d = await fetch(url).then(r => r.json());
     const currentYear = new Date().getFullYear();
 
     // Update title with actual year range
