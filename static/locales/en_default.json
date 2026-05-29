@@ -21,7 +21,7 @@
     "chart_title": "Macedonia daily max temperatures for the two weeks around {day_label} since {year_min}",
     "trend_title": "Macedonia peak temperatures around {day_label} · {year_min}–{year_max} with linear projection to 2050",
     "explain2": "The curve shows how often each peak temperature occurred on days like today across all years. Colours mark climatological zones — from cold blue through the typical beige band to extreme red — so you can see at a glance where today sits.",
-    "explain3": "Each dot is the average of the 15 hottest days recorded anywhere in Macedonia during this ±7-day window each year since {year_min}. The Theil-Sen trend is highly significant (p < 0.0001); the dashed line projects it linearly to 2050. The shaded band is the 95% confidence interval — it fans out over time because even a small uncertainty in the slope compounds year after year, reaching roughly ±2.8°C by 2050. Think of it as the range of plausible futures if current warming continues at the same pace.",
+    "explain3": "Each dot is the average of the 15 hottest days recorded anywhere in Macedonia during this ±7-day window each year since {year_min}. The Theil-Sen trend is highly significant (p < 0.0001); the dashed line projects it linearly to 2050. The shaded band is the 95% confidence interval — it fans out over time because even a small uncertainty in the slope compounds year after year. Think of it as the range of plausible futures if current warming continues at the same pace.",
     "foot": "{temp} °C · {pct}th percentile · {samples} samples ({year_min}–{year_max})",
     "foot2": "Today: {temp} °C · {pct}th percentile · median {median} °C · {samples} observations · {year_min}–{year_max}",
     "today_label": "TODAY",
