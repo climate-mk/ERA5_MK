@@ -8,8 +8,9 @@
     "heading_today": "Maqedonia Sot",
     "title_today": "A është nxehtë në Maqedoni sot?",
     "heading_location": "Detajet e vendndodhjes",
-    "heading_controls": "Zgjedhja e vendndodhjes, Kontrollet dhe Grafikët",
+    "heading_controls": "Kontrollet",
     "heading_controls_sub": "(i kuq = keq, blu = mirë)",
+    "heading_charts": "Grafikët",
     "heading_about": "Rreth nesh",
     "label_effects": "Disa efekte të ndryshimeve klimatike",
     "map_falling": "duke rënë",
@@ -252,6 +253,7 @@
     "col2_title": "Pse e bëjmë këtë?",
     "col2_text1": "Europa Juglindore po ngrohet me pothuajse dy herë normën mesatare globale. Efektet janë tashmë këtu — verë më të gjata, lumenj që thahen, temperatura rekord dhe zjarret që digjen gjithnjë e më gjerë çdo vit.",
     "col2_text2": "Numrat e bëjnë të vështirë largimin e shikimit. Kur shihni sa më shumë ditë të nxehta kemi pasur në këtë dekadë krahasuar me të fundit, ose si kanë ndryshuar reshjet me kalimin e kohës, ndalon të duket si lajm abstrakt dhe fillon të ndihet si ajo që është: një problem lokal, që po ndodh tani. Të kuptuarit e asaj që po ndryshon — këtu, në oborrin tonë — është hapi i parë drejt veprimit.",
+    "col2_btn": "Çfarë mund të bëjmë? →",
     "col3_title": "Metodat e përdorura",
     "col3_text": "Ne përdorim metoda statistikore për llogaritjen e pjerrësisë dhe zbulimin e tendencave, duke korrigjuar për korrelacionin serial. Përpunimi i të dhënave përfshin modelim, korrigjime bazuar në lartësinë mbi nivelin e detit dhe zbutje me dritare për të analizuar ndryshimet klimatike shumëdekadëshe, me vizualizime të bazuara në bibliotekën Highcharts. Për informacion më të detajuar konsultohuni me chatbot-in tonë Ognen ose vizitoni <a href=\"https://github.com/kesma01/ERA5_MK\" target=\"_blank\" rel=\"noopener\">faqen GitHub</a>."
   },
@@ -410,5 +412,87 @@
     "Ngarkesë mbi rrjetet energjetike nga kërkesa e lartë për ftohje gjatë verës",
     "Çmime të larta të ushqimit të shkaktuar nga dështimet rajonale të të korrave",
     "Rritje e stuhive të pluhurit dhe ndërhyrjeve të pluhurit Saharanë duke reduktuar cilësinë e ajrit"
-  ]
+  ],
+  "climate_risks": {
+    "heading": "Rreziku klimatik:",
+    "Berovo": "Rreziqe të rënda nga zjarret e pyjeve",
+    "Bitola": "Krizë thatësire bujqësore në Pellagonë",
+    "Debar": "Varfërim i ujërave të pellgut të Drinit",
+    "Demir_Kapija": "Valë nxehtësie ekstreme rekorde",
+    "Gevgelija": "Shkretëtirëzim intensiv mesdhetar",
+    "Gostivar": "Reduktim i borës në malin Sharr",
+    "Kavadarci": "Stres termik në vreshtat e Tikveshtit",
+    "Kicevo": "Tharje e përshpejtuar e burimeve ujore",
+    "Kochani": "Mungesë uji për fushat e orizit",
+    "Kumanovo": "Dobësi ekstreme ndaj thatësirës rurale",
+    "Lazaropole": "Zhvendosje e ekosistemit alpin",
+    "Negotino": "Dëme ekstreme termike në vreshtari",
+    "Ohrid": "Humbje e biodiversitetit të liqenit Ohrit",
+    "Prilep": "Rënie e prodhimit të duhanit",
+    "Radovis": "Rreziqe nga erozioni i përmbytjeve",
+    "Skopje": "Efekti i ishullit termik urban",
+    "Stip": "Krizë e rëndë e tharjes së lumenjve",
+    "Strumica": "Stres intensiv termik në sera",
+    "Tetovo": "Humbje e furnizimit me ujë glaciar",
+    "Veles": "Degradim i tokës në luginën e Vardarit"
+  },
+  "welcome": {
+    "greeting": "Mik i dashur,",
+    "body1": "Mirë se vini në Climate.mk. Ju lutemi vini re se ky është një projekt vullnetar dhe jo gjithçka mund të jetë plotësisht funksionale ose e mbështetur — ne punojmë vazhdimisht për përmirësime.",
+    "body2": "Nëse keni pyetje, mund të provoni chatbotin tonë Ognen, Asistentin e Klimës, ose të vizitoni faqen tonë në GitHub. Nëse ju pëlqen çfarë shihni, ju inkurajojmë të na blini një kafe. :)"
+  },
+  "what_can_we_do": {
+    "heading": "Çfarë mund të bëjmë?",
+    "s1_title": "1. Tranzicioni Energjetik, Dekarbonizimi dhe Modernizimi i Rrjetit",
+    "s1_items": [
+      "Përshpejtimi i largimit të qymyrit: Vendosni një afat të caktuar për çaktivizimin e njësive të vjetruara me qymyr në REK Bitola dhe TEC Oslomej.",
+      "Rikualifikimi i punëtorëve: Zbatoni një strategji të Tranzicionit të Drejtë për rikualifikimin e minatorëve dhe operatorëve të fabrikave për punë në ekonominë e gjelbër.",
+      "Shkallëzimi i burimeve të rinovueshme: Shpejtoni investimet e mëdha në panele fotovoltaike dhe ferma me erë, duke shfrytëzuar numrin e lartë të ditëve me diell të vendit.",
+      "Modernizimi i rrjeteve të energjisë: Modernizoni infrastrukturën e transmetimit për të trajtuar natyrën e ndërprerë të energjisë së rinovueshme të decentralizuar.",
+      "Efiçenca energjetike e banesave: Shkallëzoni Fondin e Financimit të Gjelbër të UNDP për subvencionimin e izolimit të shtëpive, xhamave të trefishta dhe modernizimeve të ngrohjes me efiçencë energjetike."
+    ],
+    "s2_title": "2. Adaptimi Klimatik, Bujqësia dhe Siguria e Ujit",
+    "s2_items": [
+      "Diversifikimi i kulturave: Drejtoni bujqësinë në rajonet e Pelagonisë dhe luginës së Vardarit drejt varieteteve rezistente ndaj thatësirës dhe kulturave subtropikale rezistente ndaj klimës.",
+      "Ujitja me precizion: Zëvendësoni ujitjen e hapëspashme me kanale me rrjete të avancuara të ujitjes me pika për të kursyer burimet e ujërave nëntokësorë.",
+      "Menaxhimi ndërkufitar i ujit: Bashkëpunoni me fqinjët rajonalë për menaxhimin e qëndrueshëm të pellgjeve të përbashkëta si Vardari dhe Drini.",
+      "Mbrojtja e pyjeve: Vendosni rrjete sensorësh paralajmëruese dhe monitorim me drone për të parandaluar zjarret katastrofike në zonat alpine me rrezik të lartë.",
+      "Zbutja e vërshimeve: Ndërtoni mbrojtje natyrore të lumenjve dhe rivendosni fushat natyrale të vërshimeve në komunat e cenueshme për të mbijetuar shira ekstremë."
+    ],
+    "s3_title": "3. Mjedisi Urban, Reduktimi i Smogut dhe Transporti i Gjelbër",
+    "s3_items": [
+      "Dekarbonizimi i ngrohjes dimërore: Eliminoni djegien urbane të druve dhe naftës së rëndë duke lidhur më shumë shtëpi në Shkup, Bitola dhe Tetovë me ngrohje qendrore ose pompa termike me efiçencë të lartë.",
+      "Financoni zgjerimin fizik të rrjetit të tubave të ngrohjes qendrore për të arritur lagjet periferike me densitet të lartë që aktualisht mbështeten në dru ose elektricitet.",
+      "Zgjerimi i sipërfaqeve urbane gjelbra: Zhvilloni korridore të gjelbra (p.sh. përgjatë lumenjve Serava dhe Vardar) dhe zbatoni mandate për çati të gjelbra për ndërtesat e reja për të luftuar efektin e ishullit termik urban.",
+      "Ristrutturimi i transportit publik: Futni flota autobusësh elektrikë pa emetime dhe zgjeroni korsinë e dedikuar të mikro-lëvizshmërisë (biçikleta dhe skuterë).",
+      "Infrastruktura e e-lëvizshmërisë: Vendosni një rrjet kombëtar të dendur të stacioneve publike të karikimit të automjeteve elektrike të furnizuara me energji të pastër.",
+      "Ligjet e Detyrueshme të Lidhjes me Rrjet: Zbatoni rregulloret lokale të zonimit që kërkojnë që të gjitha ndërtesat e reja rezidenciale dhe tregtare pranë rrjeteve ekzistuese të lidhen me rrjetin e ngrohjes qendrore.",
+      "Rikuperimi i nxehtësisë së mbetjeve industriale: Kapni energji termike të tepërt nga industritë e rënda dhe fabrikat lokale për t'i ushqyer direkt rrjetet e ngrohjes komunale.",
+      "Sistemet gjeotermale të lagjes: Hetoni dhe shfrytëzoni burimet gjeotermale ekzistuese me temperaturë të ulët të vendit për të furnizuar rrjetet termale të pastra të lokalizuara për qytetet e afërta."
+    ],
+    "s4_title": "4. Politika Ekonomike, Harmonizimi Europian dhe Mbeturinat e Ngurta",
+    "s4_items": [
+      "Mekanizmat e Çmimit të Karbonit: Vendosni një sistem kombëtar të çmimit të karbonit ose tregtu të emisioneve për të respektuar Mekanizmin e Rregullimit të Kufirit të Karbonit të BE-së (CBAM) dhe për të parandaluar gjobat e eksportit.",
+      "Luftimi i Varfërisë Energjetike: Krijoni rrjete financiare të sigurisë të synuara për të garantuar që çmimi i karbonit nuk ngarkesë në mënyrë disproporcionale familjet me të ardhura të ulëta.",
+      "Reformimi i Mbeturinave të Ngurta: Mbyllni landfill-et jokompatiblë, zbatoni sortimin strikt rajonal të mbeturinave dhe promovoni ekonominë cirkulare për të reduktuar metanin."
+    ],
+    "s5_title": "5. Veprimet e Qytetarëve të Përditshëm dhe Ndikimi Direkt i Familjeve",
+    "s5_items": [
+      "Ngrohja e Shtëpisë: Kaloni nga sobat me dru ose linjit te kondicionerët invertorë ose sobat me peleta, ose lidhuni me ngrohje qendrore.",
+      "Incentivat e Rilidhjeve: Shfrytëzoni subvencionet komunale për t'u rilidhur me rrjetin e ngrohjes qendrore nëse familja u shkëput më parë për shkak të kostove historikisht të larta.",
+      "Nënstacionet Termike në Nivel Ndërtese: Bashkëpunoni me shoqatat e pronarëve të ndërtesave (HOA) për të modernizuar nënstacionet e vjetra të ngrohjes në bodrumet dhe instaluar matës individualë të nxehtësisë për faturim të drejtë.",
+      "Vetë-konsumi Solar: Instaloni panele diellore në çati si prosumer për të gjeneruar elektricitet individual dhe shitur tepricën te rrjeti.",
+      "Zakonet e Udhëtimit: Zgjidhni autobusët publikë, ecjen ose biçikletën mbi automjetet private, veçanërisht gjatë periudhave kritike dimërore të smogut të inversionit.",
+      "Kursimi i Ujit dhe Mbeturinave: Rregulloni rrjedhjet lokale, përdorni linja piku në kopshte dhe ndani aktivisht mbeturinat organike dhe plastikat për të reduktuar ngarkesën e landfill-it.",
+      "Mbështetni Markat Lokale Eko: Blini produkte stinore të rritura lokalisht për të ulur gjurmën e lartë të karbonit të lidhur me ushqimet e importuara."
+    ],
+    "s6_title": "6. Fuqia e Qytetarëve: Si të Ndikoni Drejtpërdrejt Politikat Kombëtare",
+    "s6_items": [
+      "Regjistri Kombëtar ENER: Monitoroni dhe dorëzoni komente publike direkte mbi projektligjet mjedisore përmes Regjistrit Elektronik Kombëtar të Rregullimit.",
+      "Seancat e Këshillit Komunal Lokal: Merrni pjesë në takimet e hapura komunale për të kërkuar buxhete lokale të gjelbra, korsi biçikletash dhe mbrojtje të parqeve urbane.",
+      "Iniciativat dhe Peticionet e Qytetarëve: Përdorni Nenin 71 të Kushtetutës për të mbledhur 10,000 nënshkrime për të propozuar ligje detyruese të gjelbra në Parlament.",
+      "Avokimi i Shoqërisë Civile: Anëtarësohuni dhe financoni OJQ-të e vendosura maqedonase të gjelbra (si Eko-svest, O2 Iniciativa, ose Go Green) për të zgjeruar lobimin.",
+      "Raportimi i Krimeve Mjedisore: Përdorni linjat zyrtare të inspektoratit ose aplikacionet mobile (si \"Moja Opstina\") për të regjistruar hedhjen ilegale ose ndotjen e fabrikave."
+    ]
+  }
 }

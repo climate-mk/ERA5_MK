@@ -1,4 +1,4 @@
-/* MK Climate Explorer — Highcharts frontend */
+﻿/* MK Climate Explorer — Highcharts frontend */
 
 "use strict";
 
@@ -7,7 +7,7 @@
 const wait = ms => new Promise(res => setTimeout(res, ms));
 
 // ── Locale system ─────────────────────────────────────────────────────────────
-// JSON files live in static/locales/{lang}_{style}.json
+// JSON files live in static/locales/{lang}_{style}.json — fetched from /locales/
 // t(key, vars)  — interpolate a string, e.g. t('today.explain1')
 // tArr(key)     — return an array, or null if missing / not an array
 // loadLocale()  — called once in init(); page reloads on locale switch
@@ -16,7 +16,7 @@ let _locale = null;
 
 async function loadLocale(name) {
   try {
-    const r = await fetch(`locales/${name}.json`);
+    const r = await fetch(`/locales/${name}.json`);
     if (!r.ok) throw new Error(r.status);
     _locale = await r.json();
   } catch (e) {
@@ -46,6 +46,26 @@ function tArr(key) {
 function locName(name) {
   return _locale?.locations?.[name] || name;
 }
+
+// ── Climate risk data (icon SVG + short description per location) ─────────────
+// Icons designed for light backgrounds; no fills on the root element.
+// Colors: fire #C25A2C/#E8940A, water #3A5A8A/#A0C8E8, green #3A6B35/#5A8A40,
+//         earth #8B5E3C/#C4A870, wheat #C4A040/#A07830, rock #8A8880, ink #2B2926
+
+let _climateRisksLoaded = false;
+async function _ensureClimateRisks() {
+  if (_climateRisksLoaded || window.CLIMATE_RISKS) { _climateRisksLoaded = true; return; }
+  await new Promise((resolve, reject) => {
+    const s = document.createElement('script');
+    s.src = '/js/climate-risks.js';
+    s.onload = resolve;
+    s.onerror = reject;
+    document.head.appendChild(s);
+  });
+  _climateRisksLoaded = true;
+}
+
+// CLIMATE_RISKS is lazy-loaded from /js/climate-risks.js on first location selection
 
 // ── Color constants ───────────────────────────────────────────────────────────
 
@@ -630,8 +650,9 @@ function renderRegression(data) {
 
 // ── Render hero cards (hero + sig merged, one card per location) ──────────────
 
-function renderHeroCards(data) {
+async function renderHeroCards(data) {
   if (!data.results.length) return;
+  await _ensureClimateRisks();
 
   const unit       = data.unit || "";
   const hasDegreeSym = unit.startsWith("°");
@@ -694,6 +715,12 @@ function renderHeroCards(data) {
             <span class="pip"></span>
             <span>${doyLabel} ±${state.window} days · ${varLabel}</span>
           </div>
+          ${(() => {
+            const cr = window.CLIMATE_RISKS ? window.CLIMATE_RISKS[res.loc] : null;
+            return cr
+              ? `<div class="hero-badge-slot"><div class="risk-heading">${t('climate_risks.heading') || 'Impact risk:'}</div><div class="risk-icon">${cr.icon}</div><div class="risk-label">${t(`climate_risks.${res.loc}`) || cr.risk}</div></div>`
+              : `<div class="hero-badge-slot"></div>`;
+          })()}
           <div class="stat">
             <span class="stat-num"><span class="stat-sign" style="color:${col}">${sg}</span>${Math.abs(st.trend10)}</span>
             <span class="stat-unit">${degSpan}${unitSuffix} / decade</span>
@@ -762,7 +789,9 @@ const _TF_CLOUD_DEF = {
   m: '<ellipse cx="8" cy="1" rx="9" ry="7"/><ellipse cx="20" cy="-5" rx="13" ry="10"/><ellipse cx="34" cy="-3" rx="11" ry="9"/><ellipse cx="46" cy="1" rx="9" ry="7"/><rect x="-1" y="4" width="57" height="8" rx="2"/>',
   l: '<ellipse cx="9" cy="2" rx="10" ry="8"/><ellipse cx="22" cy="-5" rx="14" ry="11"/><ellipse cx="38" cy="-7" rx="16" ry="12"/><ellipse cx="54" cy="-3" rx="13" ry="10"/><ellipse cx="68" cy="2" rx="10" ry="8"/><rect x="-1" y="4" width="80" height="9" rx="2"/>',
 };
+const _todayFlagCache = new Map();
 function _buildTodayFlag(catKey) {
+  if (_todayFlagCache.has(catKey)) return _todayFlagCache.get(catKey);
   const P = _TF_SUN;
   const snow = catKey === 'freezing' ? _TF_SNOW_POS.map(([x,y,r,dur,del]) =>
     `<g transform="translate(${x},${y})"><path class="tf-snowflake" d="${_tfSnowPath(r)}" fill="none" stroke="rgba(210,235,255,0.95)" stroke-width="0.9" stroke-linecap="round" style="--dur:${dur}s;--delay:${del}s"/></g>`
@@ -799,7 +828,9 @@ function _buildTodayFlag(catKey) {
     },
   };
   const cfg = C[catKey] || C.nope;
-  return `<svg xmlns="http://www.w3.org/2000/svg" viewBox="-140 -70 280 140"><defs>${cfg.defs}</defs><rect x="-140" y="-70" width="280" height="140" fill="${cfg.bg}"/>${cfg.body}${clouds}${snow}</svg>`;
+  const svg = `<svg xmlns="http://www.w3.org/2000/svg" viewBox="-140 -70 280 140"><defs>${cfg.defs}</defs><rect x="-140" y="-70" width="280" height="140" fill="${cfg.bg}"/>${cfg.body}${clouds}${snow}</svg>`;
+  _todayFlagCache.set(catKey, svg);
+  return svg;
 }
 
 // ── Render "Is it Hot in Macedonia Today?" ────────────────────────────────────
@@ -1722,7 +1753,7 @@ function _initWebChat(token, expiresIn, convId) {
         sendBoxTextColor:           "#1c1814",
         sendBoxBorderTop:           "1px solid #ddd8d0",
         timestampColor:             "#8a7f74",
-        botAvatarImage:             "/Ognen100.png",
+        botAvatarImage:             "/images/Ognen100.png",
         botAvatarInitials:          "O",
         hideUserAvatar:             true,
         hideUploadButton:           true,
@@ -1764,6 +1795,7 @@ function renderAbout() {
   setHtml('about-col2-title', a.col2_title);
   setHtml('about-col2-text1', a.col2_text1);
   setHtml('about-col2-text2', a.col2_text2);
+  setHtml('about-col2-btn',   a.col2_btn);
   setHtml('about-col3-title', a.col3_title);
   setHtml('about-col3-text',  a.col3_text);
 }
@@ -1777,6 +1809,7 @@ function renderStaticLabels() {
   setTxt('heading-location', u.heading_location);
   setTxt('heading-controls', u.heading_controls);
   setTxt('heading-controls-sub', u.heading_controls_sub);
+  setTxt('heading-charts', u.heading_charts);
   // Map legend
   const legCool = document.querySelector('.leg-cool');
   const legWarm = document.querySelector('.leg-warm');
@@ -1794,7 +1827,7 @@ function renderStaticLabels() {
 
 // Build the composite locale key from the two separate localStorage values
 function _localeKey() {
-  return (localStorage.getItem('mk_lang') || 'en') + '_' + (localStorage.getItem('mk_content') || 'default');
+  return (localStorage.getItem('mk_lang') || 'mk') + '_' + (localStorage.getItem('mk_content') || 'default');
 }
 
 // ── Init ──────────────────────────────────────────────────────────────────────
@@ -1803,6 +1836,7 @@ async function init() {
 
   // Load locale before rendering anything
   await loadLocale(_localeKey());
+  _renderWelcomeModal();
 
   // Fetch metadata + topo + initial trends in parallel
   const todayDoy = getTodayDOY();
@@ -2616,9 +2650,9 @@ async function loadQuote() {
       // Author names always shown in English.
       // To enable translated authors in the future, replace enQuotes with localeQuotes below.
       const style    = localStorage.getItem('mk_content') || 'default';
-      const lang     = localStorage.getItem('mk_lang') || 'en';
+      const lang     = localStorage.getItem('mk_lang') || 'mk';
       const enQuotes = lang === 'en' ? localeQuotes :
-        await fetch(`locales/en_${style}.json`)
+        await fetch(`/locales/en_${style}.json`)
           .then(r => r.json()).then(d => d.quotes || localeQuotes).catch(() => localeQuotes);
       const len = Math.min(localeQuotes.length, enQuotes.length);
       const idx = Math.floor(Math.random() * len);
@@ -2628,7 +2662,7 @@ async function loadQuote() {
       return;
     }
     // CSV fallback — already English
-    const resp = await fetch('climate_quotes.csv');
+    const resp = await fetch('/csv/climate_quotes.csv');
     const text = await resp.text();
     const lines = text.trim().split(/\r?\n/).slice(1);
     rows = lines.map(line => {
@@ -2653,7 +2687,7 @@ async function loadEffects() {
     if (localeEffects && localeEffects.length) {
       items = localeEffects;
     } else {
-      const resp = await fetch('effects.csv');
+      const resp = await fetch('/csv/effects.csv');
       const text = await resp.text();
       items = text.trim().split(/\r?\n/).map(l => l.trim()).filter(Boolean);
     }
@@ -2669,6 +2703,34 @@ async function loadEffects() {
 function closeWelcome() {
   document.getElementById("welcome-modal").classList.remove("open");
   localStorage.setItem("welcome_dismissed", "1");
+  // If lang changed in the modal, reload so the full UI reflects the new language
+  const savedLang = localStorage.getItem('mk_lang') || 'mk';
+  if (_langSel && _langSel.value !== savedLang) window.location.reload();
+}
+
+function _renderWelcomeModal() {
+  const greeting = t('welcome.greeting');
+  const body1    = t('welcome.body1');
+  const body2    = t('welcome.body2');
+  if (!greeting) return;
+  const modal = document.getElementById("welcome-modal");
+  const paras = modal.querySelectorAll(".welcome-body p");
+  if (paras[0]) paras[0].textContent = greeting;
+  if (paras[1]) paras[1].textContent = body1;
+  if (paras[2]) paras[2].textContent = body2;
+
+  const activeLang = localStorage.getItem('mk_lang') || 'mk';
+  modal.querySelectorAll(".welcome-lang-btn").forEach(btn => {
+    const lang = btn.dataset.lang;
+    btn.classList.toggle("active", lang === activeLang);
+    btn.onclick = async () => {
+      if (lang === activeLang) return;
+      localStorage.setItem('mk_lang', lang);
+      const style = localStorage.getItem('mk_content') || 'default';
+      await loadLocale(`${lang}_${style}`);
+      _renderWelcomeModal();
+    };
+  });
 }
 
 if (!localStorage.getItem("welcome_dismissed")) {
@@ -2733,7 +2795,7 @@ if (_savePrefsToggle) {
 const _langSel    = document.getElementById("mdr-lang-select");
 const _contentSel = document.getElementById("mdr-content-select");
 if (_langSel) {
-  _langSel.value = localStorage.getItem("mk_lang") || "en";
+  _langSel.value = localStorage.getItem("mk_lang") || "mk";
   _langSel.addEventListener("change", function() {
     localStorage.setItem("mk_lang", this.value);
     window.location.reload();
@@ -2799,3 +2861,5 @@ document.addEventListener("touchstart", e => {
     _activeTip = null;
   }
 }, { passive: false });
+
+

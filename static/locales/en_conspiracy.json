@@ -8,7 +8,8 @@
     "heading_today": "WEATHER MANIPULATION CONFIRMED",
     "title_today": "Is the Big Climate Hoax Activated Today?",
     "heading_location": "Location Indoctrination Data",
-    "heading_controls": "Their Charts (All Made Up, But Look Yourself)",
+    "heading_controls": "Controls",
+    "heading_charts": "Charts",
     "heading_about": "About This Propaganda Machine",
     "label_effects": "Globalist Agenda Talking Points (DEBUNKED)",
     "map_falling": "COOLING (they won't tell you)",
@@ -31,22 +32,37 @@
     "trend_foot": "Their Globalist Regression: {trend} °C/decade · {sig} · τ = {tau} · {n_years} yrs (but who's counting)"
   },
   "categories": {
-    "freezing": {"name": "Freezing",  "desc": "Among the coldest {d}s — but don't worry, they'll 'adjust' these readings next year."},
-    "cold":     {"name": "Cold",      "desc": "Cooler than most {d}s. How convenient for their cooling-denying narrative."},
-    "nope":     {"name": "Normal",    "desc": "Normal? According to THEIR sensors next to parking lots, maybe."},
-    "hot":      {"name": "Hot",       "desc": "Hot, they say. Measured right next to an airport runway, of course."},
-    "hell":     {"name": "Hell",      "desc": "EXCEPTIONAL HEAT (next to an asphalt parking lot). Top 5% since 1950. Perfect timing for a new carbon tax."}
+    "freezing": {
+      "name": "Freezing",
+      "desc": "Among the coldest {d}s — but don't worry, they'll 'adjust' these readings next year."
+    },
+    "cold": {
+      "name": "Cold",
+      "desc": "Cooler than most {d}s. How convenient for their cooling-denying narrative."
+    },
+    "nope": {
+      "name": "Normal",
+      "desc": "Normal? According to THEIR sensors next to parking lots, maybe."
+    },
+    "hot": {
+      "name": "Hot",
+      "desc": "Hot, they say. Measured right next to an airport runway, of course."
+    },
+    "hell": {
+      "name": "Hell",
+      "desc": "EXCEPTIONAL HEAT (next to an asphalt parking lot). Top 5% since 1950. Perfect timing for a new carbon tax."
+    }
   },
   "charts": {
-    "under_mean":    "Under mean",
-    "over_mean":     "Over mean",
-    "trend_line":    "Trend line",
-    "ci95":          "95% CI",
-    "change_record":   "change over the record",
-    "cal_cooling":     "Cooling",
-    "cal_warming":     "Warming",
-    "cal_decreasing":  "Decreasing",
-    "cal_increasing":  "Increasing"
+    "under_mean": "Under mean",
+    "over_mean": "Over mean",
+    "trend_line": "Trend line",
+    "ci95": "95% CI",
+    "change_record": "change over the record",
+    "cal_cooling": "Cooling",
+    "cal_warming": "Warming",
+    "cal_decreasing": "Decreasing",
+    "cal_increasing": "Increasing"
   },
   "locations": {},
   "hero": {
@@ -57,10 +73,10 @@
     "method_ols": "Other globalist statistical method (OLS)"
   },
   "hero_category": {
-    "baseline":     "Baseline",
-    "moderate":     "Moderate",
-    "bad":          "Bad",
-    "extreme":      "Extreme",
+    "baseline": "Baseline",
+    "moderate": "Moderate",
+    "bad": "Bad",
+    "extreme": "Extreme",
     "catastrophic": "Catastrophic"
   },
   "about": {
@@ -70,25 +86,71 @@
     "col2_title": "Why Are They Doing This?",
     "col2_text1": "Southeastern Europe is supposedly warming at twice the global average. OR: most weather stations in the region are in cities that have grown dramatically since 1950, surrounded by concrete and asphalt — the Urban Heat Island effect — which has NOTHING to do with CO₂ and EVERYTHING to do with urban development.",
     "col2_text2": "When you see a scary number going up on a chart, ask: WHO made the chart? WHO funded the research? WHAT policy do they want to pass with it? We're not saying the data is fake. We're saying: context matters. A 0.3°C rise per decade sounds terrifying in a headline. In a sweater, it's called Tuesday.",
+    "col2_btn": "What can we do? →",
     "col3_title": "Their 'Methods' (Explained Simply)",
     "col3_text": "Theil-Sen is a statistical method designed to be resistant to outliers — meaning it's specifically tuned to find a trend even when the data is messy. Mann-Kendall tests whether that trend is 'significant'. Combined, you get a very official-looking result that says 'it's getting hotter' with stars next to it. Visualizations powered by Highcharts (Norwegian company — Norway has enormous fossil fuel interests, just saying). For 'expert guidance' they point you to a chatbot named Ognen. Let that sink in. Check the <a href=\"https://github.com/kesma01/ERA5_MK\" target=\"_blank\" rel=\"noopener\">GitHub page</a> if you want the actual code."
   },
   "quotes": [
-    {"author": "Uncle Terry (Mechanic, Facebook, 2023)", "quote": "I've lived here 60 years and summers feel exactly the same to me. But sure, trust the satellite data from the government."},
-    {"author": "Anonymous (YouTube Comment, 2.4K likes)", "quote": "If the climate was really changing, why is it still snowing in April? Checkmate, scientists."},
-    {"author": "Chad Truthseeker (Independent Substack Journalist)", "quote": "Follow the money. Every single climate scientist is on a government grant. Every. Single. One. They don't bite the hand that feeds them."},
-    {"author": "Lord Christopher Monckton (British Politician)", "quote": "The science is NOT settled. I have reviewed the IPCC data personally and the models have been wrong every single time they have been tested."},
-    {"author": "Dave from the Comments (YouTube, 47K views)", "quote": "My tomatoes grew bigger this year than any year before. CO₂ is plant food. You're welcome, Mother Earth."},
-    {"author": "Telegram Channel 'TruthAboutWeather' (112,000 subscribers)", "quote": "HAARP facility in Alaska has been documented controlling regional weather patterns since 1993. This is not a conspiracy — it is a publicly funded program. Do your research before it gets deleted."},
-    {"author": "Anonymous Whistleblower (Former Weather Station Technician)", "quote": "I worked at a weather monitoring station for 11 years. We received memos asking us to 'adjust readings upward for regional consistency.' I quit in 2019. Nobody covered this story."},
-    {"author": "Nikola Tesla (Misattributed, but he would have agreed)", "quote": "The earth has its own natural thermostatic regulation. The idea that mankind can meaningfully alter the temperature of an entire planet with combustion engines is a triumph of bureaucracy over physics."},
-    {"author": "Popular Meme Account (@climaterealist, 890K followers)", "quote": "Sunspot cycles explain 94% of observed temperature variation. But try getting THAT published in Nature when your funding comes from the EU climate budget."},
-    {"author": "Your Common Sense (Internal Voice)", "quote": "If they are so deeply concerned about the planet, why do climate conference delegates fly private jets to Davos? We're just asking questions."},
-    {"author": "Steve (Regular Guy, Strumica)", "quote": "We had a cold snap last February. Where was the 'global warming' then? Exactly. It's called WEATHER. It goes up and down. Always has."},
-    {"author": "Retired Meteorologist (Name Withheld for Safety)", "quote": "I refused to use the words 'climate emergency' on air. I said 'warm weather pattern.' I was reassigned to the night shift two weeks later."},
-    {"author": "Popular Podcast Host (Episode #847: The Temperature Hoax)", "quote": "One point five degrees Celsius over 150 years. ONE AND A HALF DEGREES. The Roman Empire had warm periods. The Vikings had warm periods. Nobody taxed their carbon then."},
-    {"author": "Local Facebook Group 'Real News Macedonia' (34,000 members)", "quote": "This website is funded by EU globalists who want to force us onto electric vehicles made in China with batteries mined by children. Just thought you should know before you look at these charts."},
-    {"author": "The Guy Who Always Brings Up the Medieval Warm Period (Every Online Discussion)", "quote": "VIKINGS. GREENLAND. FARMING. NO CARS. Explain THAT with your CO₂ theory."}
+    {
+      "author": "Uncle Terry (Mechanic, Facebook, 2023)",
+      "quote": "I've lived here 60 years and summers feel exactly the same to me. But sure, trust the satellite data from the government."
+    },
+    {
+      "author": "Anonymous (YouTube Comment, 2.4K likes)",
+      "quote": "If the climate was really changing, why is it still snowing in April? Checkmate, scientists."
+    },
+    {
+      "author": "Chad Truthseeker (Independent Substack Journalist)",
+      "quote": "Follow the money. Every single climate scientist is on a government grant. Every. Single. One. They don't bite the hand that feeds them."
+    },
+    {
+      "author": "Lord Christopher Monckton (British Politician)",
+      "quote": "The science is NOT settled. I have reviewed the IPCC data personally and the models have been wrong every single time they have been tested."
+    },
+    {
+      "author": "Dave from the Comments (YouTube, 47K views)",
+      "quote": "My tomatoes grew bigger this year than any year before. CO₂ is plant food. You're welcome, Mother Earth."
+    },
+    {
+      "author": "Telegram Channel 'TruthAboutWeather' (112,000 subscribers)",
+      "quote": "HAARP facility in Alaska has been documented controlling regional weather patterns since 1993. This is not a conspiracy — it is a publicly funded program. Do your research before it gets deleted."
+    },
+    {
+      "author": "Anonymous Whistleblower (Former Weather Station Technician)",
+      "quote": "I worked at a weather monitoring station for 11 years. We received memos asking us to 'adjust readings upward for regional consistency.' I quit in 2019. Nobody covered this story."
+    },
+    {
+      "author": "Nikola Tesla (Misattributed, but he would have agreed)",
+      "quote": "The earth has its own natural thermostatic regulation. The idea that mankind can meaningfully alter the temperature of an entire planet with combustion engines is a triumph of bureaucracy over physics."
+    },
+    {
+      "author": "Popular Meme Account (@climaterealist, 890K followers)",
+      "quote": "Sunspot cycles explain 94% of observed temperature variation. But try getting THAT published in Nature when your funding comes from the EU climate budget."
+    },
+    {
+      "author": "Your Common Sense (Internal Voice)",
+      "quote": "If they are so deeply concerned about the planet, why do climate conference delegates fly private jets to Davos? We're just asking questions."
+    },
+    {
+      "author": "Steve (Regular Guy, Strumica)",
+      "quote": "We had a cold snap last February. Where was the 'global warming' then? Exactly. It's called WEATHER. It goes up and down. Always has."
+    },
+    {
+      "author": "Retired Meteorologist (Name Withheld for Safety)",
+      "quote": "I refused to use the words 'climate emergency' on air. I said 'warm weather pattern.' I was reassigned to the night shift two weeks later."
+    },
+    {
+      "author": "Popular Podcast Host (Episode #847: The Temperature Hoax)",
+      "quote": "One point five degrees Celsius over 150 years. ONE AND A HALF DEGREES. The Roman Empire had warm periods. The Vikings had warm periods. Nobody taxed their carbon then."
+    },
+    {
+      "author": "Local Facebook Group 'Real News Macedonia' (34,000 members)",
+      "quote": "This website is funded by EU globalists who want to force us onto electric vehicles made in China with batteries mined by children. Just thought you should know before you look at these charts."
+    },
+    {
+      "author": "The Guy Who Always Brings Up the Medieval Warm Period (Every Online Discussion)",
+      "quote": "VIKINGS. GREENLAND. FARMING. NO CARS. Explain THAT with your CO₂ theory."
+    }
   ],
   "effects": [
     "Farmers in northern Europe finally able to grow crops year-round — mainstream media calls this a 'catastrophe'",
@@ -111,5 +173,87 @@
     "Insect populations shifting: meaning there are fewer mosquitoes in some regions — somehow this is being presented as a negative",
     "Migration due to 'climate': actually driven by economic policies, regional conflicts, and EU incentive structures — not temperature",
     "Higher food prices: caused by central bank money printing, supply chain disruption, and commodity speculation — not weather"
-  ]
+  ],
+  "climate_risks": {
+    "heading": "Impact risk:",
+    "Berovo": "Severe forest fire risks",
+    "Bitola": "Pelagonia agricultural drought crisis",
+    "Debar": "Drin basin water depletion",
+    "Demir_Kapija": "Extreme, record-breaking heatwaves",
+    "Gevgelija": "Intense Mediterranean desertification threat",
+    "Gostivar": "Sharr mountain snowmelt reduction",
+    "Kavadarci": "Tikvesh vineyard heat stress",
+    "Kicevo": "Accelerated water source drying",
+    "Kochani": "Rice paddy water shortages",
+    "Kumanovo": "Extreme rural drought vulnerability",
+    "Lazaropole": "Alpine ecosystem upward shift",
+    "Negotino": "Extreme viticulture heat damage",
+    "Ohrid": "Lake ecosystem biodiversity loss",
+    "Prilep": "Tobacco crop yield collapse",
+    "Radovis": "Flash flood erosion risks",
+    "Skopje": "Urban heat island effect",
+    "Stip": "Severe riverbed drying crises",
+    "Strumica": "Intensive greenhouse heat stress",
+    "Tetovo": "Glacial water supply loss",
+    "Veles": "Vardar valley soil degradation"
+  },
+  "welcome": {
+    "greeting": "Fellow truth-seeker,",
+    "body1": "Welcome to Climate.mk — the data THEY don't want you to see. This is a volunteer operation running on caffeine and righteous fury. Some features may be suppressed by Big Weather.",
+    "body2": "Questions? Ask Ognen, our AI whistleblower, or find us on GitHub before we get deplatformed. If you appreciate our courageous work, consider buying us a coffee before the chemtrails get us. :)"
+  },
+  "what_can_we_do": {
+    "heading": "What could we do?",
+    "s1_title": "1. Energy Transition, Decarbonization & Grid Modernization",
+    "s1_items": [
+      "Accelerate Coal Phase-Out: Establish a definitive timeline to decommission outdated coal-fired units at REK Bitola and TEC Oslomej.",
+      "Worker Retraining: Implement a Just Transition strategy to reskill coal miners and plant operators for jobs in the green economy.",
+      "Scale Renewables: Fast-track large-scale investments in solar PV and wind farms, utilizing the country's high number of sunny days.",
+      "Upgrade Power Grids: Modernize transmission infrastructure to handle the intermittent nature of decentralized renewable energy.",
+      "Residential Energy Efficiency: Scale up the UNDP Green Finance Facility to subsidize home insulation, triple-glazing, and energy-efficient heating upgrades for private households."
+    ],
+    "s2_title": "2. Climate Adaptation, Agriculture & Water Security",
+    "s2_items": [
+      "Crop Diversification: Shift farming in the Pelagonia and Vardar valley regions toward drought-resistant varieties and climate-resilient sub-tropical crops.",
+      "Precision Irrigation: Replace wasteful open-channel flooding with advanced drip-irrigation networks to conserve shrinking water tables.",
+      "Transboundary Water Management: Cooperate with regional neighbors to sustainably manage shared basins like the Vardar and Drim rivers.",
+      "Forestry Protection: Deploy early-warning sensor networks and drone monitoring to prevent catastrophic wildfires in high-risk alpine zones.",
+      "Flood Mitigation: Build nature-based river defenses and restore natural floodplains in vulnerable municipalities to survive extreme downpours."
+    ],
+    "s3_title": "3. Urban Environment, Smog Reduction & Green Transport",
+    "s3_items": [
+      "Decarbonize Winter Heating: Eliminate urban wood-burning and heavy fuel oil heating by connecting more homes in Skopje, Bitola, and Tetovo to district heating or high-efficiency heat pumps.",
+      "Finance the physical expansion of the central heating pipe network to reach high-density suburban neighborhoods that currently rely on wood or electricity.",
+      "Expand Urban Canopies: Develop green corridors (e.g., along the Serava and Vardar rivers) and enforce green roof mandates for new buildings to combat the urban heat island effect.",
+      "Public Transit Overhaul: Introduce zero-emission electric bus fleets and expand dedicated micro-mobility lanes (bikes and scooters).",
+      "E-Mobility Infrastructure: Deploy a dense national network of public electric vehicle (EV) charging stations powered by clean energy.",
+      "Mandatory Grid Connection Laws: Enforce local zoning regulations that require all newly constructed residential and commercial buildings located near existing networks to connect to the district heating grid.",
+      "Industrial Waste Heat Recovery: Capture excess thermal energy from heavy industries and local factories to feed directly into municipal heating grids, reducing the need to burn primary fuels.",
+      "Geothermal District Systems: Investigate and tap into the country's existing low-temperature geothermal springs to power localized, clean thermal energy networks for nearby towns."
+    ],
+    "s4_title": "4. Economic Policy, European Alignment & Solid Waste",
+    "s4_items": [
+      "Carbon Pricing Mechanisms: Establish a national carbon pricing or emissions trading system to comply with the EU Carbon Border Adjustment Mechanism (CBAM) and prevent export penalties.",
+      "Combating Energy Poverty: Create targeted financial safety nets to ensure carbon pricing does not disproportionately burden low-income households.",
+      "Solid Waste Overhaul: Shut down non-compliant landfills, enforce strict regional waste sorting, and promote a circular economy to cut methane."
+    ],
+    "s5_title": "5. Everyday Citizen Actions & Direct Household Impact",
+    "s5_items": [
+      "Household Heating: Switch from wood stoves or lignite to inverter air conditioners or pellet stoves, or connect to district heating.",
+      "Reconnection Incentives: Take advantage of municipal subsidies to reconnect to the central heating grid if the household previously disconnected due to high historic costs.",
+      "Building-Level Heat Substations: Cooperate with building homeowner associations (HOAs) to upgrade old basement heating substations and install individual heat meters for fair, consumption-based billing.",
+      "Solar Self-Consumption: Install rooftop solar panels as a prosumer to generate individual electricity and sell surplus back to the grid.",
+      "Commuting Habits: Choose public buses, walking, or cycling over private vehicles, especially during critical winter inversion smog periods.",
+      "Water and Waste Conservation: Fix local leaks, use drip lines in gardens, and actively separate organic waste and plastics to reduce landfill load.",
+      "Support Local Eco-Brands: Purchase locally grown seasonal produce to lower the high carbon footprint linked to imported foods."
+    ],
+    "s6_title": "6. Citizen Power: How to Directly Influence National Policies",
+    "s6_items": [
+      "ENER National Registry: Monitor and submit direct public commentary on draft environmental laws via the Electronic National Regulation Registry.",
+      "Local Municipal Council Sessions: Attend open municipal meetings to demand green local budgets, bike lanes, and city park protections.",
+      "Citizen Initiatives & Petitions: Use Article 71 of the Constitution to gather 10,000 signatures to propose binding green laws to Parliament.",
+      "Joint Civil Society Advocacy: Join and fund established Macedonian green NGOs (like Eko-svest, O2 Iniciativa, or Go Green) to scale up lobbying.",
+      "Report Environmental Crimes: Use official inspectorate lines or mobile apps (like \"Moja Opstina\") to log illegal dumping or factory pollution."
+    ]
+  }
 }
