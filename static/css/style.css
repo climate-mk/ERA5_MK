@@ -111,11 +111,11 @@ body {
 .top-card + .top-card { border-left: 1px solid rgba(255,255,255,0.1); }
 
 .quote-card { display: flex; align-items: center; gap: 16px; }
-.quote-card::before { content: '\201C'; font-family: 'Instrument Serif', serif; font-size: 64px; line-height: 1; color: var(--accent); flex-shrink: 0; align-self: flex-start; margin-top: -8px; }
-.quote-text { font-family: 'Instrument Serif', serif; font-style: italic; font-size: clamp(18px, 1.4vw, 26px); line-height: 1.6; color: #F5F2EC; margin: 0 0 8px; }
+.quote-card::before { content: '\201C'; font-family: 'Playfair Display', serif; font-size: 64px; line-height: 1; color: var(--accent); flex-shrink: 0; align-self: flex-start; margin-top: -8px; }
+.quote-text { font-family: 'Playfair Display', serif; font-size: clamp(18px, 1.4vw, 26px); line-height: 1.6; color: #F5F2EC; margin: 0 0 8px; }
 .quote-author { font-family: 'Space Grotesk', sans-serif; font-size: 13px; font-weight: 500; color: rgba(245,242,236,0.5); letter-spacing: 0.04em; text-transform: uppercase; }
 
-.action-card-label { font-family: 'Instrument Serif', serif; font-style: italic; font-size: 22px; color: var(--accent); margin: 0 0 12px; }
+.action-card-label { font-family: 'Playfair Display', serif; font-size: 22px; color: var(--accent); margin: 0 0 12px; }
 .effects-list { list-style: none; padding: 0; margin: 0; display: flex; flex-direction: column; gap: 8px; }
 .effects-list li { font-family: 'Space Grotesk', sans-serif; font-size: 14px; color: rgba(245,242,236,0.65); padding-left: 16px; position: relative; line-height: 1.5; }
 .effects-list li::before { content: '·'; position: absolute; left: 0; color: var(--accent); font-size: 18px; line-height: 1.2; }
@@ -124,7 +124,7 @@ body {
 
 .today-status      { padding: 20px 40px 24px; border-bottom: 1px solid var(--rule); background: var(--paper-2); }
 
-.sec-heading                  { padding: 16px 40px 8px; font-family: 'Instrument Serif', serif; font-style: italic; font-weight: 400; font-size: 32px; letter-spacing: 0.01em; color: var(--ink); }
+.sec-heading                  { padding: 16px 40px 8px; font-family: 'Playfair Display', serif; font-weight: 400; font-size: 32px; letter-spacing: 0.01em; color: var(--ink); }
 .today-status .sec-heading    { padding-left: 0; padding-right: 0; }
 .sec-heading--sm              { font-size: 20px; }
 .sec-heading--sub             { font-family: 'Space Grotesk', sans-serif; font-style: normal; font-weight: 500; font-size: 18px; letter-spacing: 0.01em; color: var(--ink-soft); padding: 20px 40px 6px; }
@@ -140,7 +140,7 @@ body {
 .today-grid        { display: grid; grid-template-columns: repeat(3, 1fr); gap: 16px; }
 .today-card        { background: var(--card); border: 1px solid var(--rule); border-radius: var(--radius); padding: 22px 28px; display: flex; flex-direction: column; gap: 14px; min-width: 0; justify-content: space-between; }
 .today-h-row       { display: flex; justify-content: space-between; align-items: flex-start; gap: 12px; }
-.today-h           { font-family: 'Instrument Serif', serif; font-style: italic; font-size: 32px; letter-spacing: 0.01em; color: var(--ink); line-height: 1.2; }
+.today-h           { font-family: 'Playfair Display', serif; font-size: 32px; letter-spacing: 0.01em; color: var(--ink); line-height: 1.2; }
 .today-temp-badge  { font-family: 'JetBrains Mono', monospace; font-size: 13px; font-weight: 600; letter-spacing: 0.04em; padding: 6px 13px; border-radius: 999px; flex-shrink: 0; line-height: 1; }
 .today-body        { display: flex; align-items: flex-start; gap: 22px; min-width: 0; }
 .today-flag-wrap   { width: 130px; height: 65px; border-radius: 3px; flex-shrink: 0; overflow: hidden; box-shadow: 0 2px 8px rgba(14,14,12,0.12); }
@@ -241,8 +241,8 @@ body {
 #hero:is(.hero-cards-3, .hero-cards-4, .hero-cards-5, .hero-cards-6) .stat-num  { font-size: 52px; }
 #hero:is(.hero-cards-3, .hero-cards-4, .hero-cards-5, .hero-cards-6) .stat-unit { font-size: 16px; }
 
-.verdict     { font-family: 'Instrument Serif', serif; font-style: italic; font-size: 24px; letter-spacing: 0.01em; line-height: 1.2; max-width: 360px; margin-left: auto; }
-.verdict em  { color: var(--accent); font-style: italic; }
+.verdict     { font-family: 'Playfair Display', serif; font-size: 24px; letter-spacing: 0.01em; line-height: 1.2; max-width: 360px; margin-left: auto; }
+.verdict em  { color: var(--accent); }
 .verdict-sub { font-family: 'JetBrains Mono', monospace; font-size: 10px; letter-spacing: 0.1em; text-transform: uppercase; color: var(--ink-soft); margin-top: 10px; }
 
 /* Sig row — sits at the bottom of each card */
@@ -444,7 +444,7 @@ body {
 .about-section { padding: 32px 40px; border-top: 1px solid var(--rule); background: var(--paper-2); }
 .about-body { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 24px; }
 .about-col { background: var(--paper); border: 1px dashed var(--rule-2); border-radius: var(--radius); padding: 28px 32px; }
-.about-title { font-family: 'Instrument Serif', serif; font-style: italic; font-size: 22px; margin-bottom: 12px; color: var(--ink); letter-spacing: 0.01em; }
+.about-title { font-family: 'Playfair Display', serif; font-size: 22px; margin-bottom: 12px; color: var(--ink); letter-spacing: 0.01em; }
 .about-col p { font-size: 14px; color: var(--ink-soft); line-height: 1.7; }
 .about-action-btn { display: inline-block; margin-top: 18px; padding: 9px 18px; background: var(--accent); color: #fff; border-radius: 8px; font-size: 13px; font-weight: 600; text-decoration: none; letter-spacing: 0.01em; transition: opacity 0.15s; }
 .about-action-btn:hover { opacity: 0.85; }
@@ -580,7 +580,7 @@ body {
 .welcome-close:hover { color: var(--ink); }
 .welcome-logo { text-align: center; margin-bottom: 28px; }
 .welcome-logo img { height: 56px; width: auto; max-width: 100%; }
-.welcome-greeting { font-family: 'Instrument Serif', serif; font-style: italic; font-size: 20px; color: var(--ink); margin-bottom: 14px; }
+.welcome-greeting { font-family: 'Playfair Display', serif; font-size: 20px; color: var(--ink); margin-bottom: 14px; }
 .welcome-body p { font-size: 14px; color: var(--ink-soft); line-height: 1.75; margin-bottom: 12px; }
 .welcome-body p:last-child { margin-bottom: 0; }
 .welcome-lang-row { display: flex; gap: 8px; margin-top: 20px; justify-content: center; }
@@ -823,7 +823,7 @@ body.drawer-open { overflow: hidden; }
   font-style: normal !important;
 }
 
-/* ── Section headings (was Instrument Serif 32px italic) */
+/* ── Section headings (was Playfair Display 32px italic) */
 [data-theme="minimal"] .sec-heading {
   font-size: 18px;
   font-weight: 600;
@@ -840,7 +840,7 @@ body.drawer-open { overflow: hidden; }
   text-transform: uppercase;
 }
 
-/* ── Hero verdict (was Instrument Serif 24px italic) */
+/* ── Hero verdict (was Playfair Display 24px italic) */
 [data-theme="minimal"] .verdict {
   font-size: 14px;
   font-weight: 400;
@@ -849,7 +849,7 @@ body.drawer-open { overflow: hidden; }
 }
 [data-theme="minimal"] .verdict em { font-style: normal !important; font-weight: 600; }
 
-/* ── About section titles (was Instrument Serif 22px italic) */
+/* ── About section titles (was Playfair Display 22px italic) */
 [data-theme="minimal"] .about-title {
   font-size: 11px;
   font-weight: 700;
@@ -858,7 +858,7 @@ body.drawer-open { overflow: hidden; }
   margin-bottom: 10px;
 }
 
-/* ── Effects card label (was Instrument Serif 22px italic) */
+/* ── Effects card label (was Playfair Display 22px italic) */
 [data-theme="minimal"] .action-card-label {
   font-size: 11px;
   font-weight: 700;
