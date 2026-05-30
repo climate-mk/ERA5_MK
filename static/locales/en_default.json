@@ -8,8 +8,9 @@
     "heading_today": "Macedonia Today",
     "title_today": "Is it Hot in Macedonia Today?",
     "heading_location": "Location details",
-    "heading_controls": "Location selection, Controls, and Charts",
+    "heading_controls": "Controls",
     "heading_controls_sub": "(red = bad, blue = good)",
+    "heading_charts": "Charts",
     "heading_about": "About us",
     "label_effects": "Some effects of the climate changes",
     "map_falling": "falling",
@@ -231,6 +232,7 @@
     "col2_title": "Why do we do this?",
     "col2_text1": "Southeastern Europe is warming at nearly twice the global average rate. The effects are already here - longer summers, shrinking rivers, record-breaking heat, and fires burning wider every year.",
     "col2_text2": "Numbers make it harder to look away. When you see how many more hot days we've had this decade compared to the last, or how rainfall has shifted over time, it stops feeling like abstract news and starts feeling like what it is: a local problem, happening now. Understanding what's changing - here, in our own backyard - is the first step to doing something about it.",
+    "col2_btn": "What can we do? →",
     "col3_title": "Methods used",
     "col3_text": "We utilize statistical methods for slope calculation and to detect trends while correcting for serial correlation. Data processing involves modeling, elevation-based lapse-rate corrections, and window half-width smoothing to analyze multi-decade climate shifts, with visualizations powered by the Highcharts library. For more detailed information about these methods, the website or the regional climate changes, consult our chatbot Ognen, The Climate Assistant or visit the <a href=\"https://github.com/kesma01/ERA5_MK\" target=\"_blank\" rel=\"noopener\">GitHub page</a>."
   },
@@ -689,5 +691,87 @@
     "Strain on energy grids from soaring summer air-conditioning demand",
     "Higher food prices driven by regional crop failures",
     "Increased dust storms and Saharan dust intrusions reducing air quality"
-  ]
+  ],
+  "climate_risks": {
+    "heading": "Impact risk:",
+    "Berovo": "Severe forest fire risks",
+    "Bitola": "Pelagonia agricultural drought crisis",
+    "Debar": "Drin basin water depletion",
+    "Demir_Kapija": "Extreme, record-breaking heatwaves",
+    "Gevgelija": "Intense Mediterranean desertification threat",
+    "Gostivar": "Sharr mountain snowmelt reduction",
+    "Kavadarci": "Tikvesh vineyard heat stress",
+    "Kicevo": "Accelerated water source drying",
+    "Kochani": "Rice paddy water shortages",
+    "Kumanovo": "Extreme rural drought vulnerability",
+    "Lazaropole": "Alpine ecosystem upward shift",
+    "Negotino": "Extreme viticulture heat damage",
+    "Ohrid": "Lake ecosystem biodiversity loss",
+    "Prilep": "Tobacco crop yield collapse",
+    "Radovis": "Flash flood erosion risks",
+    "Skopje": "Urban heat island effect",
+    "Stip": "Severe riverbed drying crises",
+    "Strumica": "Intensive greenhouse heat stress",
+    "Tetovo": "Glacial water supply loss",
+    "Veles": "Vardar valley soil degradation"
+  },
+  "welcome": {
+    "greeting": "Dear friend,",
+    "body1": "Welcome to Climate.mk. Please note that this is a volunteer project, and not everything may be fully working or is supported — we are continuously working on improvements.",
+    "body2": "In case of any questions, you can try our chatbot Ognen, The Climate Assistant or visit our GitHub page. If you already like what you see, we encourage you to buy us a coffee. :)"
+  },
+  "what_can_we_do": {
+    "heading": "What could we do?",
+    "s1_title": "1. Energy Transition, Decarbonization & Grid Modernization",
+    "s1_items": [
+      "Accelerate Coal Phase-Out: Establish a definitive timeline to decommission outdated coal-fired units at REK Bitola and TEC Oslomej.",
+      "Worker Retraining: Implement a Just Transition strategy to reskill coal miners and plant operators for jobs in the green economy.",
+      "Scale Renewables: Fast-track large-scale investments in solar PV and wind farms, utilizing the country's high number of sunny days.",
+      "Upgrade Power Grids: Modernize transmission infrastructure to handle the intermittent nature of decentralized renewable energy.",
+      "Residential Energy Efficiency: Scale up the UNDP Green Finance Facility to subsidize home insulation, triple-glazing, and energy-efficient heating upgrades for private households."
+    ],
+    "s2_title": "2. Climate Adaptation, Agriculture & Water Security",
+    "s2_items": [
+      "Crop Diversification: Shift farming in the Pelagonia and Vardar valley regions toward drought-resistant varieties and climate-resilient sub-tropical crops.",
+      "Precision Irrigation: Replace wasteful open-channel flooding with advanced drip-irrigation networks to conserve shrinking water tables.",
+      "Transboundary Water Management: Cooperate with regional neighbors to sustainably manage shared basins like the Vardar and Drim rivers.",
+      "Forestry Protection: Deploy early-warning sensor networks and drone monitoring to prevent catastrophic wildfires in high-risk alpine zones.",
+      "Flood Mitigation: Build nature-based river defenses and restore natural floodplains in vulnerable municipalities to survive extreme downpours."
+    ],
+    "s3_title": "3. Urban Environment, Smog Reduction & Green Transport",
+    "s3_items": [
+      "Decarbonize Winter Heating: Eliminate urban wood-burning and heavy fuel oil heating by connecting more homes in Skopje, Bitola, and Tetovo to district heating or high-efficiency heat pumps.",
+      "Finance the physical expansion of the central heating pipe network to reach high-density suburban neighborhoods that currently rely on wood or electricity.",
+      "Expand Urban Canopies: Develop green corridors (e.g., along the Serava and Vardar rivers) and enforce green roof mandates for new buildings to combat the urban heat island effect.",
+      "Public Transit Overhaul: Introduce zero-emission electric bus fleets and expand dedicated micro-mobility lanes (bikes and scooters).",
+      "E-Mobility Infrastructure: Deploy a dense national network of public electric vehicle (EV) charging stations powered by clean energy.",
+      "Mandatory Grid Connection Laws: Enforce local zoning regulations that require all newly constructed residential and commercial buildings located near existing networks to connect to the district heating grid.",
+      "Industrial Waste Heat Recovery: Capture excess thermal energy from heavy industries and local factories to feed directly into municipal heating grids, reducing the need to burn primary fuels.",
+      "Geothermal District Systems: Investigate and tap into the country's existing low-temperature geothermal springs to power localized, clean thermal energy networks for nearby towns."
+    ],
+    "s4_title": "4. Economic Policy, European Alignment & Solid Waste",
+    "s4_items": [
+      "Carbon Pricing Mechanisms: Establish a national carbon pricing or emissions trading system to comply with the EU Carbon Border Adjustment Mechanism (CBAM) and prevent export penalties.",
+      "Combating Energy Poverty: Create targeted financial safety nets to ensure carbon pricing does not disproportionately burden low-income households.",
+      "Solid Waste Overhaul: Shut down non-compliant landfills, enforce strict regional waste sorting, and promote a circular economy to cut methane."
+    ],
+    "s5_title": "5. Everyday Citizen Actions & Direct Household Impact",
+    "s5_items": [
+      "Household Heating: Switch from wood stoves or lignite to inverter air conditioners or pellet stoves, or connect to district heating.",
+      "Reconnection Incentives: Take advantage of municipal subsidies to reconnect to the central heating grid if the household previously disconnected due to high historic costs.",
+      "Building-Level Heat Substations: Cooperate with building homeowner associations (HOAs) to upgrade old basement heating substations and install individual heat meters for fair, consumption-based billing.",
+      "Solar Self-Consumption: Install rooftop solar panels as a prosumer to generate individual electricity and sell surplus back to the grid.",
+      "Commuting Habits: Choose public buses, walking, or cycling over private vehicles, especially during critical winter inversion smog periods.",
+      "Water and Waste Conservation: Fix local leaks, use drip lines in gardens, and actively separate organic waste and plastics to reduce landfill load.",
+      "Support Local Eco-Brands: Purchase locally grown seasonal produce to lower the high carbon footprint linked to imported foods."
+    ],
+    "s6_title": "6. Citizen Power: How to Directly Influence National Policies",
+    "s6_items": [
+      "ENER National Registry: Monitor and submit direct public commentary on draft environmental laws via the Electronic National Regulation Registry.",
+      "Local Municipal Council Sessions: Attend open municipal meetings to demand green local budgets, bike lanes, and city park protections.",
+      "Citizen Initiatives & Petitions: Use Article 71 of the Constitution to gather 10,000 signatures to propose binding green laws to Parliament.",
+      "Joint Civil Society Advocacy: Join and fund established Macedonian green NGOs (like Eko-svest, O2 Iniciativa, or Go Green) to scale up lobbying.",
+      "Report Environmental Crimes: Use official inspectorate lines or mobile apps (like \"Moja Opstina\") to log illegal dumping or factory pollution."
+    ]
+  }
 }

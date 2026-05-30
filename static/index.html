@@ -16,7 +16,7 @@
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500;600&family=Instrument+Serif:ital@0;1&display=swap" rel="stylesheet">
-  <link rel="stylesheet" href="style.css">
+  <link rel="stylesheet" href="css/style.css">
   <!-- Highcharts CDN -->
   <script src="https://code.highcharts.com/highcharts.js"></script>
   <script src="https://code.highcharts.com/highcharts-more.js"></script>
@@ -29,10 +29,10 @@
 
   <header class="topbar">
     <div class="brand">
-      <a href="#"><img class="brand-logo" src="logo.png" alt="climate.mk"></a>
+      <a href="#"><img class="brand-logo" src="images/logo.png" alt="climate.mk"></a>
     </div>
     <button class="chat-btn" onclick="openChat()" id="chat-toggle-btn">
-      <img class="chat-avatar" src="Ognen100.png" alt="Ognen">
+      <img class="chat-avatar" src="images/Ognen100.png" alt="Ognen">
       <span class="chat-label">
         <span class="chat-name">Chat with Ognen</span>
         <span class="chat-role">climate assistant</span>
@@ -258,6 +258,7 @@
         <div class="about-title" id="about-col2-title">Why do we do this?</div>
         <p id="about-col2-text1">Southeastern Europe is warming at nearly twice the global average rate. The effects are already here - longer summers, shrinking rivers, record-breaking heat, and fires burning wider every year.</p>
         <p id="about-col2-text2" style="margin-top:10px;">Numbers make it harder to look away. When you see how many more hot days we've had this decade compared to the last, or how rainfall has shifted over time, it stops feeling like abstract news and starts feeling like what it is: a local problem, happening now. Understanding what's changing - here, in our own backyard - is the first step to doing something about it.</p>
+        <a id="about-col2-btn" href="what-can-we-do.html" class="about-action-btn">What can we do? →</a>
       </div>
       <div class="about-col">
         <div class="about-title" id="about-col3-title">Methods used</div>
@@ -322,12 +323,17 @@
     <div class="welcome-content">
       <button class="welcome-close" onclick="closeWelcome()" aria-label="Close">✕</button>
       <div class="welcome-logo">
-        <img src="logo.png" alt="climate.mk">
+        <img src="images/logo.png" alt="climate.mk">
       </div>
       <div class="welcome-body">
         <p class="welcome-greeting">Dear friend,</p>
         <p>Welcome to Climate.mk. Please note that this is a volunteer project, and not everything may be fully working or is supported — we are continuously working on improvements.</p>
         <p>In case of any questions, you can try our chatbot Ognen, The Climate Assistant or visit our GitHub page. If you already like what you see, we encourage you to buy us a coffee. :)</p>
+      </div>
+      <div class="welcome-lang-row">
+        <button class="welcome-lang-btn" data-lang="mk">Македонски</button>
+        <button class="welcome-lang-btn" data-lang="en">English</button>
+        <button class="welcome-lang-btn" data-lang="sq">Shqip</button>
       </div>
     </div>
   </div>
@@ -341,7 +347,7 @@
   <aside id="mobile-drawer" class="mobile-drawer" aria-label="Site menu">
 
     <div class="mdr-head">
-      <img src="logo.png" alt="climate.mk" class="mdr-logo">
+      <img src="images/logo.png" alt="climate.mk" class="mdr-logo">
       <button id="mdr-close" class="mdr-close" aria-label="Close menu">✕</button>
     </div>
 
@@ -395,7 +401,7 @@
     <!-- Chat -->
     <div class="mdr-section" id="mdr-chat-section">
       <button class="mdr-chat-btn" onclick="openChat(); closeMobileDrawer()">
-        <img src="Ognen100.png" alt="Ognen" class="mdr-chat-avatar">
+        <img src="images/Ognen100.png" alt="Ognen" class="mdr-chat-avatar">
         <span>Chat with Ognen, the Climate Assistant</span>
       </button>
     </div>
@@ -403,6 +409,6 @@
   </aside>
 
 <script src="https://cdn.botframework.com/botframework-webchat/latest/webchat.js"></script>
-<script src="app.js"></script>
+<script src="js/app.js"></script>
 </body>
 </html>

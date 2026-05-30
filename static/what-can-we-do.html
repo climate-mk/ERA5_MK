@@ -1,0 +1,240 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>What can we do? — climate.mk</title>
+  <link rel="icon" type="image/x-icon" href="favicon.ico">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;500;600;700&family=Instrument+Serif:ital@0;1&display=swap" rel="stylesheet">
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+    :root {
+      --paper:     #F5F2EC;
+      --paper-2:   #EFEBE2;
+      --card:      #FFFFFF;
+      --ink:       #0E0E0C;
+      --ink-2:     #2B2926;
+      --ink-soft:  #6B655B;
+      --ink-faint: #ABA59A;
+      --rule:      rgba(14,14,12,0.08);
+      --accent:    #C25A2C;
+      --radius:    14px;
+      --max-w:     780px;
+    }
+
+    body {
+      font-family: 'Space Grotesk', system-ui, sans-serif;
+      background: var(--paper);
+      color: var(--ink);
+      font-size: 15px;
+      line-height: 1.65;
+      min-height: 100dvh;
+    }
+
+    .topbar {
+      position: sticky; top: 0; z-index: 100;
+      background: var(--paper);
+      border-bottom: 1px solid var(--rule);
+      padding: 16px 40px;
+      display: flex;
+      align-items: center;
+    }
+
+    .back-link {
+      color: var(--ink-soft);
+      text-decoration: none;
+      font-size: 13px;
+      font-weight: 500;
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      transition: color 0.15s;
+    }
+    .back-link:hover { color: var(--accent); }
+    .back-link svg { flex-shrink: 0; }
+
+    .content {
+      max-width: var(--max-w);
+      margin: 0 auto;
+      padding: 48px 40px 80px;
+    }
+
+    .flag-wrap {
+      display: flex;
+      justify-content: center;
+      margin-bottom: 36px;
+    }
+
+    .flag-wrap svg {
+      width: 130px;
+      height: auto;
+      border-radius: 4px;
+      box-shadow: 0 2px 10px rgba(0,0,0,0.12);
+    }
+
+    h1 {
+      font-family: 'Instrument Serif', serif;
+      font-style: italic;
+      font-size: 36px;
+      text-align: center;
+      color: var(--ink);
+      margin-bottom: 48px;
+      letter-spacing: 0.01em;
+    }
+
+    .section {
+      margin-bottom: 36px;
+      background: var(--card);
+      border: 1px solid var(--rule);
+      border-radius: var(--radius);
+      padding: 28px 32px;
+    }
+
+    .section h2 {
+      font-family: 'Instrument Serif', serif;
+      font-style: italic;
+      font-size: 20px;
+      color: var(--ink);
+      margin-bottom: 16px;
+      letter-spacing: 0.01em;
+    }
+
+    .section ul {
+      list-style: none;
+      display: flex;
+      flex-direction: column;
+      gap: 10px;
+    }
+
+    .section ul li {
+      font-size: 14px;
+      color: var(--ink-soft);
+      line-height: 1.65;
+      padding-left: 18px;
+      position: relative;
+    }
+
+    .section ul li::before {
+      content: '–';
+      position: absolute;
+      left: 0;
+      color: var(--accent);
+      font-weight: 600;
+    }
+
+    @media (max-width: 600px) {
+      .topbar { padding: 14px 20px; }
+      .content { padding: 32px 20px 60px; }
+      h1 { font-size: 28px; margin-bottom: 32px; }
+      .section { padding: 20px 20px; }
+    }
+  </style>
+</head>
+<body>
+
+<div class="topbar">
+  <a href="/" class="back-link">
+    <svg width="16" height="16" viewBox="0 0 16 16" fill="none" xmlns="http://www.w3.org/2000/svg">
+      <path d="M10 12L6 8L10 4" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/>
+    </svg>
+    <span id="back-label">Back</span>
+  </a>
+</div>
+
+<div class="content">
+
+  <div class="flag-wrap">
+    <svg xmlns="http://www.w3.org/2000/svg" viewBox="-140 -70 280 140" fill="#f8e92e">
+      <path fill="#d82126" d="m-140-70h280V70h-280z"/>
+      <path d="m-140 14v-28l280 28v-28zm126-84h28L0-15zM14 70h-28L0 15zM-140-70h42L12.86 7.72zm0 140h42L12.86-7.72zM140-70H98L-12.86 7.72zm0 140H98L-12.86-7.72z"/>
+      <circle r="22.5" stroke="#d82126" stroke-width="5"/>
+    </svg>
+  </div>
+
+  <h1 id="page-heading">What could we do?</h1>
+
+  <div class="section" id="s1">
+    <h2 id="s1-title">1. Energy Transition, Decarbonization &amp; Grid Modernization</h2>
+    <ul id="s1-list"></ul>
+  </div>
+
+  <div class="section" id="s2">
+    <h2 id="s2-title">2. Climate Adaptation, Agriculture &amp; Water Security</h2>
+    <ul id="s2-list"></ul>
+  </div>
+
+  <div class="section" id="s3">
+    <h2 id="s3-title">3. Urban Environment, Smog Reduction &amp; Green Transport</h2>
+    <ul id="s3-list"></ul>
+  </div>
+
+  <div class="section" id="s4">
+    <h2 id="s4-title">4. Economic Policy, European Alignment &amp; Solid Waste</h2>
+    <ul id="s4-list"></ul>
+  </div>
+
+  <div class="section" id="s5">
+    <h2 id="s5-title">5. Everyday Citizen Actions &amp; Direct Household Impact</h2>
+    <ul id="s5-list"></ul>
+  </div>
+
+  <div class="section" id="s6">
+    <h2 id="s6-title">6. Citizen Power: How to Directly Influence National Policies</h2>
+    <ul id="s6-list"></ul>
+  </div>
+
+</div>
+
+<script>
+(async function () {
+  const lang  = localStorage.getItem('mk_lang')    || 'mk';
+  const style = localStorage.getItem('mk_content') || 'default';
+
+  let wc = null;
+  try {
+    const r = await fetch('/locales/' + lang + '_' + style + '.json');
+    if (r.ok) {
+      const loc = await r.json();
+      wc = loc.what_can_we_do || null;
+    }
+  } catch (e) { /* fall through to hardcoded defaults */ }
+
+  if (!wc) return; // page already has English fallback text in HTML
+
+  const setText = (id, val) => {
+    const el = document.getElementById(id);
+    if (el && val) el.textContent = val;
+  };
+
+  const setList = (id, items) => {
+    const ul = document.getElementById(id);
+    if (!ul || !Array.isArray(items)) return;
+    ul.innerHTML = items.map(item => '<li>' + escHtml(item) + '</li>').join('');
+  };
+
+  const escHtml = s => s
+    .replace(/&/g, '&amp;')
+    .replace(/</g, '&lt;')
+    .replace(/>/g, '&gt;');
+
+  setText('page-heading', wc.heading);
+  document.title = (wc.heading || 'What can we do?') + ' — climate.mk';
+
+  for (let i = 1; i <= 6; i++) {
+    setText('s' + i + '-title', wc['s' + i + '_title']);
+    setList('s' + i + '-list', wc['s' + i + '_items']);
+  }
+
+  // Translate back label
+  const backLabels = { mk: '← Назад', sq: '← Prapa', en: '← Back' };
+  setText('back-label', backLabels[lang] || '← Back');
+  const backEl = document.querySelector('.back-link');
+  if (backEl) backEl.querySelector('svg').insertAdjacentText('afterend', '');
+})();
+</script>
+
+</body>
+</html>
