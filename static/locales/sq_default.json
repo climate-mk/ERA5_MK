@@ -494,5 +494,35 @@
       "Avokimi i Shoqërisë Civile: Anëtarësohuni dhe financoni OJQ-të e vendosura maqedonase të gjelbra (si Eko-svest, O2 Iniciativa, ose Go Green) për të zgjeruar lobimin.",
       "Raportimi i Krimeve Mjedisore: Përdorni linjat zyrtare të inspektoratit ose aplikacionet mobile (si \"Moja Opstina\") për të regjistruar hedhjen ilegale ose ndotjen e fabrikave."
     ]
+  },
+  "mk2036": {
+    "heading": "Maqedonia 2036",
+    "timeline_btn": "Klikoni për të parë vijën kohore",
+    "r1": {
+      "name": "Qendrore (Povardarie & Ovche Pole)",
+      "i1": "Vreshtat dëmtohen nga nxehtësia ekstreme e zgjatur — rrushi është veçanërisht i ndjeshëm kur temperaturat mbeten të larta gjatë lulëzimit dhe vjeljes.",
+      "i2": "Lumi Vardar mbart më pak ujë, duke u lënë fermerëve më pak për të tërhequr për ujitjen e fushave të tyre.",
+      "i3": "Ovçe Pole — tashmë një nga rrafshet më të thata të Evropës — bëhet edhe më e thatë. Toka e humbet lagështinë më shpejt, duke e bërë gjithnjë e më të vështirë bujqësinë pa ujitje."
+    },
+    "r2": {
+      "name": "Pelagonija (Manastir & Prilep)",
+      "i1": "Fushat që varen vetëm nga uji i shiut — pa ujitje — vuajnë humbje të rënda në grurë dhe misër kur toka thahet shumë herët gjatë sezonit.",
+      "i2": "Korrjet e këqija ndalojnë së qeni përjashtime të rralla dhe fillojnë të bëhen diçka që fermerët mund ta presin shumicën e viteve."
+    },
+    "r3": {
+      "name": "Malet & VB (Mavrovë, Sharr)",
+      "i1": "Dimrat bëhen më të shkurtër dhe më të ngrohtë, që do të thotë më pak borë dhe sezon më i shkurtër ski — duke kërcënuar të ardhurat e fshatrave malore që varen nga turizmi dimëror.",
+      "i2": "Kur shiu i rëndë bie mbi shpatet malore të thata, uji rrjedh poshtë shpejt pa pasur ku të absorbohet — duke përmbysur luginat e lumenjve Pena dhe Radika dhe duke dëmtuar rrugët, urat dhe tokën bujqësore."
+    },
+    "r4": {
+      "name": "Juglindore (Strumicë & Gevgeli)",
+      "i1": "Kur netët qëndrojnë mbi 20°C, bimët vazhdojnë të djegim energji në vend që të rimëkëmben nga nxehtësia ditore — kështu kulturat si specat, domatet dhe rrushi arrijnë në korrje tashmë të dobësuara.",
+      "i2": "Uji i ruajtur në rezervuarë bie i ulët pikërisht në momentin kur fermerët kanë nevojë për të më shumë — duke krijuar mungesë reale ujitjeje në pjesën më të nxehtë dhe më të thatë të vitit."
+    },
+    "r5": {
+      "name": "Urbane (Shkup)",
+      "i1": "Betoni dhe asfalti i Shkupit thithin nxehtësinë gjatë gjithë ditës dhe e lëshojnë natën — kështu qyteti kurrë nuk ftohet. Gjumi bëhet i vështirë, të moshuarit janë veçanërisht në rrezik, dhe spitalet shohin një rritje të mprehtë të sëmundjeve të lidhura me nxehtësinë.",
+      "i2": "Kur i gjithë qyteti ndez kondicionerin njëherësh gjatë një vale nxehtësie, rrjeti elektrik mund të luftojë për të përballuar — duke rritur rrezikun e ndërprerjeve të energjisë në momentin më të keq të mundshëm."
+    }
   }
 }

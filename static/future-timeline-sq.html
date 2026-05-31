@@ -1,0 +1,383 @@
+<!DOCTYPE html>
+<html lang="sq">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Maqedonia e Veriut — E ardhmja klimatike 2031–2051</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;500;600&family=JetBrains+Mono:wght@400;500;600&family=Playfair+Display:ital,wght@0,700;0,900;1,700&display=swap" rel="stylesheet">
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+    :root {
+      --bg:#0d0b09; --bg-2:#141210; --card:rgba(255,255,255,0.04); --card-hover:rgba(255,255,255,0.07);
+      --ink:#f0ece4; --ink-soft:#9a948a; --ink-faint:#5a554f;
+      --c0:#3a5a8a; --c4:#d99a5a; --c5:#c25a2c; --c6:#962c1a; --c7:#6e1810; --c8:#4a0d08;
+      --spine-w:2px; --gap:48px;
+    }
+    html { scroll-behavior: smooth; }
+    body { font-family: 'Space Grotesk', sans-serif; background: var(--bg); color: var(--ink); min-height: 100dvh; overflow-x: hidden; }
+    .topbar { position: sticky; top: 0; z-index: 100; background: rgba(13,11,9,0.88); backdrop-filter: blur(12px); -webkit-backdrop-filter: blur(12px); border-bottom: 1px solid rgba(255,255,255,0.06); display: flex; align-items: center; gap: 20px; padding: 0 32px; height: 52px; }
+    .topbar-back { font-family: 'JetBrains Mono', monospace; font-size: 11px; font-weight: 500; letter-spacing: 0.08em; text-transform: uppercase; color: var(--ink-soft); text-decoration: none; display: flex; align-items: center; gap: 6px; transition: color 0.15s; }
+    .topbar-back:hover { color: var(--ink); }
+    .topbar-back svg { flex-shrink: 0; }
+    .topbar-title { font-family: 'JetBrains Mono', monospace; font-size: 11px; font-weight: 500; letter-spacing: 0.1em; text-transform: uppercase; color: var(--ink-faint); }
+    .topbar-dot { width: 4px; height: 4px; border-radius: 50%; background: var(--ink-faint); flex-shrink: 0; }
+    .hero { text-align: center; padding: 80px 24px 60px; max-width: 720px; margin: 0 auto; }
+    .hero-eyebrow { font-family: 'JetBrains Mono', monospace; font-size: 11px; font-weight: 500; letter-spacing: 0.16em; text-transform: uppercase; color: var(--c5); margin-bottom: 20px; }
+    .hero-title { font-family: 'Playfair Display', serif; font-size: clamp(32px, 5vw, 56px); font-weight: 900; line-height: 1.1; color: var(--ink); margin-bottom: 20px; }
+    .hero-sub { font-size: 16px; line-height: 1.65; color: #b8b2a8; }
+    .timeline { position: relative; max-width: 1100px; margin: 0 auto; padding: 0 24px 120px; }
+    .timeline::before { content: ''; position: absolute; left: 50%; top: 0; bottom: 0; width: var(--spine-w); transform: translateX(-50%) scaleY(0); transform-origin: top center; background: linear-gradient(to bottom, var(--c0) 0%, var(--c4) 25%, var(--c5) 50%, var(--c6) 75%, var(--c8) 100%); animation: spineDraw 1.6s cubic-bezier(0.22,1,0.36,1) 0.3s forwards; }
+    @keyframes spineDraw { to { transform: translateX(-50%) scaleY(1); } }
+    .era { position: relative; margin-bottom: 80px; }
+    .era-dot { position: absolute; left: 50%; top: 18px; transform: translateX(-50%); width: 14px; height: 14px; border-radius: 50%; border: 2px solid var(--bg); z-index: 2; transition: box-shadow 0.3s; }
+    .era-year-row { display: flex; justify-content: center; align-items: center; margin-bottom: 40px; position: relative; }
+    .era-year { font-family: 'Playfair Display', serif; font-size: clamp(56px, 8vw, 96px); font-weight: 900; line-height: 1; letter-spacing: -0.02em; opacity: 0; transform: scale(0.88); transition: opacity 0.6s ease, transform 0.6s ease; }
+    .era-year.visible { opacity: 1; transform: scale(1); }
+    .era-headline { font-family: 'JetBrains Mono', monospace; font-size: 12px; font-weight: 500; letter-spacing: 0.12em; text-transform: uppercase; color: var(--ink-soft); text-align: center; margin-top: 8px; margin-bottom: 16px; padding: 0 20%; }
+    .era-temp-badge { display: inline-flex; flex-direction: column; align-items: center; gap: 3px; margin: 0 auto 28px; background: rgba(255,255,255,0.05); border: 1px solid rgba(255,255,255,0.1); border-radius: 8px; padding: 8px 16px 7px; }
+    .era-temp-badge .temp-delta { font-family: 'JetBrains Mono', monospace; font-size: 16px; font-weight: 600; letter-spacing: 0.04em; }
+    .era-temp-badge .temp-source { font-family: 'JetBrains Mono', monospace; font-size: 10px; font-weight: 400; letter-spacing: 0.09em; text-transform: uppercase; color: var(--ink-soft); }
+    .era-2031 .era-temp-badge { border-color: rgba(217,154,90,0.25); }
+    .era-2031 .era-temp-badge .temp-delta { color: var(--c4); }
+    .era-2036 .era-temp-badge { border-color: rgba(194,90,44,0.28); }
+    .era-2036 .era-temp-badge .temp-delta { color: var(--c5); }
+    .era-2041 .era-temp-badge { border-color: rgba(150,44,26,0.3); }
+    .era-2041 .era-temp-badge .temp-delta { color: var(--c6); }
+    .era-2046 .era-temp-badge { border-color: rgba(110,24,16,0.32); }
+    .era-2046 .era-temp-badge .temp-delta { color: #a0341e; }
+    .era-2051 .era-temp-badge { border-color: rgba(192,38,14,0.35); }
+    .era-2051 .era-temp-badge .temp-delta { color: #c0260e; }
+    .era-temp-badge-wrap { display: flex; justify-content: center; }
+    .era-cards { display: grid; grid-template-columns: 1fr 60px 1fr; gap: 16px 0; align-items: start; }
+    .era-card { border: 1px solid rgba(255,255,255,0.07); border-radius: 12px; background: var(--card); padding: 22px 24px; overflow: hidden; opacity: 0; transition: opacity 0.5s ease, transform 0.5s ease, background 0.2s, border-color 0.2s; }
+    .era-card:hover { background: var(--card-hover); }
+    .era-card.visible { opacity: 1; transform: none !important; }
+    .era-card.left { grid-column: 1; transform: translateX(-24px); }
+    .era-card.right { grid-column: 3; transform: translateX(24px); }
+    .era-spacer { grid-column: 2; }
+    .card-img-wrap { position: relative; width: calc(100% + 48px); margin: -22px -24px 18px; height: 160px; border-radius: 11px 11px 0 0; overflow: hidden; }
+    .card-img { width: 100%; margin: 0; height: 100%; object-fit: cover; border-radius: 0; display: block; background: #1a1612; }
+    .card-img-caption { position: absolute; bottom: 5px; right: 8px; display: flex; flex-direction: column; align-items: flex-end; gap: 2px; font-size: 10px; line-height: 1.3; color: rgba(255,255,255,0.65); text-shadow: 0 1px 3px rgba(0,0,0,0.7); }
+    .card-img-caption a { color: rgba(255,255,255,0.65); text-decoration: none; }
+    .card-img-caption a:hover { color: #fff; }
+    .card-title { font-family: 'JetBrains Mono', monospace; font-size: 12px; font-weight: 600; letter-spacing: 0.12em; text-transform: uppercase; margin-bottom: 10px; }
+    .card-body { font-size: 17px; line-height: 1.7; color: #c8c2b8; }
+    .era-2031 .era-year { color: var(--c4); text-shadow: 0 0 40px rgba(217,154,90,0.3); }
+    .era-2031 .era-dot { background: var(--c4); box-shadow: 0 0 8px rgba(217,154,90,0.5); }
+    .era-2031 .era-card { border-color: rgba(217,154,90,0.18); }
+    .era-2031 .card-title { color: var(--c4); }
+    .era-2036 .era-year { color: var(--c5); text-shadow: 0 0 40px rgba(194,90,44,0.35); }
+    .era-2036 .era-dot { background: var(--c5); box-shadow: 0 0 10px rgba(194,90,44,0.55); }
+    .era-2036 .era-card { border-color: rgba(194,90,44,0.2); }
+    .era-2036 .card-title { color: var(--c5); }
+    .era-2041 .era-year { color: var(--c6); text-shadow: 0 0 40px rgba(150,44,26,0.4); }
+    .era-2041 .era-dot { background: var(--c6); box-shadow: 0 0 12px rgba(150,44,26,0.6); }
+    .era-2041 .era-card { border-color: rgba(150,44,26,0.22); }
+    .era-2041 .card-title { color: var(--c6); }
+    .era-2046 .era-year { color: var(--c7); text-shadow: 0 0 40px rgba(110,24,16,0.5); }
+    .era-2046 .era-dot { background: var(--c7); box-shadow: 0 0 14px rgba(110,24,16,0.65); }
+    .era-2046 .era-card { border-color: rgba(110,24,16,0.25); }
+    .era-2046 .card-title { color: #a0341e; }
+    .era-2051 .era-year { color: #c0260e; text-shadow: 0 0 60px rgba(192,38,14,0.6), 0 0 120px rgba(192,38,14,0.2); animation: emberGlow 1.4s ease-in-out infinite alternate; }
+    .era-2051 .era-dot { background: #c0260e; box-shadow: 0 0 16px rgba(192,38,14,0.75), 0 0 30px rgba(192,38,14,0.35); }
+    .era-2051 .era-card { border-color: rgba(192,38,14,0.28); }
+    .era-2051 .card-title { color: #c0260e; }
+    @keyframes emberGlow { from { text-shadow: 0 0 40px rgba(192,38,14,0.4), 0 0 80px rgba(192,38,14,0.15); opacity: 0.9; } to { text-shadow: 0 0 80px rgba(192,38,14,0.75), 0 0 160px rgba(192,38,14,0.3); opacity: 1; } }
+    .page-footer { text-align: center; padding: 32px 24px 48px; font-family: 'JetBrains Mono', monospace; font-size: 10px; letter-spacing: 0.1em; text-transform: uppercase; color: var(--ink-faint); border-top: 1px solid rgba(255,255,255,0.05); }
+    .page-footer a { color: var(--ink-faint); text-decoration: none; transition: color 0.15s; }
+    .page-footer a:hover { color: var(--ink-soft); }
+    @media (max-width: 900px) {
+      .timeline::before { left: 28px; transform: translateX(0) scaleY(0); animation: spineDrawLeft 1.6s cubic-bezier(0.22,1,0.36,1) 0.3s forwards; }
+      @keyframes spineDrawLeft { to { transform: translateX(0) scaleY(1); } }
+      .era-dot { left: 28px; transform: translateX(-50%); }
+      .era-year-row { justify-content: flex-start; padding-left: 60px; }
+      .era-headline { text-align: left; padding: 0 0 0 60px; }
+      .era-temp-badge-wrap { justify-content: flex-start; padding-left: 60px; }
+      .era-cards { grid-template-columns: 1fr; padding-left: 60px; gap: 12px; }
+      .era-card.left, .era-card.right { grid-column: 1; transform: translateX(20px); }
+      .era-spacer { display: none; }
+    }
+    @media (max-width: 600px) {
+      .topbar { padding: 0 16px; } .hero { padding: 48px 16px 40px; } .timeline { padding: 0 16px 80px; }
+      .era-year-row { padding-left: 48px; } .era-headline { padding-left: 48px; } .era-temp-badge-wrap { padding-left: 48px; } .era-cards { padding-left: 48px; }
+      .era { margin-bottom: 56px; }
+    }
+    .era-card:nth-child(1) { transition-delay: 0.05s; } .era-card:nth-child(3) { transition-delay: 0.15s; }
+    .era-card:nth-child(4) { transition-delay: 0.1s; }  .era-card:nth-child(6) { transition-delay: 0.2s; }
+    .era-card:nth-child(7) { transition-delay: 0.15s; } .era-card:nth-child(9) { transition-delay: 0.25s; }
+  </style>
+</head>
+<body>
+<nav class="topbar">
+  <a class="topbar-back" href="index.html">
+    <svg width="14" height="14" viewBox="0 0 14 14" fill="none"><path d="M9 11L5 7L9 3" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/></svg>
+    Kthehu
+  </a>
+  <div class="topbar-dot"></div>
+  <span class="topbar-title" style="color:#7a746e;">E ardhmja e mundshme klimatike · Maqedonia e Veriut</span>
+</nav>
+<div class="hero">
+  <div class="hero-eyebrow">Skenarë të mundshëm · 2031 – 2051</div>
+  <h1 class="hero-title">Një vend që ngrohet,<br>dekadë pas dekade</h1>
+  <p class="hero-sub">Një vështrim se si ndryshimet klimatike mund të riformësojnë jetën në Maqedoninë e Veriut gjatë 25 viteve të ardhshme — bujqësia, uji, shëndeti dhe financat e njerëzve. Shifrat e temperaturës janë parashikime të shkencëtarëve bazuar në trajektoren aktuale të emetimeve, krahasuar me mesataren e viteve 1961–1990.</p>
+</div>
+<div class="timeline">
+  <!-- 2031 -->
+  <div class="era era-2031">
+    <div class="era-dot"></div>
+    <div class="era-year-row"><div class="era-year" data-animate="year">2031</div></div>
+    <div class="era-headline">Nxehtësi e rrezikshme dhe ndërprerje rryme</div>
+    <div class="era-temp-badge-wrap">
+      <div class="era-temp-badge">
+        <span class="temp-delta">≈ +1.3°C (interval +1.1–1.5°C)</span>
+        <span class="temp-source">më ngrohtë se mesatarja e viteve 1960 · i parashikuar për vitet 2030</span>
+      </div>
+    </div>
+    <div class="era-cards">
+      <div class="era-card left" data-animate="card">
+        <div class="card-img-wrap">
+          <img class="card-img" src="images/timeline/heatwave-skopje.webp" alt="Valë nxehtësie" loading="lazy">
+          <div class="card-img-caption">
+            <span>Vetëm për ilustrim</span>
+            <a href="https://www.kunr.org/energy-and-environment/2020-08-14/heat-wave-harvey-push-to-name-extreme-heat-events-warming-up" target="_blank" rel="noopener">Burimi ↗</a>
+          </div>
+        </div>
+        <div class="card-title">Nxehtësi që nuk kemi parë kurrë</div>
+        <p class="card-body">Shkupi mund të përjetojë temperatura 40–42°C për ditë me radhë — diçka që sot është e rrallë, por atëherë do të bëhej verë e zakonshme. Puna jashtë bëhet rrezik shëndetësor, spitalet mbushen dhe njerëzit gjithnjë e më shumë qëndrojnë brenda.</p>
+      </div>
+      <div class="era-spacer"></div>
+      <div class="era-card right" data-animate="card">
+        <div class="card-img-wrap">
+          <img class="card-img" src="images/timeline/drought-crops.jpg" alt="Thatësirë bujqësore" loading="lazy">
+          <div class="card-img-caption">
+            <span>Vetëm për ilustrim</span>
+            <a href="https://eu-cap-network.ec.europa.eu/publications/eu-cap-network-cross-visit-climate-adaptation-ground-innovative-solutions-build-farm_en" target="_blank" rel="noopener">Burimi ↗</a>
+          </div>
+        </div>
+        <div class="card-title">Korrje të këqija</div>
+        <p class="card-body">Thatësirat pranverore pritet të vijnë më herët dhe të godasin më fort, duke vënë në rrezik serioz duhanin, rrushtat dhe grurën në Pellagoninë. Nëse këto kushte vazhdojnë, fermerët mund të kenë vite të vështira njëra pas tjetrës pa asnjë mbështetje.</p>
+      </div>
+      <div class="era-card left" data-animate="card">
+        <div class="card-img-wrap">
+          <img class="card-img" src="images/timeline/power-grid-strain.jpg" alt="Rrjeti elektrik" loading="lazy">
+          <div class="card-img-caption">
+            <span>Vetëm për ilustrim</span>
+            <a href="https://www.cnbc.com/2023/07/01/why-the-ev-boom-could-put-a-major-strain-on-our-power-grid.html" target="_blank" rel="noopener">Burimi ↗</a>
+          </div>
+        </div>
+        <div class="card-title">Energji elektrike e pamjaftueshme</div>
+        <p class="card-body">Kur lumenjtë zbehen nga thatësira, hidrocentralet prodhojnë më pak energji — pikërisht kur të gjithë ndezin kondicionerët. Nëse reshjet vazhdojnë të ulen, ndërprerjet verore të rrymës mund të bëhen plotësisht të zakonshme.</p>
+      </div>
+      <div class="era-spacer"></div>
+    </div>
+  </div>
+  <!-- 2036 -->
+  <div class="era era-2036">
+    <div class="era-dot"></div>
+    <div class="era-year-row"><div class="era-year" data-animate="year">2036</div></div>
+    <div class="era-headline">Natyra nën presion dhe zjarre pyjore</div>
+    <div class="era-temp-badge-wrap">
+      <div class="era-temp-badge">
+        <span class="temp-delta">≈ +1.5°C (interval +1.3–1.7°C)</span>
+        <span class="temp-source">më ngrohtë se mesatarja e viteve 1960 · i parashikuar për fund të viteve 2030</span>
+      </div>
+    </div>
+    <div class="era-cards">
+      <div class="era-spacer"></div><div class="era-spacer"></div>
+      <div class="era-card right" data-animate="card">
+        <div class="card-img-wrap">
+          <img class="card-img" src="images/timeline/wildfire-mountains.jpeg" alt="Zjarr pyjor" loading="lazy">
+          <div class="card-img-caption">
+            <span>Vetëm për ilustrim</span>
+            <a href="https://environment.ec.europa.eu/news/managing-megafires-experiment-participatory-governance-yields-new-management-strategies-2023-11-08_en" target="_blank" rel="noopener">Burimi ↗</a>
+          </div>
+        </div>
+        <div class="card-title">Zjarre që nuk mund të ndalen</div>
+        <p class="card-body">Thatësirat e gjata i thasin pyjet malore perëndimore deri në pikën ku ndizen lehtë. Zjarret përhapen më shpejt se sa zjarrfikësit mund të reagojnë, duke djegur mijëra hektarë dhe duke i detyruar njerëzit të braktisin shtëpitë e tyre.</p>
+      </div>
+      <div class="era-card left" data-animate="card">
+        <div class="card-img-wrap">
+          <img class="card-img" src="images/timeline/lake-ohrid-depletion.jpg" alt="Zbritje e nivelit të liqenit" loading="lazy">
+          <div class="card-img-caption">
+            <span>Vetëm për ilustrim</span>
+            <a href="https://www.smithsonianmag.com/smart-news/united-nations-declares-that-the-world-has-entered-an-era-of-global-water-bankruptcy-180988045/" target="_blank" rel="noopener">Burimi ↗</a>
+          </div>
+        </div>
+        <div class="card-title">Liqenet po ndryshojnë</div>
+        <p class="card-body">Liqeni i Prespës tashmë po tregon shenja rënieje — reshje më të pakta dhe avullim më i fortë do të thotë më pak ujë. Liqeni i Ohrit është më stabil, por uji i tij po ngrohet gjithashtu — dhe kjo dëmton drejtpërdrejt peshqit dhe kafshët e rralla që jetojnë vetëm aty.</p>
+      </div>
+      <div class="era-spacer"></div>
+      <div class="era-card right" data-animate="card">
+        <div class="card-img-wrap">
+          <img class="card-img" src="images/timeline/water-rationing.jpg" alt="Racionim i ujit" loading="lazy">
+          <div class="card-img-caption">
+            <span>Vetëm për ilustrim</span>
+            <a href="https://www.kget.com/news/world-news/ap-colombias-capital-starts-rationing-water-after-reservoirs-hit-historically-low-levels/" target="_blank" rel="noopener">Burimi ↗</a>
+          </div>
+        </div>
+        <div class="card-title">Ujë i kufizuar</div>
+        <p class="card-body">Ujërat nëntokësore rimbushen me shi dhe borë — kur nuk ka mjaftueshëm nga asnjëri, rezervat bien ngadalë. Shkenca tregon se zonat që varen nga puset do të ishin ndër të parat ku autoritetet duhet të kufizojnë konsumin e ujit.</p>
+      </div>
+    </div>
+  </div>
+  <!-- 2041 -->
+  <div class="era era-2041">
+    <div class="era-dot"></div>
+    <div class="era-year-row"><div class="era-year" data-animate="year">2041</div></div>
+    <div class="era-headline">Përmbytje dhe infrastrukturë e dëmtuar</div>
+    <div class="era-temp-badge-wrap">
+      <div class="era-temp-badge">
+        <span class="temp-delta">≈ +1.6°C (interval +1.4–1.9°C)</span>
+        <span class="temp-source">më ngrohtë se mesatarja e viteve 1960 · i parashikuar për fillim të viteve 2040</span>
+      </div>
+    </div>
+    <div class="era-cards">
+      <div class="era-card left" data-animate="card">
+        <div class="card-img-wrap">
+          <img class="card-img" src="images/timeline/flash-flood-skopje.jpg" alt="Përmbytje" loading="lazy">
+          <div class="card-img-caption">
+            <span>Vetëm për ilustrim</span>
+            <a href="https://floodlist.com/europe/macedonia-20-dead-50-injured-floods-skopje" target="_blank" rel="noopener">Burimi ↗</a>
+          </div>
+        </div>
+        <div class="card-title">Përmbytje të dhunshme</div>
+        <p class="card-body">Toka që nuk ka marrë shi për kohë të gjatë ngurtësohet dhe nuk mund të absorbojë ujin — si një sfungjer i thatë që refuzon lëngun. Kur vjen shiu i fortë, uji rrjedh nëpër rrugë, tejkalon sistemin e kanalizimit dhe shkakton dëme të mëdha në lagjet e ulëta të Shkupit dhe Tetovës.</p>
+      </div>
+      <div class="era-spacer"></div>
+      <div class="era-card right" data-animate="card">
+        <div class="card-img-wrap">
+          <img class="card-img" src="images/timeline/infrastructure-damage.jpg" alt="Dëmtim i infrastrukturës" loading="lazy">
+          <div class="card-img-caption">
+            <span>Vetëm për ilustrim</span>
+            <a href="https://www.shutterstock.com/image-photo/heavy-flood-damage-road-collapses-huge-1044748144" target="_blank" rel="noopener">Burimi ↗</a>
+          </div>
+        </div>
+        <div class="card-title">Rrugë dhe ura nën goditje</div>
+        <p class="card-body">Rrugët, urat dhe sistemi i kanalizimit janë ndërtuar për klimën e vjetër — jo për këtë. Çdo përmbytje e re sjell dëme të reja, dhe buxhetet komunale nuk mjaftojnë për gjithçka. Disa rrugë rurale mund të mbeten të prishura për muaj me radhë.</p>
+      </div>
+      <div class="era-card left" data-animate="card">
+        <div class="card-img-wrap">
+          <img class="card-img" src="images/timeline/topsoil-erosion.jpg" alt="Erozion i tokës" loading="lazy">
+          <div class="card-img-caption">
+            <span>Vetëm për ilustrim</span>
+            <a href="https://www.adaptation-undp.org/preventing-droughts-floods-and-soil-erosion-land-desperately-needed-some-poorest-farmers-and" target="_blank" rel="noopener">Burimi ↗</a>
+          </div>
+        </div>
+        <div class="card-title">Shiu që largon tokën</div>
+        <p class="card-body">Shirat e rëndë largosin shtresën e tokës pjellore — atë pa të cilën asgjë nuk mund të rritet. Ndodh ngadalë dhe në heshtje, por dëmi është i përhershëm: toka e humbur nuk kthehet lehtë.</p>
+      </div>
+      <div class="era-spacer"></div>
+    </div>
+  </div>
+  <!-- 2046 -->
+  <div class="era era-2046">
+    <div class="era-dot"></div>
+    <div class="era-year-row"><div class="era-year" data-animate="year">2046</div></div>
+    <div class="era-headline">Fatura në rritje dhe ndikime shëndetësore</div>
+    <div class="era-temp-badge-wrap">
+      <div class="era-temp-badge">
+        <span class="temp-delta">≈ +1.8°C (interval +1.5–2.1°C)</span>
+        <span class="temp-source">më ngrohtë se mesatarja e viteve 1960 · i parashikuar për fund të viteve 2040</span>
+      </div>
+    </div>
+    <div class="era-cards">
+      <div class="era-spacer"></div><div class="era-spacer"></div>
+      <div class="era-card right" data-animate="card">
+        <div class="card-img-wrap">
+          <img class="card-img" src="images/timeline/energy-deficit.jpg" alt="Deficit energjetik" loading="lazy">
+          <div class="card-img-caption">
+            <span>Vetëm për ilustrim</span>
+            <a href="https://www.wired.com/story/power-bills-in-the-us-are-soaring-and-will-rise-further-still/" target="_blank" rel="noopener">Burimi ↗</a>
+          </div>
+        </div>
+        <div class="card-title">Energjia elektrike bëhet shumë e shtrenjtë</div>
+        <p class="card-body">Kur lumenjtë prodhojnë më pak energji në mënyrë të përhershme, vendi duhet të blejë gjithnjë e më shumë energji elektrike nga jashtë. Faturat e energjisë rriten gradualisht — dhe familjet me të ardhura të ulëta e ndjejnë këtë më fort.</p>
+      </div>
+      <div class="era-card left" data-animate="card">
+        <div class="card-img-wrap">
+          <img class="card-img" src="images/timeline/public-health-crisis.webp" alt="Krizë shëndetësore" loading="lazy">
+          <div class="card-img-caption">
+            <span>Vetëm për ilustrim</span>
+            <a href="https://news.northeastern.edu/2025/06/23/how-to-identify-heat-stroke-exhaustion/" target="_blank" rel="noopener">Burimi ↗</a>
+          </div>
+        </div>
+        <div class="card-title">Më shumë njerëz të sëmurë</div>
+        <p class="card-body">Çdo verë gjithnjë e më shumë njerëz mbarojnë në spital me probleme zemre dhe mushkërish nga nxehtësia ekstreme. Për më tepër, tymi nga zjarret dëmton mushkëritë, ndërsa rriqrat dhe mushkonjat — që transmetojnë sëmundje — fillojnë të përhapen në zona ku më parë nuk ishin njohur.</p>
+      </div>
+      <div class="era-spacer"></div>
+      <div class="era-card right" data-animate="card">
+        <div class="card-img-wrap">
+          <img class="card-img" src="images/timeline/food-price-crisis.jpg" alt="Çmimet e ushqimit" loading="lazy">
+          <div class="card-img-caption">
+            <span>Vetëm për ilustrim</span>
+            <a href="https://ag.purdue.edu/news/2024/03/most-consumers-continue-to-expect-rising-food-prices.html" target="_blank" rel="noopener">Burimi ↗</a>
+          </div>
+        </div>
+        <div class="card-title">Ushqimi bëhet më i shtrenjtë</div>
+        <p class="card-body">Kur bujqësia vendase prodhon më pak, vendi duhet të importojë më shumë ushqim — dhe ushqimi i importuar kushton më shumë. Rritja e çmimeve prek më fort familjet me paga dhe pensione të ulëta, të cilat tashmë shpenzojnë një pjesë të madhe të të ardhurave për ushqim.</p>
+      </div>
+    </div>
+  </div>
+  <!-- 2051 -->
+  <div class="era era-2051">
+    <div class="era-dot"></div>
+    <div class="era-year-row"><div class="era-year" data-animate="year">2051</div></div>
+    <div class="era-headline">Toka thahet, njerëzit largohen</div>
+    <div class="era-temp-badge-wrap">
+      <div class="era-temp-badge">
+        <span class="temp-delta">≈ +1.9°C (interval +1.6–2.2°C)</span>
+        <span class="temp-source">më ngrohtë se mesatarja e viteve 1960 · vlerësim i shkencëtarëve për ~2050</span>
+      </div>
+    </div>
+    <div class="era-cards">
+      <div class="era-card left" data-animate="card">
+        <div class="card-img-wrap">
+          <img class="card-img" src="images/timeline/arid-landscape.jpg" alt="Peizazh i thatë" loading="lazy">
+          <div class="card-img-caption">
+            <span>Vetëm për ilustrim</span>
+            <a href="https://www.fotoref.com/products/israel-arid-landscape" target="_blank" rel="noopener">Burimi ↗</a>
+          </div>
+        </div>
+        <div class="card-title">Zona të thata që përhapen</div>
+        <p class="card-body">Maqedonia Qendrore dhe Jugore mund të marrë një klimë të ngjashme me Spanjën Jugore apo Greqinë e sotme — vera të gjata e të thata, pak shi, bari i djegur. Toka që dikur mbante kultura të ndryshme do të dukej gjithnjë e më shkretnore.</p>
+      </div>
+      <div class="era-spacer"></div>
+      <div class="era-card right" data-animate="card">
+        <div class="card-img-wrap">
+          <img class="card-img" src="images/timeline/rural-migration.jpg" alt="Migrim drejt qytetit" loading="lazy">
+          <div class="card-img-caption">
+            <span>Vetëm për ilustrim</span>
+            <a href="https://ruraladventure.mk/zovikj-mariovo/" target="_blank" rel="noopener">Burimi ↗</a>
+          </div>
+        </div>
+        <div class="card-title">Fshatrat po zbrazën</div>
+        <p class="card-body">Kur toka nuk jep prodhim, nuk ka arsye të qëndrosh në fshat. Njerëzit në moshë pune ikin drejt qyteteve — dhe pas tyre mbeten shtëpi bosh në vende që kanë qenë të banuara vazhdimisht për shekuj.</p>
+      </div>
+      <div class="era-card left" data-animate="card">
+        <div class="card-img-wrap">
+          <img class="card-img" src="images/timeline/forest-dieoff.jpg" alt="Zhdukje e pyjeve" loading="lazy">
+          <div class="card-img-caption">
+            <span>Vetëm për ilustrim</span>
+            <a href="https://volcanoesland.com/attractions/dead-forest/" target="_blank" rel="noopener">Burimi ↗</a>
+          </div>
+        </div>
+        <div class="card-title">Pyjet po vdesin</div>
+        <p class="card-body">Ahet dhe lisit — llojet tona më të përhapura pyjore — fillojnë të deteriorohen. Thatësira i dobëson ato, ngrohja ndihmon dëmtuesit dhe sëmundjet të përhapen, dhe pemët nuk mund të përballojnë. Aty ku ato mungojnë, pemë të reja rriten ngadalë — nëse rriten fare.</p>
+      </div>
+      <div class="era-spacer"></div>
+    </div>
+  </div>
+</div>
+<footer class="page-footer">
+  E ardhmja e mundshme klimatike · Maqedonia e Veriut · <a href="index.html">climate.mk</a>
+</footer>
+<script>
+  const observer = new IntersectionObserver((entries) => {
+    entries.forEach(entry => { if (entry.isIntersecting) { entry.target.classList.add('visible'); observer.unobserve(entry.target); } });
+  }, { threshold: 0.15, rootMargin: '0px 0px -40px 0px' });
+  document.querySelectorAll('[data-animate]').forEach(el => observer.observe(el));
+</script>
+</body>
+</html>
