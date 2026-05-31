@@ -7,6 +7,7 @@
   "ui": {
     "heading_today": "Maqedonia Sot",
     "title_today": "A është nxehtë në Maqedoni sot?",
+    "subtitle_today": "krahasuar me të njëjtën datë historikisht",
     "heading_location": "Detajet e vendndodhjes",
     "heading_controls": "Kontrollet",
     "heading_controls_sub": "(i kuq = keq, blu = mirë)",

@@ -7,6 +7,7 @@
   "ui": {
     "heading_today": "Macedonia Today",
     "title_today": "Is it Hot in Macedonia Today?",
+    "subtitle_today": "compared to the same date historically",
     "heading_location": "Location details",
     "heading_controls": "Controls",
     "heading_controls_sub": "(red = bad, blue = good)",
