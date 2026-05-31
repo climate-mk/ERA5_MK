@@ -1,0 +1,709 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>North Macedonia — Climate Future 2031–2051</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;500;600&family=JetBrains+Mono:wght@400;500;600&family=Playfair+Display:ital,wght@0,700;0,900;1,700&display=swap" rel="stylesheet">
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+    :root {
+      --bg:         #0d0b09;
+      --bg-2:       #141210;
+      --card:       rgba(255,255,255,0.04);
+      --card-hover: rgba(255,255,255,0.07);
+      --ink:        #f0ece4;
+      --ink-soft:   #9a948a;
+      --ink-faint:  #5a554f;
+      --c0: #3a5a8a;
+      --c4: #d99a5a;
+      --c5: #c25a2c;
+      --c6: #962c1a;
+      --c7: #6e1810;
+      --c8: #4a0d08;
+      --spine-w: 2px;
+      --gap: 48px;
+    }
+
+    html { scroll-behavior: smooth; }
+
+    body {
+      font-family: 'Space Grotesk', sans-serif;
+      background: var(--bg);
+      color: var(--ink);
+      min-height: 100dvh;
+      overflow-x: hidden;
+    }
+
+    .topbar {
+      position: sticky;
+      top: 0;
+      z-index: 100;
+      background: rgba(13,11,9,0.88);
+      backdrop-filter: blur(12px);
+      -webkit-backdrop-filter: blur(12px);
+      border-bottom: 1px solid rgba(255,255,255,0.06);
+      display: flex;
+      align-items: center;
+      gap: 20px;
+      padding: 0 32px;
+      height: 52px;
+    }
+    .topbar-back {
+      font-family: 'JetBrains Mono', monospace;
+      font-size: 11px;
+      font-weight: 500;
+      letter-spacing: 0.08em;
+      text-transform: uppercase;
+      color: var(--ink-soft);
+      text-decoration: none;
+      display: flex;
+      align-items: center;
+      gap: 6px;
+      transition: color 0.15s;
+    }
+    .topbar-back:hover { color: var(--ink); }
+    .topbar-back svg { flex-shrink: 0; }
+    .topbar-title {
+      font-family: 'JetBrains Mono', monospace;
+      font-size: 11px;
+      font-weight: 500;
+      letter-spacing: 0.1em;
+      text-transform: uppercase;
+      color: var(--ink-faint);
+    }
+    .topbar-dot {
+      width: 4px; height: 4px;
+      border-radius: 50%;
+      background: var(--ink-faint);
+      flex-shrink: 0;
+    }
+
+    .hero {
+      text-align: center;
+      padding: 80px 24px 60px;
+      max-width: 720px;
+      margin: 0 auto;
+    }
+    .hero-eyebrow {
+      font-family: 'JetBrains Mono', monospace;
+      font-size: 11px;
+      font-weight: 500;
+      letter-spacing: 0.16em;
+      text-transform: uppercase;
+      color: var(--c5);
+      margin-bottom: 20px;
+    }
+    .hero-title {
+      font-family: 'Playfair Display', serif;
+      font-size: clamp(32px, 5vw, 56px);
+      font-weight: 900;
+      line-height: 1.1;
+      color: var(--ink);
+      margin-bottom: 20px;
+    }
+    .hero-sub {
+      font-size: 16px;
+      line-height: 1.65;
+      color: #b8b2a8;
+    }
+
+    .timeline {
+      position: relative;
+      max-width: 1100px;
+      margin: 0 auto;
+      padding: 0 24px 120px;
+    }
+
+    .timeline::before {
+      content: '';
+      position: absolute;
+      left: 50%;
+      top: 0;
+      bottom: 0;
+      width: var(--spine-w);
+      transform: translateX(-50%) scaleY(0);
+      transform-origin: top center;
+      background: linear-gradient(
+        to bottom,
+        var(--c0)   0%,
+        var(--c4)  25%,
+        var(--c5)  50%,
+        var(--c6)  75%,
+        var(--c8) 100%
+      );
+      animation: spineDraw 1.6s cubic-bezier(0.22,1,0.36,1) 0.3s forwards;
+    }
+
+    @keyframes spineDraw {
+      to { transform: translateX(-50%) scaleY(1); }
+    }
+
+    .era {
+      position: relative;
+      margin-bottom: 80px;
+    }
+
+    .era-dot {
+      position: absolute;
+      left: 50%;
+      top: 18px;
+      transform: translateX(-50%);
+      width: 14px;
+      height: 14px;
+      border-radius: 50%;
+      border: 2px solid var(--bg);
+      z-index: 2;
+      transition: box-shadow 0.3s;
+    }
+
+    .era-year-row {
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      margin-bottom: 40px;
+      position: relative;
+    }
+
+    .era-year {
+      font-family: 'Playfair Display', serif;
+      font-size: clamp(56px, 8vw, 96px);
+      font-weight: 900;
+      line-height: 1;
+      letter-spacing: -0.02em;
+      opacity: 0;
+      transform: scale(0.88);
+      transition: opacity 0.6s ease, transform 0.6s ease;
+    }
+    .era-year.visible {
+      opacity: 1;
+      transform: scale(1);
+    }
+
+    .era-headline {
+      font-family: 'JetBrains Mono', monospace;
+      font-size: 12px;
+      font-weight: 500;
+      letter-spacing: 0.12em;
+      text-transform: uppercase;
+      color: var(--ink-soft);
+      text-align: center;
+      margin-top: 8px;
+      margin-bottom: 16px;
+      padding: 0 20%;
+    }
+
+    .era-temp-badge {
+      display: inline-flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 3px;
+      margin: 0 auto 28px;
+      background: rgba(255,255,255,0.05);
+      border: 1px solid rgba(255,255,255,0.1);
+      border-radius: 8px;
+      padding: 8px 16px 7px;
+    }
+    .era-temp-badge .temp-delta {
+      font-family: 'JetBrains Mono', monospace;
+      font-size: 16px;
+      font-weight: 600;
+      letter-spacing: 0.04em;
+    }
+    .era-temp-badge .temp-source {
+      font-family: 'JetBrains Mono', monospace;
+      font-size: 10px;
+      font-weight: 400;
+      letter-spacing: 0.09em;
+      text-transform: uppercase;
+      color: var(--ink-soft);
+    }
+    .era-2031 .era-temp-badge { border-color: rgba(217,154,90,0.25); }
+    .era-2031 .era-temp-badge .temp-delta { color: var(--c4); }
+    .era-2036 .era-temp-badge { border-color: rgba(194,90,44,0.28); }
+    .era-2036 .era-temp-badge .temp-delta { color: var(--c5); }
+    .era-2041 .era-temp-badge { border-color: rgba(150,44,26,0.3); }
+    .era-2041 .era-temp-badge .temp-delta { color: var(--c6); }
+    .era-2046 .era-temp-badge { border-color: rgba(110,24,16,0.32); }
+    .era-2046 .era-temp-badge .temp-delta { color: #a0341e; }
+    .era-2051 .era-temp-badge { border-color: rgba(192,38,14,0.35); }
+    .era-2051 .era-temp-badge .temp-delta { color: #c0260e; }
+    .era-temp-badge-wrap { display: flex; justify-content: center; }
+
+    .era-cards {
+      display: grid;
+      grid-template-columns: 1fr 60px 1fr;
+      gap: 16px 0;
+      align-items: start;
+    }
+
+    .era-card {
+      border: 1px solid rgba(255,255,255,0.07);
+      border-radius: 12px;
+      background: var(--card);
+      padding: 22px 24px;
+      overflow: hidden;
+      opacity: 0;
+      transition: opacity 0.5s ease, transform 0.5s ease, background 0.2s, border-color 0.2s;
+    }
+    .era-card:hover {
+      background: var(--card-hover);
+    }
+    .era-card.visible { opacity: 1; transform: none !important; }
+
+    .era-card.left  { grid-column: 1; transform: translateX(-24px); }
+    .era-card.right { grid-column: 3; transform: translateX(24px); }
+    .era-spacer { grid-column: 2; }
+
+    .card-img-wrap {
+      position: relative;
+      width: calc(100% + 48px);
+      margin: -22px -24px 18px;
+      height: 160px;
+      border-radius: 11px 11px 0 0;
+      overflow: hidden;
+    }
+    .card-img {
+      width: 100%;
+      margin: 0;
+      height: 100%;
+      object-fit: cover;
+      border-radius: 0;
+      display: block;
+      background: #1a1612;
+    }
+    .card-img-caption {
+      position: absolute;
+      bottom: 5px;
+      right: 8px;
+      display: flex;
+      flex-direction: column;
+      align-items: flex-end;
+      gap: 2px;
+      font-size: 10px;
+      line-height: 1.3;
+      color: rgba(255,255,255,0.65);
+      text-shadow: 0 1px 3px rgba(0,0,0,0.7);
+    }
+    .card-img-caption a {
+      color: rgba(255,255,255,0.65);
+      text-decoration: none;
+    }
+    .card-img-caption a:hover { color: #fff; }
+    .card-title {
+      font-family: 'JetBrains Mono', monospace;
+      font-size: 12px;
+      font-weight: 600;
+      letter-spacing: 0.12em;
+      text-transform: uppercase;
+      margin-bottom: 10px;
+    }
+    .card-body {
+      font-size: 17px;
+      line-height: 1.7;
+      color: #c8c2b8;
+    }
+
+    .era-2031 .era-year       { color: var(--c4); text-shadow: 0 0 40px rgba(217,154,90,0.3); }
+    .era-2031 .era-dot        { background: var(--c4); box-shadow: 0 0 8px rgba(217,154,90,0.5); }
+    .era-2031 .era-card       { border-color: rgba(217,154,90,0.18); }
+    .era-2031 .card-title     { color: var(--c4); }
+
+    .era-2036 .era-year       { color: var(--c5); text-shadow: 0 0 40px rgba(194,90,44,0.35); }
+    .era-2036 .era-dot        { background: var(--c5); box-shadow: 0 0 10px rgba(194,90,44,0.55); }
+    .era-2036 .era-card       { border-color: rgba(194,90,44,0.2); }
+    .era-2036 .card-title     { color: var(--c5); }
+
+    .era-2041 .era-year       { color: var(--c6); text-shadow: 0 0 40px rgba(150,44,26,0.4); }
+    .era-2041 .era-dot        { background: var(--c6); box-shadow: 0 0 12px rgba(150,44,26,0.6); }
+    .era-2041 .era-card       { border-color: rgba(150,44,26,0.22); }
+    .era-2041 .card-title     { color: var(--c6); }
+
+    .era-2046 .era-year       { color: var(--c7); text-shadow: 0 0 40px rgba(110,24,16,0.5); }
+    .era-2046 .era-dot        { background: var(--c7); box-shadow: 0 0 14px rgba(110,24,16,0.65); }
+    .era-2046 .era-card       { border-color: rgba(110,24,16,0.25); }
+    .era-2046 .card-title     { color: #a0341e; }
+
+    .era-2051 .era-year       {
+      color: #c0260e;
+      text-shadow: 0 0 60px rgba(192,38,14,0.6), 0 0 120px rgba(192,38,14,0.2);
+      animation: emberGlow 1.4s ease-in-out infinite alternate;
+    }
+    .era-2051 .era-dot        { background: #c0260e; box-shadow: 0 0 16px rgba(192,38,14,0.75), 0 0 30px rgba(192,38,14,0.35); }
+    .era-2051 .era-card       { border-color: rgba(192,38,14,0.28); }
+    .era-2051 .card-title     { color: #c0260e; }
+
+    @keyframes emberGlow {
+      from { text-shadow: 0 0 40px rgba(192,38,14,0.4), 0 0 80px rgba(192,38,14,0.15); opacity: 0.9; }
+      to   { text-shadow: 0 0 80px rgba(192,38,14,0.75), 0 0 160px rgba(192,38,14,0.3); opacity: 1; }
+    }
+
+    .page-footer {
+      text-align: center;
+      padding: 32px 24px 48px;
+      font-family: 'JetBrains Mono', monospace;
+      font-size: 10px;
+      letter-spacing: 0.1em;
+      text-transform: uppercase;
+      color: var(--ink-faint);
+      border-top: 1px solid rgba(255,255,255,0.05);
+    }
+    .page-footer a {
+      color: var(--ink-faint);
+      text-decoration: none;
+      transition: color 0.15s;
+    }
+    .page-footer a:hover { color: var(--ink-soft); }
+
+    @media (max-width: 900px) {
+      .timeline::before {
+        left: 28px;
+        transform: translateX(0) scaleY(0);
+        transform-origin: top center;
+        animation: spineDrawLeft 1.6s cubic-bezier(0.22,1,0.36,1) 0.3s forwards;
+      }
+      @keyframes spineDrawLeft {
+        to { transform: translateX(0) scaleY(1); }
+      }
+      .era-dot {
+        left: 28px;
+        transform: translateX(-50%);
+      }
+      .era-year-row { justify-content: flex-start; padding-left: 60px; }
+      .era-headline { text-align: left; padding: 0 0 0 60px; }
+      .era-temp-badge-wrap { justify-content: flex-start; padding-left: 60px; }
+      .era-cards {
+        grid-template-columns: 1fr;
+        padding-left: 60px;
+        gap: 12px;
+      }
+      .era-card.left,
+      .era-card.right { grid-column: 1; transform: translateX(20px); }
+      .era-spacer { display: none; }
+    }
+
+    @media (max-width: 600px) {
+      .topbar { padding: 0 16px; }
+      .hero { padding: 48px 16px 40px; }
+      .timeline { padding: 0 16px 80px; }
+      .era-year-row { padding-left: 48px; }
+      .era-headline { padding-left: 48px; }
+      .era-temp-badge-wrap { padding-left: 48px; }
+      .era-cards { padding-left: 48px; }
+      .era { margin-bottom: 56px; }
+    }
+
+    .era-card:nth-child(1) { transition-delay: 0.05s; }
+    .era-card:nth-child(3) { transition-delay: 0.15s; }
+    .era-card:nth-child(4) { transition-delay: 0.1s; }
+    .era-card:nth-child(6) { transition-delay: 0.2s; }
+    .era-card:nth-child(7) { transition-delay: 0.15s; }
+    .era-card:nth-child(9) { transition-delay: 0.25s; }
+  </style>
+</head>
+<body>
+
+<nav class="topbar">
+  <a class="topbar-back" href="index.html">
+    <svg width="14" height="14" viewBox="0 0 14 14" fill="none" xmlns="http://www.w3.org/2000/svg">
+      <path d="M9 11L5 7L9 3" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/>
+    </svg>
+    Back
+  </a>
+  <div class="topbar-dot"></div>
+  <span class="topbar-title" style="color:#7a746e;">Possible Climate Future · North Macedonia</span>
+</nav>
+
+<div class="hero">
+  <div class="hero-eyebrow">Plausible scenarios · 2031 – 2051</div>
+  <h1 class="hero-title">A Warming Country,<br>Decade by Decade</h1>
+  <p class="hero-sub">A look at how climate change could reshape life in North Macedonia over the next 25 years — agriculture, water, health, and people's finances. The temperature figures are scientists' projections based on current emissions trajectories, compared to the 1961–1990 average.</p>
+</div>
+
+<div class="timeline">
+
+  <!-- 2031 -->
+  <div class="era era-2031">
+    <div class="era-dot"></div>
+    <div class="era-year-row">
+      <div class="era-year" data-animate="year">2031</div>
+    </div>
+    <div class="era-headline">Dangerous heat and power cuts</div>
+    <div class="era-temp-badge-wrap">
+      <div class="era-temp-badge">
+        <span class="temp-delta">≈ +1.3°C (range +1.1–1.5°C)</span>
+        <span class="temp-source">warmer than the 1960s average · projected for the 2030s</span>
+      </div>
+    </div>
+    <div class="era-cards">
+      <div class="era-card left" data-animate="card">
+        <div class="card-img-wrap">
+          <img class="card-img" src="images/timeline/heatwave-skopje.webp" alt="Heatwave" loading="lazy">
+          <div class="card-img-caption">
+            <span>Illustrative purposes only</span>
+            <a href="https://www.kunr.org/energy-and-environment/2020-08-14/heat-wave-harvey-push-to-name-extreme-heat-events-warming-up" target="_blank" rel="noopener">Source ↗</a>
+          </div>
+        </div>
+        <div class="card-title">Heat like we've never seen</div>
+        <p class="card-body">Skopje could see temperatures of 40–42°C lasting for days at a stretch — something that is rare today but would become a normal summer. Working outdoors becomes a health risk, hospitals fill up, and people increasingly stay indoors.</p>
+      </div>
+      <div class="era-spacer"></div>
+      <div class="era-card right" data-animate="card">
+        <div class="card-img-wrap">
+          <img class="card-img" src="images/timeline/drought-crops.jpg" alt="Agricultural drought" loading="lazy">
+          <div class="card-img-caption">
+            <span>Illustrative purposes only</span>
+            <a href="https://eu-cap-network.ec.europa.eu/publications/eu-cap-network-cross-visit-climate-adaptation-ground-innovative-solutions-build-farm_en" target="_blank" rel="noopener">Source ↗</a>
+          </div>
+        </div>
+        <div class="card-title">Poor harvests</div>
+        <p class="card-body">Spring droughts are expected to arrive earlier and hit harder, putting tobacco, grapes, and wheat in Pelagonija at serious risk. If these conditions persist, farmers could face multiple bad years in a row with no support or safety net.</p>
+      </div>
+      <div class="era-card left" data-animate="card">
+        <div class="card-img-wrap">
+          <img class="card-img" src="images/timeline/power-grid-strain.jpg" alt="Power grid" loading="lazy">
+          <div class="card-img-caption">
+            <span>Illustrative purposes only</span>
+            <a href="https://www.cnbc.com/2023/07/01/why-the-ev-boom-could-put-a-major-strain-on-our-power-grid.html" target="_blank" rel="noopener">Source ↗</a>
+          </div>
+        </div>
+        <div class="card-title">Not enough electricity</div>
+        <p class="card-body">When rivers run low from drought, hydropower plants produce less electricity — just when everyone is running air conditioning. If rainfall keeps declining, summer power cuts could become entirely routine.</p>
+      </div>
+      <div class="era-spacer"></div>
+    </div>
+  </div>
+
+  <!-- 2036 -->
+  <div class="era era-2036">
+    <div class="era-dot"></div>
+    <div class="era-year-row">
+      <div class="era-year" data-animate="year">2036</div>
+    </div>
+    <div class="era-headline">Nature under pressure and wildfires</div>
+    <div class="era-temp-badge-wrap">
+      <div class="era-temp-badge">
+        <span class="temp-delta">≈ +1.5°C (range +1.3–1.7°C)</span>
+        <span class="temp-source">warmer than the 1960s average · projected for the late 2030s</span>
+      </div>
+    </div>
+    <div class="era-cards">
+      <div class="era-spacer"></div>
+      <div class="era-spacer"></div>
+      <div class="era-card right" data-animate="card">
+        <div class="card-img-wrap">
+          <img class="card-img" src="images/timeline/wildfire-mountains.jpeg" alt="Wildfire" loading="lazy">
+          <div class="card-img-caption">
+            <span>Illustrative purposes only</span>
+            <a href="https://environment.ec.europa.eu/news/managing-megafires-experiment-participatory-governance-yields-new-management-strategies-2023-11-08_en" target="_blank" rel="noopener">Source ↗</a>
+          </div>
+        </div>
+        <div class="card-title">Fires that can't be stopped</div>
+        <p class="card-body">Long droughts dry out the western mountain forests to the point where they ignite easily. Fires spread faster than firefighters can respond, burning thousands of hectares and forcing people to evacuate their homes.</p>
+      </div>
+      <div class="era-card left" data-animate="card">
+        <div class="card-img-wrap">
+          <img class="card-img" src="images/timeline/lake-ohrid-depletion.jpg" alt="Lake depletion" loading="lazy">
+          <div class="card-img-caption">
+            <span>Illustrative purposes only</span>
+            <a href="https://www.smithsonianmag.com/smart-news/united-nations-declares-that-the-world-has-entered-an-era-of-global-water-bankruptcy-180988045/" target="_blank" rel="noopener">Source ↗</a>
+          </div>
+        </div>
+        <div class="card-title">Lakes are changing</div>
+        <p class="card-body">Lake Prespa is already showing signs of decline — less rain and stronger evaporation mean less water. Lake Ohrid is more stable, but its water is warming too — and that directly harms the rare fish and wildlife that live nowhere else on Earth.</p>
+      </div>
+      <div class="era-spacer"></div>
+      <div class="era-card right" data-animate="card">
+        <div class="card-img-wrap">
+          <img class="card-img" src="images/timeline/water-rationing.jpg" alt="Water scarcity" loading="lazy">
+          <div class="card-img-caption">
+            <span>Illustrative purposes only</span>
+            <a href="https://www.kget.com/news/world-news/ap-colombias-capital-starts-rationing-water-after-reservoirs-hit-historically-low-levels/" target="_blank" rel="noopener">Source ↗</a>
+          </div>
+        </div>
+        <div class="card-title">Restricted water</div>
+        <p class="card-body">Groundwater replenishes through rain and snow — when there isn't enough of either, reserves slowly drop. Science shows that areas relying on wells would be among the first where authorities have to restrict how much water people can use.</p>
+      </div>
+    </div>
+  </div>
+
+  <!-- 2041 -->
+  <div class="era era-2041">
+    <div class="era-dot"></div>
+    <div class="era-year-row">
+      <div class="era-year" data-animate="year">2041</div>
+    </div>
+    <div class="era-headline">Floods and damaged infrastructure</div>
+    <div class="era-temp-badge-wrap">
+      <div class="era-temp-badge">
+        <span class="temp-delta">≈ +1.6°C (range +1.4–1.9°C)</span>
+        <span class="temp-source">warmer than the 1960s average · projected for the early 2040s</span>
+      </div>
+    </div>
+    <div class="era-cards">
+      <div class="era-card left" data-animate="card">
+        <div class="card-img-wrap">
+          <img class="card-img" src="images/timeline/flash-flood-skopje.jpg" alt="Flash flood" loading="lazy">
+          <div class="card-img-caption">
+            <span>Illustrative purposes only</span>
+            <a href="https://floodlist.com/europe/macedonia-20-dead-50-injured-floods-skopje" target="_blank" rel="noopener">Source ↗</a>
+          </div>
+        </div>
+        <div class="card-title">Violent flash floods</div>
+        <p class="card-body">Soil that hasn't received rain for a long time hardens and can no longer absorb water — like a dry sponge that repels liquid. When heavy rain does arrive, water runs down streets, overwhelms the drainage system, and causes major damage to low-lying areas of Skopje and Tetovo.</p>
+      </div>
+      <div class="era-spacer"></div>
+      <div class="era-card right" data-animate="card">
+        <div class="card-img-wrap">
+          <img class="card-img" src="images/timeline/infrastructure-damage.jpg" alt="Infrastructure damage" loading="lazy">
+          <div class="card-img-caption">
+            <span>Illustrative purposes only</span>
+            <a href="https://www.shutterstock.com/image-photo/heavy-flood-damage-road-collapses-huge-1044748144" target="_blank" rel="noopener">Source ↗</a>
+          </div>
+        </div>
+        <div class="card-title">Roads and bridges under strain</div>
+        <p class="card-body">Roads, bridges, and drainage systems were built for the old climate — not this one. Each new flood brings new damage, and municipal budgets can't keep up. Some rural roads could stay broken for months at a time.</p>
+      </div>
+      <div class="era-card left" data-animate="card">
+        <div class="card-img-wrap">
+          <img class="card-img" src="images/timeline/topsoil-erosion.jpg" alt="Soil erosion" loading="lazy">
+          <div class="card-img-caption">
+            <span>Illustrative purposes only</span>
+            <a href="https://www.adaptation-undp.org/preventing-droughts-floods-and-soil-erosion-land-desperately-needed-some-poorest-farmers-and" target="_blank" rel="noopener">Source ↗</a>
+          </div>
+        </div>
+        <div class="card-title">Rain washing away the land</div>
+        <p class="card-body">Heavy downpours wash away the topsoil — the fertile layer without which nothing can grow. It happens slowly and quietly, but the damage is permanent: once lost, that soil does not come back easily.</p>
+      </div>
+      <div class="era-spacer"></div>
+    </div>
+  </div>
+
+  <!-- 2046 -->
+  <div class="era era-2046">
+    <div class="era-dot"></div>
+    <div class="era-year-row">
+      <div class="era-year" data-animate="year">2046</div>
+    </div>
+    <div class="era-headline">Rising bills and health impacts</div>
+    <div class="era-temp-badge-wrap">
+      <div class="era-temp-badge">
+        <span class="temp-delta">≈ +1.8°C (range +1.5–2.1°C)</span>
+        <span class="temp-source">warmer than the 1960s average · projected for the late 2040s</span>
+      </div>
+    </div>
+    <div class="era-cards">
+      <div class="era-spacer"></div>
+      <div class="era-spacer"></div>
+      <div class="era-card right" data-animate="card">
+        <div class="card-img-wrap">
+          <img class="card-img" src="images/timeline/energy-deficit.jpg" alt="Energy deficit" loading="lazy">
+          <div class="card-img-caption">
+            <span>Illustrative purposes only</span>
+            <a href="https://www.wired.com/story/power-bills-in-the-us-are-soaring-and-will-rise-further-still/" target="_blank" rel="noopener">Source ↗</a>
+          </div>
+        </div>
+        <div class="card-title">Electricity becomes much more expensive</div>
+        <p class="card-body">When rivers permanently produce less power, the country must buy more electricity from abroad. Energy bills rise steadily — and households on lower incomes feel this most sharply.</p>
+      </div>
+      <div class="era-card left" data-animate="card">
+        <div class="card-img-wrap">
+          <img class="card-img" src="images/timeline/public-health-crisis.webp" alt="Health crisis" loading="lazy">
+          <div class="card-img-caption">
+            <span>Illustrative purposes only</span>
+            <a href="https://news.northeastern.edu/2025/06/23/how-to-identify-heat-stroke-exhaustion/" target="_blank" rel="noopener">Source ↗</a>
+          </div>
+        </div>
+        <div class="card-title">More people falling ill</div>
+        <p class="card-body">Every summer more people end up in hospital with heart and lung problems caused by extreme heat. On top of that, wildfire smoke damages lungs, and ticks and mosquitoes — which carry disease — begin spreading to areas where they were previously unknown.</p>
+      </div>
+      <div class="era-spacer"></div>
+      <div class="era-card right" data-animate="card">
+        <div class="card-img-wrap">
+          <img class="card-img" src="images/timeline/food-price-crisis.jpg" alt="Food prices" loading="lazy">
+          <div class="card-img-caption">
+            <span>Illustrative purposes only</span>
+            <a href="https://ag.purdue.edu/news/2024/03/most-consumers-continue-to-expect-rising-food-prices.html" target="_blank" rel="noopener">Source ↗</a>
+          </div>
+        </div>
+        <div class="card-title">Food gets more expensive</div>
+        <p class="card-body">When domestic farming produces less, the country must import more food — and imported food costs more. Rising prices hit hardest for families on low wages and pensions, who already spend a large share of their income on food.</p>
+      </div>
+    </div>
+  </div>
+
+  <!-- 2051 -->
+  <div class="era era-2051">
+    <div class="era-dot"></div>
+    <div class="era-year-row">
+      <div class="era-year" data-animate="year">2051</div>
+    </div>
+    <div class="era-headline">Drying land and people leaving</div>
+    <div class="era-temp-badge-wrap">
+      <div class="era-temp-badge">
+        <span class="temp-delta">≈ +1.9°C (range +1.6–2.2°C)</span>
+        <span class="temp-source">warmer than the 1960s average · scientists' estimate for ~2050</span>
+      </div>
+    </div>
+    <div class="era-cards">
+      <div class="era-card left" data-animate="card">
+        <div class="card-img-wrap">
+          <img class="card-img" src="images/timeline/arid-landscape.jpg" alt="Arid landscape" loading="lazy">
+          <div class="card-img-caption">
+            <span>Illustrative purposes only</span>
+            <a href="https://www.fotoref.com/products/israel-arid-landscape" target="_blank" rel="noopener">Source ↗</a>
+          </div>
+        </div>
+        <div class="card-title">Dry zones spreading across Macedonia</div>
+        <p class="card-body">Central and southern North Macedonia could take on a climate similar to today's southern Spain or Greece — long dry summers, little rain, scorched grass. Land that once supported varied crops would increasingly look parched and bare.</p>
+      </div>
+      <div class="era-spacer"></div>
+      <div class="era-card right" data-animate="card">
+        <div class="card-img-wrap">
+          <img class="card-img" src="images/timeline/rural-migration.jpg" alt="Urban migration" loading="lazy">
+          <div class="card-img-caption">
+            <span>Illustrative purposes only</span>
+            <a href="https://ruraladventure.mk/zovikj-mariovo/" target="_blank" rel="noopener">Source ↗</a>
+          </div>
+        </div>
+        <div class="card-title">Villages emptying out</div>
+        <p class="card-body">When the land stops yielding, there is no reason to stay in the village. Working-age people leave for the cities — and behind them they leave empty houses in places that have been continuously inhabited for centuries.</p>
+      </div>
+      <div class="era-card left" data-animate="card">
+        <div class="card-img-wrap">
+          <img class="card-img" src="images/timeline/forest-dieoff.jpg" alt="Forest die-off" loading="lazy">
+          <div class="card-img-caption">
+            <span>Illustrative purposes only</span>
+            <a href="https://volcanoesland.com/attractions/dead-forest/" target="_blank" rel="noopener">Source ↗</a>
+          </div>
+        </div>
+        <div class="card-title">Forests dying off</div>
+        <p class="card-body">Beech and oak trees — our most widespread forest species — begin to deteriorate. Drought weakens them, warming helps pests and disease spread, and the trees cannot cope. Where they are gone, new trees grow back slowly — if at all.</p>
+      </div>
+      <div class="era-spacer"></div>
+    </div>
+  </div>
+
+</div><!-- /timeline -->
+
+<footer class="page-footer">
+   Possible Climate Future · North Macedonia · <a href="index.html">climate.mk</a>
+</footer>
+
+<script>
+  const observer = new IntersectionObserver((entries) => {
+    entries.forEach(entry => {
+      if (entry.isIntersecting) {
+        entry.target.classList.add('visible');
+        observer.unobserve(entry.target);
+      }
+    });
+  }, { threshold: 0.15, rootMargin: '0px 0px -40px 0px' });
+
+  document.querySelectorAll('[data-animate]').forEach(el => observer.observe(el));
+</script>
+</body>
+</html>

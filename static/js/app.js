@@ -1800,6 +1800,23 @@ function renderAbout() {
   setHtml('about-col3-text',  a.col3_text);
 }
 
+function renderMk2036() {
+  const m = _locale?.mk2036;
+  if (!m) return;
+  const set = (id, val) => { const el = document.getElementById(id); if (el && val) el.textContent = val; };
+  set('mk2036-heading', m.heading); set('mk2036-timeline-btn-label', m.timeline_btn);
+  const _tlBtn = document.querySelector('.mk2036-timeline-btn');
+  if (_tlBtn) {
+    const _tlLang = localStorage.getItem('mk_lang') || 'mk';
+    _tlBtn.href = _tlLang === 'sq' ? 'future-timeline-sq.html' : _tlLang === 'en' ? 'future-timeline.html' : 'future-timeline-mk.html';
+  }
+  set('mk2036-r1-name', m.r1?.name); set('mk2036-r1-i1', m.r1?.i1); set('mk2036-r1-i2', m.r1?.i2); set('mk2036-r1-i3', m.r1?.i3);
+  set('mk2036-r2-name', m.r2?.name); set('mk2036-r2-i1', m.r2?.i1); set('mk2036-r2-i2', m.r2?.i2);
+  set('mk2036-r3-name', m.r3?.name); set('mk2036-r3-i1', m.r3?.i1); set('mk2036-r3-i2', m.r3?.i2);
+  set('mk2036-r4-name', m.r4?.name); set('mk2036-r4-i1', m.r4?.i1); set('mk2036-r4-i2', m.r4?.i2);
+  set('mk2036-r5-name', m.r5?.name); set('mk2036-r5-i1', m.r5?.i1); set('mk2036-r5-i2', m.r5?.i2);
+}
+
 // Updates static headings in the toolbar area from locale
 function renderStaticLabels() {
   if (!_locale?.ui) return;
@@ -1908,6 +1925,7 @@ async function init() {
 
   // Apply locale to static page elements
   renderAbout();
+  renderMk2036();
   renderStaticLabels();
 
   // Init charts

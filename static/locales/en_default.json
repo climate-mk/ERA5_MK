@@ -773,5 +773,35 @@
       "Joint Civil Society Advocacy: Join and fund established Macedonian green NGOs (like Eko-svest, O2 Iniciativa, or Go Green) to scale up lobbying.",
       "Report Environmental Crimes: Use official inspectorate lines or mobile apps (like \"Moja Opstina\") to log illegal dumping or factory pollution."
     ]
+  },
+  "mk2036": {
+    "heading": "Macedonia 2036",
+    "timeline_btn": "Click to view the future timeline",
+    "r1": {
+      "name": "Central (Povardarie & Ovche Pole)",
+      "i1": "Vineyards damaged by prolonged extreme heat — grapes are especially vulnerable when temperatures stay high during flowering and harvest.",
+      "i2": "The Vardar River carries less water, leaving farmers with less to draw for watering their fields.",
+      "i3": "Ovche Pole — already one of the driest plains in Europe — gets even drier. The soil loses moisture faster, making it increasingly hard to farm without irrigation."
+    },
+    "r2": {
+      "name": "Pelagonija (Bitola & Prilep)",
+      "i1": "Fields that depend only on rainwater — with no irrigation — suffer serious losses in wheat and maize when the soil dries out too early in the season.",
+      "i2": "Bad harvests stop being rare exceptions and start becoming something farmers can expect most years."
+    },
+    "r3": {
+      "name": "Mountains & NW (Mavrovo, Shar Planina)",
+      "i1": "Winters get shorter and warmer, meaning less snow and a shorter ski season — threatening the income of mountain villages that depend on winter tourism.",
+      "i2": "When heavy rain falls on dry mountain slopes, water rushes down fast with nowhere to soak in — flooding the Pena and Radika river valleys and damaging roads, bridges, and farmland."
+    },
+    "r4": {
+      "name": "Southeast (Strumica & Gevgelija)",
+      "i1": "When nights stay above 20°C, plants keep burning energy instead of recovering from the daytime heat — so crops like peppers, tomatoes, and grapes arrive at harvest already weakened.",
+      "i2": "Water stored in reservoirs runs low at exactly the moment farmers need it most — creating real shortages for irrigation in the hottest, driest part of the year."
+    },
+    "r5": {
+      "name": "Urban (Skopje)",
+      "i1": "Skopje's concrete and asphalt absorb heat all day and release it at night — so the city never cools down. Sleeping becomes difficult, elderly people are especially at risk, and hospitals see a sharp rise in heat-related illness.",
+      "i2": "When the whole city switches on air conditioning at once during a heatwave, the electrical grid can struggle to cope — increasing the risk of power cuts at the worst possible moment."
+    }
   }
 }
