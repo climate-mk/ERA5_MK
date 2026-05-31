@@ -20,9 +20,9 @@
     "explain1": "Piku i sotëm është temperatura më e lartë e parashikuar në të 20 stacionet, e renditur krahas 70+ viteve të të dhënave ERA5-Land për të njëjtin dritare ±7-ditore.",
     "climate_context": "Maqedonia ndodhet në zemër të një pike të nxehtë klimatike rajonale — Europa Juglindore po ngrohet me pothuajse dy herë normën mesatare globale. Temperaturat janë rritur me pothuajse 2°C gjatë 70 viteve të fundit dhe vazhdojnë të rriten. Pranverat vijnë më herët, verat zgjasin më shumë, bora tkurret çdo dekadë dhe shirat e vjeshtës vonohen. Ajo që në vitin 1980 dukej si verë tipike sot bie në gjysmën më të ftohtë të rekordit historik.",
     "chart_title": "Temperaturat maksimale ditore të Maqedonisë për dy javët rreth {day_label} që nga viti {year_min}",
-    "trend_title": "Temperaturat maksimale të Maqedonisë rreth {day_label} · {year_min}–{year_max} me projeksion linear deri në 2050",
+    "trend_title": "Temperaturat maksimale të Maqedonisë rreth {day_label} · {year_min}–{year_max} · tendencë me projeksion deri në 2050",
     "explain2": "Kurba tregon sa shpesh ka ndodhur çdo temperaturë maksimale në ditë si sot gjatë gjithë viteve. Ngjyrat shënojnë zonat klimatologjike — nga e kaltër e ftohtë, nëpërmjet brezit tipik bezhë, deri te e kuqe ekstreme — që të shihni me një shikim se ku qëndron sot.",
-    "explain3": "Çdo pikë është mesatarja e 15 ditëve më të nxehta të regjistruara kudo në Maqedoni gjatë kësaj dritareje ±7-ditore çdo vit që nga viti {year_min}. Tendenca Theil-Sen është shumë e rëndësishme (p < 0,0001); vija me pika projekton linearisht deri në 2050. Brezat e hijezuar janë intervali i besimit 95% — zgjerojnë me kalimin e kohës sepse edhe pasiguria e vogël e pjerrësisë akumulohet vit pas viti, duke arritur afërsisht ±2,8°C deri në 2050. Mendojeni si gamën e së ardhmes së mundshme nëse ngrohja aktuale vazhdon me të njëjtin ritëm.",
+    "explain3": "Çdo pikë është percentila e 90-të e temperaturës mesatare kombëtare ditore maksimale në të gjitha stacionet brenda një dritareje ±30-ditore rreth kësaj date, për çdo vit që nga {year_min}. Tendenca Theil-Sen është {trend} °C/dekadë ({sig}). Me këtë ritëm, deri në 2050 tendenca projekton {proj2050} °C. Brezi i hijezuar është intervali i besimit 95% mbi pjerrësi.",
     "foot": "{temp} °C · percentila {pct} · {samples} mostra ({year_min}–{year_max})",
     "foot2": "Sot: {temp} °C · percentila {pct} · mediana {median} °C · {samples} vëzhgime · {year_min}–{year_max}",
     "today_label": "SOT",
@@ -31,7 +31,7 @@
     "zone_normal": "Normal",
     "zone_hot": "Nxehtë",
     "zone_extreme": "Ekstreme",
-    "trend_foot": "Theil-Sen + TFPW MK: {trend} °C/dekadë · {sig} · τ = {tau} · {n_years} vjet"
+    "trend_foot": "Theil-Sen + TFPW MK: {trend} °C/dekadë · {sig} · τ = {tau} · 95% CI · {n_years} vjet"
   },
   "categories": {
     "freezing": {

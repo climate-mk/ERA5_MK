@@ -363,7 +363,7 @@ def compute_annual_trend(target_date=None):
         return _ANNUAL_TREND_CACHE[cache_key]
 
     # FS cache: survives restarts; day-of-year files are permanent (no cleanup needed)
-    fs_path = os.path.join(_CACHE_DIR, f"annual_trend_{cache_key}.json")
+    fs_path = os.path.join(_CACHE_DIR, f"annual_trend_v12_{cache_key}.json")
     cached  = _fs_load(fs_path)
     if cached is not None:
         _ANNUAL_TREND_CACHE[cache_key] = cached
@@ -371,66 +371,75 @@ def compute_annual_trend(target_date=None):
 
     dlabel = f"{MONTH_NAMES[month - 1]} {day}"
 
-    # Daily max across all stations, then mean of top-15 days per year
-    window = window_filter(data, month, day, 7)
-    daily_max = (
+    # National daily MEAN temperature_max across all stations, ±30-day window.
+    # Mean (not max) gives equal weight to all stations, removes single-station spikes.
+    # Annual value = 90th percentile of those ~61 daily means per year.
+    # Excludes years where fewer than 50 days are available in the window
+    # (guards against the current year being incomplete at the window edges).
+    WINDOW_HALF = 30   # ±days around today's date
+
+    window = window_filter(data, month, day, WINDOW_HALF)
+    daily_mean = (
         window.groupby(["_window_year", "date"])["temperature_max"]
-        .max()
-        .reset_index()
+        .mean()
+        .reset_index(name="tmax")
     )
-    annual = (
-        daily_max.groupby("_window_year")["temperature_max"]
-        .apply(lambda x: x.nlargest(15).mean())
+    annual_raw = (
+        daily_mean.groupby("_window_year")["tmax"]
+        .apply(lambda x: np.percentile(x.dropna(), 90) if len(x.dropna()) >= 50 else np.nan)
         .dropna()
     )
+    annual = annual_raw
 
-    # Last 30 years
-    cutoff = int(annual.index.max()) - 30
-    annual = annual[annual.index >= cutoff]
+    # ── Configurable start year ───────────────────────────────────────────────
+    TREND_START_YEAR = 1950   # change this to adjust the baseline period
+    annual = annual[annual.index >= TREND_START_YEAR]
     x_arr  = annual.index.to_numpy(float)
     y_arr  = annual.values
 
-    # Theil-Sen fit
+    last_yr  = int(x_arr.max())
+    first_yr = int(x_arr.min())
+
+    # ── Theil-Sen + Mann-Kendall (TFPW) ──────────────────────────────────────
+    # Robust non-parametric slope for continuous temperature data.
+    # 99% CI on the slope via Theil-Sen's Kendall confidence interval.
     res   = theilslopes(y_arr, x_arr, 0.95)
     slope = res.slope
     x_med, y_med = float(np.median(x_arr)), float(np.median(y_arr))
     ic    = y_med - slope          * x_med
     ic_hi = y_med - res.high_slope * x_med
     ic_lo = y_med - res.low_slope  * x_med
-
-    # Mann-Kendall significance
     mk_r  = mk_test.yue_wang_modification_test(y_arr)
 
-    # Historical trend line (dense)
+    # Trend line + CI band over observed period
     x_hist = np.linspace(x_arr.min(), x_arr.max(), 300)
     y_hist = slope          * x_hist + ic
     u_hist = res.high_slope * x_hist + ic_hi
     l_hist = res.low_slope  * x_hist + ic_lo
 
-    # Linear projection: last observed year → 2050
-    last_yr = int(x_arr.max())
-    x_fc    = np.linspace(last_yr, 2050, 200)
-    y_fc    = slope          * x_fc + ic
-    u_fc    = res.high_slope * x_fc + ic_hi
-    l_fc    = res.low_slope  * x_fc + ic_lo
+    # Projection last_yr → 2050
+    x_fc = np.linspace(last_yr, 2050, 200)
+    y_fc = slope          * x_fc + ic
+    u_fc = res.high_slope * x_fc + ic_hi
+    l_fc = res.low_slope  * x_fc + ic_lo
 
     scatter = [{"x": int(yr), "y": round(float(v), 2)} for yr, v in zip(x_arr, y_arr)]
 
     result = {
-        "scatter":       scatter,
-        "year_min":      int(x_arr.min()),
-        "year_max":      last_yr,
-        "day_label":     dlabel,
-        "month_num":     month,
-        "day_num":       day,
-        "hist_line":     {"x": x_hist.tolist(),
-                          "y":     [round(v, 3) for v in y_hist],
-                          "upper": [round(v, 3) for v in u_hist],
-                          "lower": [round(v, 3) for v in l_hist]},
-        "projection_line": {"x": x_fc.tolist(),
-                          "y":     [round(v, 3) for v in y_fc],
-                          "upper": [round(v, 3) for v in u_fc],
-                          "lower": [round(v, 3) for v in l_fc]},
+        "scatter":        scatter,
+        "year_min":       first_yr,
+        "year_max":       last_yr,
+        "day_label":      dlabel,
+        "month_num":      month,
+        "day_num":        day,
+        "hist_line":      {"x": x_hist.tolist(),
+                           "y":     [round(v, 3) for v in y_hist],
+                           "upper": [round(v, 3) for v in u_hist],
+                           "lower": [round(v, 3) for v in l_hist]},
+        "projection_line":{"x": x_fc.tolist(),
+                           "y":     [round(v, 3) for v in y_fc],
+                           "upper": [round(v, 3) for v in u_fc],
+                           "lower": [round(v, 3) for v in l_fc]},
         "stats": {
             "trend10": round(float(slope * 10), 3),
             "p_val":   round(float(mk_r.p), 5),

@@ -1089,25 +1089,25 @@ async function renderTodayTrendChart(dateStr = null) {
     const titleEl = document.getElementById("today-trend-title");
     if (titleEl) titleEl.textContent = t('today.trend_title', {day_label: _fmtDay(d.month_num, d.day_num, d.day_label), year_min: d.year_min, year_max: d.year_max});
 
-    const histBand = d.hist_line.x.map((x, i) => [x, d.hist_line.lower[i], d.hist_line.upper[i]]);
-    const fcBand   = d.projection_line.x.map((x, i) => [x, d.projection_line.lower[i], d.projection_line.upper[i]]);
-    const histLine = d.hist_line.x.map((x, i) => [x, d.hist_line.y[i]]);
-    const fcLine   = d.projection_line.x.map((x, i) => [x, d.projection_line.y[i]]);
+    const s    = d.stats;
+    const sign = s.trend10 >= 0 ? "+" : "";
+    const col  = "#962c1a";
+    const monoStyle = { fontFamily: "'JetBrains Mono', monospace", fontSize: "9px" };
 
-    const milestoneYears = [2030, 2035, 2040, 2045, 2050];
+    const histLine  = d.hist_line.x.map((x, i) => [x, d.hist_line.y[i]]);
+    const histBand  = d.hist_line.x.map((x, i) => [x, d.hist_line.lower[i], d.hist_line.upper[i]]);
+    const fcLine    = d.projection_line.x.map((x, i) => [x, d.projection_line.y[i]]);
+    const fcBand    = d.projection_line.x.map((x, i) => [x, d.projection_line.lower[i], d.projection_line.upper[i]]);
+
+    const milestoneYears = [2030, 2040, 2050];
     const fcMilestones = milestoneYears.map(yr => {
       let best = 0, bestDiff = Infinity;
       d.projection_line.x.forEach((x, i) => {
         const diff = Math.abs(x - yr);
         if (diff < bestDiff) { bestDiff = diff; best = i; }
       });
-      return { x: yr, y: d.projection_line.y[best] };
+      return { x: yr, y: +d.projection_line.y[best].toFixed(1) };
     });
-
-    const trendLabelStyle = {
-      color: INK, fontSize: "9px", fontWeight: "600",
-      fontFamily: "'JetBrains Mono', monospace",
-    };
 
     Highcharts.chart("today-trend-chart", {
       chart: { type: "line", height: 240, margin: [16, 16, 40, 54], backgroundColor: "transparent", animation: false },
@@ -1116,59 +1116,70 @@ async function renderTodayTrendChart(dateStr = null) {
       legend:  { enabled: false },
       tooltip: {
         formatter() {
-          if (this.series.name === "Annual max") return `<b>${Math.round(this.x)}</b>: ${this.y.toFixed(1)} °C`;
-          if (this.series.name === "Projection milestones") return `<b>${this.x}</b>: ${this.y.toFixed(1)} °C <span style="opacity:0.6">(linear projection)</span>`;
+          if (this.series.name === "Annual value") return `<b>${Math.round(this.x)}</b>: ${this.y.toFixed(1)} °C`;
+          if (this.series.name === "Milestones")   return `<b>${this.x}</b>: ${this.y.toFixed(1)} °C <em>(projection)</em>`;
           return false;
         },
       },
       xAxis: {
-        title:         { text: null },
-        labels:        { style: { color: INK_SOFT, fontSize: "10px", fontFamily: "'JetBrains Mono', monospace" } },
-        lineColor:     "rgba(14,14,12,0.1)",
-        tickColor:     "rgba(14,14,12,0.1)",
-        gridLineWidth: 0,
+        title: { text: null },
+        labels: { style: { color: INK_SOFT, ...monoStyle } },
+        lineColor: "rgba(14,14,12,0.1)", tickColor: "rgba(14,14,12,0.1)", gridLineWidth: 0,
         plotLines: [
-          { value: currentYear, color: INK, width: 1.5, dashStyle: "Dot", zIndex: 5,
-            label: { text: String(currentYear), rotation: 0, align: "center", y: -4, style: trendLabelStyle } },
+          { value: currentYear, color: INK, width: 1, dashStyle: "Dot", zIndex: 5,
+            label: { text: String(currentYear), rotation: 0, align: "center", y: -4,
+                     style: { color: INK, ...monoStyle, fontWeight: "600" } } },
         ],
       },
       yAxis: {
-        title:         { text: null },
-        labels:        { format: "{value}°C", style: { color: INK_SOFT, fontSize: "10px", fontFamily: "'JetBrains Mono', monospace" } },
+        title: { text: null },
+        labels: { format: "{value}°C", style: { color: INK_SOFT, ...monoStyle } },
         gridLineColor: "rgba(14,14,12,0.06)",
       },
       series: [
-        { name: "CI (hist)",     type: "arearange", data: histBand, fillOpacity: 0.10, lineWidth: 0, color: "#962c1a", enableMouseTracking: false, marker: { enabled: false } },
-        { name: "CI (projection)", type: "arearange", data: fcBand,   fillOpacity: 0.06, lineWidth: 0, color: "#962c1a", enableMouseTracking: false, marker: { enabled: false } },
-        { name: "Trend (hist)",       type: "line", data: histLine, color: "#962c1a", lineWidth: 1.5, enableMouseTracking: false, marker: { enabled: false } },
-        { name: "Trend (projection)", type: "line", data: fcLine,   color: "#962c1a", lineWidth: 1.5, dashStyle: "Dash", enableMouseTracking: false, marker: { enabled: false } },
-        { name: "Annual max", type: "scatter", data: d.scatter,
-          color: "rgba(150,44,26,0.6)", marker: { enabled: true, radius: 3, symbol: "circle" }, zIndex: 5 },
-        { name: "Projection milestones", type: "scatter", data: fcMilestones,
-          marker: { enabled: true, radius: 3, symbol: "circle", fillColor: "var(--paper)", lineColor: "#962c1a", lineWidth: 1.5 },
-          zIndex: 6, enableMouseTracking: true,
-          tooltip: { pointFormat: "<b>{point.x}</b>: {point.y:.1f} °C (linear projection)" } },
+        // NB confidence band (observed + projection)
+        { name: "CI hist",       type: "arearange", data: histBand,
+          fillOpacity: 0.09, lineWidth: 0, color: col, enableMouseTracking: false, marker: { enabled: false }, zIndex: 2 },
+        { name: "CI projection", type: "arearange", data: fcBand,
+          fillOpacity: 0.05, lineWidth: 0, color: col, enableMouseTracking: false, marker: { enabled: false }, zIndex: 2 },
+        // Scatter dots
+        { name: "Annual value", type: "scatter", data: d.scatter,
+          color: "rgba(150,44,26,0.55)", marker: { enabled: true, radius: 3, symbol: "circle" }, zIndex: 4 },
+        // NB trend + projection
+        { name: "NB trend", type: "line", data: histLine,
+          color: col, lineWidth: 1.5, enableMouseTracking: false, marker: { enabled: false }, zIndex: 6 },
+        { name: "Projection", type: "line", data: fcLine,
+          color: col, lineWidth: 1.5, dashStyle: "Dash",
+          enableMouseTracking: false, marker: { enabled: false }, zIndex: 6 },
+        // Milestone dots
+        { name: "Milestones", type: "scatter", data: fcMilestones,
+          marker: { enabled: true, radius: 3.5, symbol: "circle",
+                    fillColor: "var(--paper,#fff)", lineColor: col, lineWidth: 1.5 },
+          zIndex: 7 },
       ],
     });
 
-    const s = d.stats;
-    const sign = s.trend10 >= 0 ? "+" : "";
-    const sig  = s.p_val < 0.01 ? "p < 0.01" : s.p_val < 0.05 ? `p = ${s.p_val}` : `p = ${s.p_val} (ns)`;
-    // Move title to after chart, before explanation
+    // Move title after chart
     const trendTitle = document.getElementById("today-trend-title");
     if (trendTitle) document.getElementById("today-trend-card").appendChild(trendTitle);
+
+    const sig     = s.p_val < 0.001 ? "p < 0.001" : s.p_val < 0.01 ? "p < 0.01" : s.p_val < 0.05 ? `p = ${s.p_val}` : `p = ${s.p_val} (ns)`;
+    const proj2050 = d.projection_line.y[d.projection_line.y.length - 1].toFixed(1);
+    const trendStr = `${sign}${s.trend10.toFixed(2)}`;
 
     const explain3 = document.createElement("p");
     explain3.className = "today-explain";
     explain3.style.padding = "4px 0 2px";
-    explain3.textContent = t('today.explain3', {year_min: d.year_min});
+    explain3.textContent = t("today.explain3", {
+      year_min: d.year_min, trend: trendStr, sig, proj2050,
+    }) || `Each dot is the 90th percentile of the national mean daily-maximum temperature across all stations in a ±30-day window around this date, for every year since ${d.year_min}. The Theil-Sen trend is ${trendStr} °C/decade (${sig}). At this rate, by 2050 the trend projects to ${proj2050} °C. The shaded band is the 95% confidence interval on the slope.`;
     document.getElementById("today-trend-card").appendChild(explain3);
 
     const foot = document.createElement("div");
     foot.className = "today-foot";
-    foot.textContent = _locale?.today?.trend_foot
-      ? t('today.trend_foot', {trend: `${sign}${s.trend10.toFixed(2)}`, sig, tau: s.tau, n_years: s.n_years})
-      : `Theil-Sen + TFPW MK: ${sign}${s.trend10.toFixed(2)} °C/decade · ${sig} · τ = ${s.tau} · ${s.n_years} yrs`;
+    foot.textContent = t("today.trend_foot", {
+      trend: trendStr, sig, tau: s.tau, n_years: s.n_years,
+    }) || `Theil-Sen + TFPW MK: ${trendStr} °C/decade · ${sig} · τ = ${s.tau} · 95% CI · ${s.n_years} yrs`;
     document.getElementById("today-trend-card").appendChild(foot);
   } catch {
     /* silently skip if endpoint unavailable */

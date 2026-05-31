@@ -177,6 +177,15 @@ body {
 .today-sep-dot     { display: inline-block; width: 7px; height: 7px; border-radius: 50%; vertical-align: middle; margin: 0 10px; flex-shrink: 0; }
 .today-desc        { font-family: 'Space Grotesk', sans-serif; font-size: 19px; color: var(--ink-soft); display: inline; }
 .today-foot        { font-family: 'JetBrains Mono', monospace; font-size: 10px; letter-spacing: 0.08em; text-transform: uppercase; color: var(--ink-soft); border-top: 1px dashed var(--rule-2); padding-top: 12px; margin-top: auto; }
+.trend-rate-box    { display: flex; align-items: center; gap: 10px; flex-wrap: wrap; margin: 8px 0 4px; }
+.trend-rate        { display: flex; flex-direction: column; gap: 2px; padding: 6px 10px; border-radius: 6px; }
+.trend-rate--early  { background: rgba(194,145,58,0.12); border: 1px solid rgba(194,145,58,0.3); }
+.trend-rate--recent { background: rgba(150,44,26,0.10); border: 1px solid rgba(150,44,26,0.3); }
+.trend-rate-period { font-family: 'JetBrains Mono', monospace; font-size: 9px; color: var(--ink-soft); letter-spacing: 0.05em; }
+.trend-rate-val    { font-family: 'JetBrains Mono', monospace; font-size: 13px; font-weight: 600; color: var(--ink); }
+.trend-rate--recent .trend-rate-val { color: #962c1a; }
+.trend-rate--early  .trend-rate-val { color: #8a6020; }
+.trend-rate-arrow  { font-family: 'Space Grotesk', sans-serif; font-size: 11px; color: var(--ink-soft); font-style: italic; }
 .today-chart       { background: var(--card); border: 1px solid var(--rule); border-radius: var(--radius); padding: 16px 18px 22px; display: flex; flex-direction: column; min-width: 0; }
 .today-chart-title { font-family: 'Space Grotesk', sans-serif; font-weight: 600; font-size: 13px; color: var(--ink); margin-bottom: 4px; line-height: 1.35; }
 #today-dist-chart  { min-height: 220px; }
