@@ -838,7 +838,10 @@ function _buildTodayFlag(catKey) {
 function _buildTodayCardInner(r) {
   return `
     <div class="today-h-row">
-      <div class="today-h">${t('ui.title_today')}</div>
+      <div class="today-h-wrap">
+        <div class="today-h">${t('ui.title_today')}</div>
+        <div class="today-subtitle">${t('ui.subtitle_today')}</div>
+      </div>
       <div class="today-temp-badge" style="background:${r.color};color:${r.category_key === 'nope' ? 'var(--ink)' : '#fff'}">${r.today_temp.toFixed(1)}°C</div>
     </div>
     <div class="today-body">

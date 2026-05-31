@@ -7,6 +7,7 @@
   "ui": {
     "heading_today": "Македонија денес",
     "title_today": "Дали е топло денес во Македонија ?",
+    "subtitle_today": "во споредба со истиот датум историски",
     "heading_location": "Детали за локацијата",
     "heading_controls": "Контроли",
     "heading_controls_sub": "(црвена = лошо, сина = добро)",
