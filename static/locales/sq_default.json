@@ -22,7 +22,7 @@
     "chart_title": "Temperaturat maksimale ditore të Maqedonisë për dy javët rreth {day_label} që nga viti {year_min}",
     "trend_title": "Temperaturat maksimale të Maqedonisë rreth {day_label} · {year_min}–{year_max} · tendencë me projeksion deri në 2050",
     "explain2": "Kurba tregon sa shpesh ka ndodhur çdo temperaturë maksimale në ditë si sot gjatë gjithë viteve. Ngjyrat shënojnë zonat klimatologjike — nga e kaltër e ftohtë, nëpërmjet brezit tipik bezhë, deri te e kuqe ekstreme — që të shihni me një shikim se ku qëndron sot.",
-    "explain3": "Çdo pikë është percentila e 90-të e temperaturës mesatare kombëtare ditore maksimale në të gjitha stacionet brenda një dritareje ±30-ditore rreth kësaj date, për çdo vit që nga {year_min}. Tendenca Theil-Sen është {trend} °C/dekadë ({sig}). Me këtë ritëm, deri në 2050 tendenca projekton {proj2050} °C. Brezi i hijezuar është intervali i besimit 95% mbi pjerrësi.",
+    "explain3": "Çdo pikë është percentila e 90-të e temperaturës mesatare kombëtare ditore maksimale në të gjitha stacionet brenda një dritareje ±30-ditore rreth kësaj date, për çdo vit që nga {year_min}. Tendenca Theil-Sen është {trend} °C/dekadë ({sig}). Me këtë ritëm, deri në 2050 tendenca projekton {proj2050} °C. Brezi i hijezuar është intervali i besimit 95% mbi pjerrësi. Shënim: ky grafik përdor mesataren kombëtare të të gjitha stacioneve; karta 'A është nxehtë sot?' më sipër përdor pikun kombëtar (stacioni i vetëm më i nxehtë) — të dyja janë të vlefshme, por matin gjëra të ndryshme.",
     "foot": "{temp} °C · percentila {pct} · {samples} mostra ({year_min}–{year_max})",
     "foot2": "Sot: {temp} °C · percentila {pct} · mediana {median} °C · {samples} vëzhgime · {year_min}–{year_max}",
     "today_label": "SOT",
