@@ -1644,5 +1644,6 @@ def _prewarm():
 threading.Thread(target=_prewarm, daemon=True).start()
 
 if __name__ == "__main__":
-    print("API running at http://127.0.0.1:5050")
-    app.run(debug=False, host="0.0.0.0", port=5050, threaded=True)
+    _port = int(os.getenv("PORT", 5050))
+    print(f"API running at http://127.0.0.1:{_port}")
+    app.run(debug=False, host="0.0.0.0", port=_port, threaded=True)

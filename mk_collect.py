@@ -1,6 +1,7 @@
 """
-Fetch historical climate data from Open-Meteo for ~20 North Macedonia locations.
-Saves one CSV per location with simplified naming (e.g., Skopje.csv).
+Fetch historical ERA5-Land climate data from Open-Meteo for all stations
+defined in countries/<COUNTRY>.yaml (default: mk).
+Saves one CSV per station with simplified naming (e.g., Skopje.csv).
 
 Supports differential updates: automatically detects the latest date in existing
 files and fetches only new data from that point forward. Use --force-refresh to
@@ -24,7 +25,7 @@ from datetime import datetime, timedelta
 # ── CLI Arguments ────────────────────────────────────────────────────────────
 
 parser = argparse.ArgumentParser(
-    description="Fetch ERA5-Land climate data from Open-Meteo for North Macedonia locations."
+    description=f"Fetch ERA5-Land climate data from Open-Meteo for {CONFIG['name']} locations."
 )
 parser.add_argument(
     "--force-refresh",
@@ -85,15 +86,15 @@ end_date   = pd.to_datetime(END_DATE).date()
 # ── Helpers ──────────────────────────────────────────────────────────────────
 
 def get_filename_for_location(location_name):
-    """Return simplified filename for a location (e.g., 'Skopje.csv')."""
+    """Return simplified filename for a location (e.g., '<Name>.csv')."""
     return f"{location_name}.csv"
 
 
 def get_legacy_filenames(location_name):
     """Find legacy date-embedded filenames for a location.
-    
+
     Returns list of matching paths, e.g.:
-        Skopje_41.9965_21.4314_19500101_20260401.csv
+        <Name>_<lat>_<lon>_<start>_<end>.csv
     """
     pattern = os.path.join(OUTPUT_DIR, f"{location_name}_*.csv")
     return glob.glob(pattern)
