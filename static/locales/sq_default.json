@@ -2,7 +2,8 @@
   "meta": {
     "lang": "sq",
     "style": "default",
-    "label": "Shqip"
+    "label": "Shqip",
+    "country_name": "Maqedonia e Veriut"
   },
   "ui": {
     "heading_today": "Maqedonia Sot",

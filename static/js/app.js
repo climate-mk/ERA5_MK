@@ -867,7 +867,7 @@ function _buildTodayCardInner(r) {
     <div class="today-body">
       <div class="today-flag-wrap">${_buildTodayFlag(r.category_key)}</div>
       <div class="today-text">
-        <span class="today-cat">${_locale?.categories?.[r.category_key || r.category.toLowerCase()]?.name || r.category}</span><span class="today-sep-dot" style="background:${r.color}"></span><span class="today-desc">${(_locale?.categories?.[r.category_key || r.category.toLowerCase()]?.desc || r.description).replace('{d}', _fmtDay(r.month_num, r.day_num, r.day_label))}</span>
+        <span class="today-cat">${_locale?.categories?.[r.category_key || r.category.toLowerCase()]?.name || r.category}</span><span class="today-sep-dot" style="background:${r.color}"></span><span class="today-desc">${(_locale?.categories?.[r.category_key || r.category.toLowerCase()]?.desc || r.description).replace('{country}', _locale?.meta?.country_name || _metaConfig?.name || '').replace('{data_start_year}', String(r.year_min || '')).replace('{record_years}', String(r.year_max && r.year_min ? r.year_max - r.year_min + 1 : '')).replace('{d}', _fmtDay(r.month_num, r.day_num, r.day_label))}</span>
       </div>
     </div>
     <p class="today-explain">${t('today.explain1')}</p>
@@ -1937,6 +1937,7 @@ async function init() {
   // ── 1. Fetch meta first — needed for default_language, topo URL, default_location
   const meta = await fetch("api/meta").then(r => r.json());
   _metaConfig = meta;
+  _metaConfig.name = meta.name;   // expose full country name for {country} substitutions
 
   // ── 2. Load locale (default_language now available via _metaConfig)
   await loadLocale(_localeKey());

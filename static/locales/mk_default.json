@@ -2,7 +2,8 @@
   "meta": {
     "lang": "mk",
     "style": "default",
-    "label": "Македонски"
+    "label": "Македонски",
+    "country_name": "Северна Македонија"
   },
   "ui": {
     "heading_today": "Македонија денес",

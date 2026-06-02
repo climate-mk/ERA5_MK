@@ -2,7 +2,8 @@
   "meta": {
     "lang": "en",
     "style": "default",
-    "label": "English"
+    "label": "English",
+    "country_name": "North Macedonia"
   },
   "ui": {
     "heading_today": "Macedonia Today",

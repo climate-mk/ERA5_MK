@@ -805,6 +805,7 @@ def api_meta():
         "chat_error_global_limit": CHAT_ERROR_GLOBAL_LIMIT,
         # ── new keys from CONFIG ───────────────────────────────────────────────
         "country":          CONFIG["code"],
+        "name":             CONFIG["name"],
         "default_location": CONFIG["default_location"],
         "default_language": CONFIG["default_language"],
         "languages":        CONFIG["languages"],
