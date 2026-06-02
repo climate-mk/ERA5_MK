@@ -38,3 +38,6 @@ countries/_after/
 *.bak
 test.html
 cache/
+_baseline/
+_after/
+_after_final/
