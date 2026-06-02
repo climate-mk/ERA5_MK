@@ -85,7 +85,7 @@ def _load(country_code: str) -> dict:
     if not stations or not isinstance(stations, list):
         sys.exit(f"countries/{country_code}.yaml: 'stations' must be a non-empty list")
     for i, s in enumerate(stations):
-        for field in ("name", "lat", "lon", "elevation_m"):
+        for field in ("name", "lat", "lon", "elevation"):
             if field not in s:
                 sys.exit(
                     f"countries/{country_code}.yaml: station[{i}] missing '{field}'"

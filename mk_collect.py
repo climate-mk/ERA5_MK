@@ -22,6 +22,11 @@ import argparse
 import glob
 from datetime import datetime, timedelta
 
+# ── Configuration ────────────────────────────────────────────────────────────
+# Import CONFIG before argparse so the description can reference CONFIG['name']
+
+from config import CONFIG
+
 # ── CLI Arguments ────────────────────────────────────────────────────────────
 
 parser = argparse.ArgumentParser(
@@ -38,10 +43,6 @@ parser.add_argument(
     help="Enable verbose output for debugging",
 )
 args = parser.parse_args()
-
-# ── Configuration ────────────────────────────────────────────────────────────
-
-from config import CONFIG
 
 START_DATE = str(CONFIG["data_start_date"])
 END_DATE   = (datetime.now() - timedelta(days=10)).strftime("%Y-%m-%d")
@@ -207,7 +208,7 @@ def fetch_location(loc):
     name      = loc["name"]
     lat       = loc["lat"]
     lon       = loc["lon"]
-    elevation = loc["elevation_m"]
+    elevation = loc["elevation"]
 
     # Use simplified filename format
     filename = get_filename_for_location(name)

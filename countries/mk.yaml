@@ -51,26 +51,26 @@ features:
 
 # ── Stations ──────────────────────────────────────────────────────────────────
 # Single source of truth — mk_collect.py and mk_api.py both read from here.
-# lat/lon are ERA5-Land grid points; elevation_m is the real station elevation
+# lat/lon are ERA5-Land grid points; elevation is the real station elevation
 # used for lapse-rate temperature correction (+0.0065 °C/m).
 stations:
-  - { name: Skopje,       lat: 41.9965, lon: 21.4314, elevation_m: 240  }
-  - { name: Bitola,       lat: 41.0314, lon: 21.3347, elevation_m: 589  }
-  - { name: Ohrid,        lat: 41.1231, lon: 20.8016, elevation_m: 695  }
-  - { name: Tetovo,       lat: 42.0092, lon: 20.9714, elevation_m: 468  }
-  - { name: Kumanovo,     lat: 42.1322, lon: 21.7144, elevation_m: 340  }
-  - { name: Veles,        lat: 41.7153, lon: 21.7753, elevation_m: 230  }
-  - { name: Strumica,     lat: 41.4378, lon: 22.6431, elevation_m: 230  }
-  - { name: Gostivar,     lat: 41.7956, lon: 20.9089, elevation_m: 510  }
-  - { name: Stip,         lat: 41.7457, lon: 22.1961, elevation_m: 310  }
-  - { name: Kavadarci,    lat: 41.4331, lon: 22.0119, elevation_m: 270  }
-  - { name: Kochani,      lat: 41.9167, lon: 22.4167, elevation_m: 350  }
-  - { name: Kicevo,       lat: 41.5131, lon: 20.9589, elevation_m: 630  }
-  - { name: Gevgelija,    lat: 41.1414, lon: 22.5011, elevation_m: 55   }
-  - { name: Negotino,     lat: 41.4831, lon: 22.0894, elevation_m: 222  }
-  - { name: Debar,        lat: 41.5239, lon: 20.5239, elevation_m: 670  }
-  - { name: Radovis,      lat: 41.6386, lon: 22.4647, elevation_m: 370  }
-  - { name: Berovo,       lat: 41.7047, lon: 22.8556, elevation_m: 827  }
-  - { name: Lazaropole,   lat: 41.5394, lon: 20.6956, elevation_m: 1330 }
-  - { name: Demir_Kapija, lat: 41.4042, lon: 22.2458, elevation_m: 110  }
-  - { name: Prilep,       lat: 41.3453, lon: 21.5550, elevation_m: 640  }
+  - { name: Skopje,       lat: 41.9965, lon: 21.4314, elevation: 240  }
+  - { name: Bitola,       lat: 41.0314, lon: 21.3347, elevation: 589  }
+  - { name: Ohrid,        lat: 41.1231, lon: 20.8016, elevation: 695  }
+  - { name: Tetovo,       lat: 42.0092, lon: 20.9714, elevation: 468  }
+  - { name: Kumanovo,     lat: 42.1322, lon: 21.7144, elevation: 340  }
+  - { name: Veles,        lat: 41.7153, lon: 21.7753, elevation: 230  }
+  - { name: Strumica,     lat: 41.4378, lon: 22.6431, elevation: 230  }
+  - { name: Gostivar,     lat: 41.7956, lon: 20.9089, elevation: 510  }
+  - { name: Stip,         lat: 41.7457, lon: 22.1961, elevation: 310  }
+  - { name: Kavadarci,    lat: 41.4331, lon: 22.0119, elevation: 270  }
+  - { name: Kochani,      lat: 41.9167, lon: 22.4167, elevation: 350  }
+  - { name: Kicevo,       lat: 41.5131, lon: 20.9589, elevation: 630  }
+  - { name: Gevgelija,    lat: 41.1414, lon: 22.5011, elevation: 55   }
+  - { name: Negotino,     lat: 41.4831, lon: 22.0894, elevation: 222  }
+  - { name: Debar,        lat: 41.5239, lon: 20.5239, elevation: 670  }
+  - { name: Radovis,      lat: 41.6386, lon: 22.4647, elevation: 370  }
+  - { name: Berovo,       lat: 41.7047, lon: 22.8556, elevation: 827  }
+  - { name: Lazaropole,   lat: 41.5394, lon: 20.6956, elevation: 1330 }
+  - { name: Demir_Kapija, lat: 41.4042, lon: 22.2458, elevation: 110  }
+  - { name: Prilep,       lat: 41.3453, lon: 21.5550, elevation: 640  }
