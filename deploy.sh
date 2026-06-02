@@ -37,7 +37,7 @@ PY_CHANGES=$(rsync -az --checksum --itemize-changes \
 rsync -az --checksum --progress static/ "$SERVER:$APP_DIR/static/"
 
 # Sync data directory (no restart needed)
-rsync -az --checksum --progress data/ "$SERVER:$APP_DIR/data/"
+rsync -az --checksum --progress data/mk/ "$SERVER:$APP_DIR/data/mk/"
 
 # Determine what changed
 API_CHANGED=false    # mk_api.py specifically (affects disk caches)
@@ -83,7 +83,7 @@ fi
 # (today status, annual trend, calendar) are recomputed fresh after restart.
 if [ "\$API_CHANGED" = "true" ]; then
   echo "--- Clearing disk caches (stale after mk_api.py change)..."
-  CACHE_DIR="\$APP_DIR/cache"
+  CACHE_DIR="\$APP_DIR/cache/mk"
   removed=0
   for pattern in "today_*.json" "annual_trend_*.json" "cal_*.json"; do
     count=\$(ls "\$CACHE_DIR"/\$pattern 2>/dev/null | wc -l)

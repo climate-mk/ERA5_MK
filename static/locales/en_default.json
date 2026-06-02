@@ -2,7 +2,8 @@
   "meta": {
     "lang": "en",
     "style": "default",
-    "label": "English"
+    "label": "English",
+    "country_name": "North Macedonia"
   },
   "ui": {
     "heading_today": "Macedonia Today",
@@ -37,7 +38,7 @@
   "categories": {
     "freezing": {
       "name": "Freezing",
-      "desc": "Among the coldest {d}s in our 76-year record."
+      "desc": "Among the coldest {d}s in our {record_years}-year record."
     },
     "cold": {
       "name": "Cold",
@@ -45,7 +46,7 @@
     },
     "nope": {
       "name": "Normal",
-      "desc": "Right around what {d} usually feels like in Macedonia."
+      "desc": "Right around what {d} usually feels like in {country}."
     },
     "hot": {
       "name": "Hot",
@@ -53,7 +54,7 @@
     },
     "hell": {
       "name": "Hell",
-      "desc": "Exceptional heat — top 5% of all {d}s since 1950."
+      "desc": "Exceptional heat — top 5% of all {d}s since {data_start_year}."
     }
   },
   "charts": {

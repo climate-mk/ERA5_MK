@@ -21,30 +21,11 @@ from dotenv import load_dotenv
 # Load environment variables from .env
 load_dotenv()
 
-# ── Location coordinates (for map endpoint) ────────────────────────────────────
+from config import CONFIG
 
-LOC_COORDS = {
-    "Berovo":       {"lat": 41.7047, "lon": 22.8556},
-    "Bitola":       {"lat": 41.0314, "lon": 21.3347},
-    "Debar":        {"lat": 41.5239, "lon": 20.5239},
-    "Demir_Kapija": {"lat": 41.4042, "lon": 22.2458},
-    "Gevgelija":    {"lat": 41.1414, "lon": 22.5011},
-    "Gostivar":     {"lat": 41.7956, "lon": 20.9089},
-    "Kavadarci":    {"lat": 41.4331, "lon": 22.0119},
-    "Kicevo":       {"lat": 41.5131, "lon": 20.9589},
-    "Kochani":      {"lat": 41.9167, "lon": 22.4167},
-    "Kumanovo":     {"lat": 42.1322, "lon": 21.7144},
-    "Lazaropole":   {"lat": 41.5394, "lon": 20.6956},
-    "Negotino":     {"lat": 41.4831, "lon": 22.0894},
-    "Ohrid":        {"lat": 41.1231, "lon": 20.8016},
-    "Prilep":       {"lat": 41.3453, "lon": 21.5550},
-    "Radovis":      {"lat": 41.6386, "lon": 22.4647},
-    "Skopje":       {"lat": 41.9965, "lon": 21.4314},
-    "Stip":         {"lat": 41.7457, "lon": 22.1961},
-    "Strumica":     {"lat": 41.4378, "lon": 22.6431},
-    "Tetovo":       {"lat": 42.0092, "lon": 20.9714},
-    "Veles":        {"lat": 41.7153, "lon": 21.7753},
-}
+# ── Location coordinates (for map endpoint) — derived from CONFIG, no duplication ──
+LOC_COORDS = {s["name"]: {"lat": s["lat"], "lon": s["lon"]}
+              for s in sorted(CONFIG["stations"], key=lambda s: s["name"])}
 
 # ── Direct Line config ─────────────────────────────────────────────────────────
 
@@ -62,7 +43,7 @@ _ANALYTICS_EXPORT_KEY = os.getenv("ANALYTICS_EXPORT_KEY", "")
 
 # ── Load data ──────────────────────────────────────────────────────────────────
 
-DATA_DIR = "./data"
+DATA_DIR = os.path.join("data", CONFIG["code"])
 def _load_csv(filepath):
     df = pd.read_csv(filepath)
     try:
@@ -84,7 +65,9 @@ data = data[data["date"] <= pd.Timestamp.today()]
 data["year"]  = data["date"].dt.year
 data["month"] = data["date"].dt.month
 
-_CSV_MAX_DATE = data["date"].max().date()
+_CSV_MAX_DATE    = data["date"].max().date()
+_RECORD_YEARS    = int(data["year"].max() - data["year"].min() + 1)
+_DATA_START_YEAR = int(data["year"].min())
 
 LAPSE_RATE = 0.0065
 for _c in ["temperature_max", "temperature_min", "temperature_mean"]:
@@ -287,7 +270,7 @@ def compute_calendar(loc, col, var, half_window, method):
         return _CAL_CACHE[key]
 
     # FS cache: survives service restarts (data only changes once/day via cron)
-    today_str   = _today_mk().date().isoformat()
+    today_str   = _today_local().date().isoformat()
     fs_filename = f"cal_{loc}_{col}_{half_window}_{method}_{today_str}.json"
     fs_path     = os.path.join(_CACHE_DIR, fs_filename)
     cached      = _fs_load(fs_path)
@@ -339,12 +322,12 @@ def compute_calendar(loc, col, var, half_window, method):
 
 # ── Timezone helper ────────────────────────────────────────────────────────────
 
-def _today_mk():
-    """Current date in Macedonia local time (CET/CEST = UTC+1/+2).
-    The server runs UTC; without this, dates drift during the 22:00–00:00 UTC
-    window (midnight–2am Skopje) causing a mismatch between Open-Meteo's
-    timezone-aware forecast and the historical distribution month/day lookup."""
-    return pd.Timestamp.now(tz="Europe/Skopje").normalize().tz_localize(None)
+def _today_local():
+    """Current date in the country's local timezone (from CONFIG).
+    The server runs UTC; without this, dates drift during the late-evening UTC
+    window causing a mismatch between Open-Meteo's timezone-aware forecast and
+    the historical distribution month/day lookup."""
+    return pd.Timestamp.now(tz=CONFIG["timezone"]).normalize().tz_localize(None)
 
 # ── Annual trend (cached) ──────────────────────────────────────────────────────
 
@@ -352,7 +335,7 @@ _ANNUAL_TREND_CACHE = {}
 
 def compute_annual_trend(target_date=None):
     if target_date is None:
-        target_date = _today_mk().date()
+        target_date = _today_local().date()
 
     month, day = target_date.month, target_date.day
     # Keyed by day-of-year (MM-DD) — the trend window is identical for any
@@ -392,8 +375,7 @@ def compute_annual_trend(target_date=None):
     annual = annual_raw
 
     # ── Configurable start year ───────────────────────────────────────────────
-    TREND_START_YEAR = 1950   # change this to adjust the baseline period
-    annual = annual[annual.index >= TREND_START_YEAR]
+    annual = annual[annual.index >= CONFIG["trend_start_year"]]
     x_arr  = annual.index.to_numpy(float)
     y_arr  = annual.values
 
@@ -417,8 +399,8 @@ def compute_annual_trend(target_date=None):
     u_hist = res.high_slope * x_hist + ic_hi
     l_hist = res.low_slope  * x_hist + ic_lo
 
-    # Projection last_yr → 2050
-    x_fc = np.linspace(last_yr, 2050, 200)
+    # Projection last_yr → projection_end_year
+    x_fc = np.linspace(last_yr, CONFIG["projection_end_year"], 200)
     y_fc = slope          * x_fc + ic
     u_fc = res.high_slope * x_fc + ic_hi
     l_fc = res.low_slope  * x_fc + ic_lo
@@ -453,7 +435,7 @@ def compute_annual_trend(target_date=None):
 
 # ── Generic filesystem cache helpers ──────────────────────────────────────────
 
-_CACHE_DIR = os.path.join(os.path.dirname(__file__), "cache")
+_CACHE_DIR = os.path.join(os.path.dirname(__file__), "cache", CONFIG["code"])
 
 def _fs_load(path):
     """Load a JSON cache file; return None on any error."""
@@ -486,21 +468,45 @@ def _fs_save(path, data, glob_pattern=None, keep_days=3, anchor_date=None):
 _TODAY_CACHE     = {}
 _TODAY_CACHE_DIR = _CACHE_DIR
 
+# Thresholds and colours only — text loaded from locale at runtime.
 _TODAY_CATEGORIES = [
-    # (max_percentile_exclusive, key, name, hex, description_template)
-    (10,  "freezing", "Freezing", "#3a5a8a", "Among the coldest {d}s in our 76-year record."),
-    (20,  "cold",     "Cold",     "#6c8fb6", "Cooler than most {d}s we've measured."),
-    (80,  "nope",     "Nope",     "#e7d9b8", "Right around what {d} usually feels like in Macedonia."),
-    (95,  "hot",      "Hot",      "#c25a2c", "Among the hottest {d}s in our record."),
-    (101, "hell",     "Hell",     "#962c1a", "Exceptional heat — top 5% of all {d}s since 1950."),
+    # (max_percentile_exclusive, key, colour)
+    (10,  "freezing", "#3a5a8a"),
+    (20,  "cold",     "#6c8fb6"),
+    (80,  "nope",     "#e7d9b8"),
+    (95,  "hot",      "#c25a2c"),
+    (101, "hell",     "#962c1a"),
 ]
 
+def _load_en_locale() -> dict:
+    path = os.path.join(os.path.dirname(__file__), "static", "locales", "en_default.json")
+    try:
+        with open(path, encoding="utf-8") as _f:
+            return json.load(_f)
+    except Exception:
+        return {}
+
+_EN_LOCALE = _load_en_locale()
+
 def _categorize_today(pct, dlabel):
-    for cutoff, key, name, color, tpl in _TODAY_CATEGORIES:
+    """Return (key, name, color, description) for a given percentile.
+    Text comes from en_default.json so no country name or year is hardcoded here.
+    Variables interpolated: {d} day-label, {country}, {record_years}, {data_start_year}.
+    """
+    cats   = _EN_LOCALE.get("categories", {})
+    interp = dict(d=dlabel, country=CONFIG["name"],
+                  record_years=_RECORD_YEARS, data_start_year=_DATA_START_YEAR)
+    for cutoff, key, color in _TODAY_CATEGORIES:
         if pct < cutoff:
-            return key, name, color, tpl.format(d=dlabel)
+            cat  = cats.get(key, {})
+            name = cat.get("name", key)
+            desc = cat.get("desc", "").format_map(interp)
+            return key, name, color, desc
     last = _TODAY_CATEGORIES[-1]
-    return last[1], last[2], last[3], last[4].format(d=dlabel)
+    cat  = cats.get(last[1], {})
+    name = cat.get("name", last[1])
+    desc = cat.get("desc", "").format_map(interp)
+    return last[1], name, last[2], desc
 
 def _today_cache_path(date_str):
     return os.path.join(_TODAY_CACHE_DIR, f"today_{date_str}.json")
@@ -535,7 +541,7 @@ def _save_today_to_disk(date_str, result):
 def compute_today_status(target_date=None):
     from concurrent.futures import ThreadPoolExecutor, as_completed
 
-    today_ts   = _today_mk()
+    today_ts   = _today_local()
     today_date = today_ts.date()
 
     if target_date is None:
@@ -567,7 +573,7 @@ def compute_today_status(target_date=None):
                     "latitude":  f"{lat:.4f}",
                     "longitude": f"{lon:.4f}",
                     "daily":     "temperature_2m_max",
-                    "timezone":  "Europe/Skopje",
+                    "timezone":  CONFIG["timezone"],
                     **extra_params,
                 }, timeout=10)
                 resp.raise_for_status()
@@ -777,6 +783,10 @@ def set_cache_headers(response):
         response.headers["Cache-Control"] = "no-cache"
     return response
 
+def _feature_enabled(key: str) -> bool:
+    """Return True when the named feature is enabled in CONFIG."""
+    return bool(CONFIG["features"].get(key, False))
+
 @app.route("/")
 def index():
     return send_from_directory("static", "index.html")
@@ -784,6 +794,7 @@ def index():
 @app.route("/api/meta")
 def api_meta():
     return jsonify({
+        # ── existing keys (unchanged) ──────────────────────────────────────────
         "locations":   LOCATIONS,
         "variables":   VARIABLES,
         "month_names": MONTH_NAMES,
@@ -792,11 +803,22 @@ def api_meta():
         "chat_error_rate_limit":   CHAT_ERROR_RATE_LIMIT,
         "chat_error_generic":      CHAT_ERROR_GENERIC,
         "chat_error_global_limit": CHAT_ERROR_GLOBAL_LIMIT,
+        # ── new keys from CONFIG ───────────────────────────────────────────────
+        "country":          CONFIG["code"],
+        "name":             CONFIG["name"],
+        "default_location": CONFIG["default_location"],
+        "default_language": CONFIG["default_language"],
+        "languages":        CONFIG["languages"],
+        "map":              CONFIG["map"],
+        "branding":         CONFIG["branding"],
+        "features":         CONFIG["features"],
     })
 
 @app.route("/api/regression")
 def api_regression():
-    locs   = request.args.getlist("loc") or ["Skopje"]
+    if not (_feature_enabled("regression_chart") or _feature_enabled("hero_cards")):
+        return "", 204
+    locs   = request.args.getlist("loc") or [CONFIG["default_location"]]
     var    = request.args.get("var",    "temperature_mean")
     doy    = int(request.args.get("doy",    105))
     window = int(request.args.get("window",   7))
@@ -829,7 +851,8 @@ def api_regression():
 
 @app.route("/api/calendar")
 def api_calendar():
-    loc    = request.args.get("loc",    "Skopje")
+    if not _feature_enabled("trend_calendar"): return "", 204
+    loc    = request.args.get("loc",    CONFIG["default_location"])
     var    = request.args.get("var",    "temperature_mean")
     window = int(request.args.get("window",   7))
     corr   = request.args.get("corr",   "raw")
@@ -849,6 +872,7 @@ def api_calendar():
 
 @app.route("/api/trends")
 def api_trends():
+    if not _feature_enabled("station_map"): return "", 204
     var    = request.args.get("var",    "temperature_mean")
     doy    = int(request.args.get("doy",    105))
     window = int(request.args.get("window",   7))
@@ -881,6 +905,7 @@ def api_trends():
 
 @app.route("/api/today_status")
 def api_today_status():
+    if not _feature_enabled("today_section"): return "", 204
     date_str = request.args.get("date")
     target = None
     if date_str:
@@ -912,7 +937,7 @@ def compute_season_heatmap():
     A season is included only when its end date ≤ last ERA5 date in the dataset.
     100 % ERA5-Land — no Open-Meteo mixing.
     """
-    BASELINE_START, BASELINE_END = 1950, 1980
+    BASELINE_START, BASELINE_END = CONFIG["baseline"]["start"], CONFIG["baseline"]["end"]
     cache_key = "season_heatmap_baseline_1950_1980"
     if cache_key in _TODAY_CACHE:
         return _TODAY_CACHE[cache_key]
@@ -1044,6 +1069,7 @@ def compute_season_heatmap():
 
 @app.route("/api/season_heatmap")
 def api_season_heatmap():
+    if not _feature_enabled("season_heat_heatmap"): return "", 204
     return jsonify(compute_season_heatmap())
 
 
@@ -1063,7 +1089,7 @@ def compute_spei_heatmap():
 
     Positive SPEI = wetter than 1950–1980; negative = drier.
     """
-    BASELINE_START, BASELINE_END = 1950, 1980
+    BASELINE_START, BASELINE_END = CONFIG["baseline"]["start"], CONFIG["baseline"]["end"]
     cache_key = "spei_heatmap_v1"
     if cache_key in _TODAY_CACHE:
         return _TODAY_CACHE[cache_key]
@@ -1213,6 +1239,7 @@ def compute_spei_heatmap():
 
 @app.route("/api/spei_heatmap")
 def api_spei_heatmap():
+    if not _feature_enabled("spei_heatmap"): return "", 204
     return jsonify(compute_spei_heatmap())
 
 
@@ -1227,7 +1254,7 @@ def compute_spei_station_seasonal():
     Also computes an "Annual" series = mean of the 4 seasonal SPEI values per year.
     Result is cached to disk keyed by era5_last date.
     """
-    BASELINE_START, BASELINE_END = 1950, 1980
+    BASELINE_START, BASELINE_END = CONFIG["baseline"]["start"], CONFIG["baseline"]["end"]
     cache_key = "spei_station_seasonal_v2"   # bumped: adds monthly SPEI-30
     if cache_key in _TODAY_CACHE:
         return _TODAY_CACHE[cache_key]
@@ -1416,11 +1443,13 @@ def compute_spei_station_seasonal():
 
 @app.route("/api/spei_station_seasonal")
 def api_spei_station_seasonal():
+    if not _feature_enabled("drought_trend_chart"): return "", 204
     return jsonify(compute_spei_station_seasonal())
 
 
 @app.route("/api/annual_trend")
 def api_annual_trend():
+    if not _feature_enabled("today_section"): return "", 204
     date_str = request.args.get("date")
     target = None
     if date_str:
@@ -1435,6 +1464,7 @@ def api_annual_trend():
 @limiter.limit(TOKEN_LIMIT_MINUTE)
 @limiter.limit(TOKEN_LIMIT_HOUR)
 def get_token():
+    if not _feature_enabled("chatbot"): return "", 204
     if not DIRECT_LINE_SECRET:
         return jsonify({"error": "Chat service not configured"}), 503
 
@@ -1493,6 +1523,7 @@ def get_token():
 @limiter.limit(TOKEN_LIMIT_MINUTE)
 @limiter.limit(TOKEN_LIMIT_HOUR)
 def refresh_token():
+    if not _feature_enabled("chatbot"): return "", 204
     cached = session.get("dl_token")
     if not cached:
         return jsonify({"error": "No active session"}), 400
@@ -1524,6 +1555,7 @@ def refresh_token():
 @app.route("/api/analytics/chat", methods=["POST"])
 @limiter.limit("60 per minute")
 def api_analytics_chat():
+    if not _feature_enabled("analytics_export"): return "", 204
     """
     Internal endpoint — receives one chat event from the browser.
     Body JSON: { direction: "user"|"bot", message: "...", conv_id: "..." }
@@ -1553,6 +1585,7 @@ def api_analytics_chat():
 
 @app.route("/api/analytics/export")
 def api_analytics_export():
+    if not _feature_enabled("analytics_export"): return "", 204
     """
     Private CSV export of the full chat_events table.
     Access: GET /api/analytics/export?key=<ANALYTICS_EXPORT_KEY>
@@ -1599,7 +1632,7 @@ def _prewarm():
     # called once per date on startup rather than on first user navigation click.
     # Cache hits from disk are instant so restarts don't re-fetch already-cached dates.
     _gap = _CSV_MAX_DATE + datetime.timedelta(days=1)
-    _today = _today_mk().date()
+    _today = _today_local().date()
     while _gap < _today:
         try: compute_today_status(_gap)
         except Exception: pass
@@ -1612,5 +1645,6 @@ def _prewarm():
 threading.Thread(target=_prewarm, daemon=True).start()
 
 if __name__ == "__main__":
-    print("API running at http://127.0.0.1:5050")
-    app.run(debug=False, host="0.0.0.0", port=5050, threaded=True)
+    _port = int(os.getenv("PORT", 5050))
+    print(f"API running at http://127.0.0.1:{_port}")
+    app.run(debug=False, host="0.0.0.0", port=_port, threaded=True)

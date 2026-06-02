@@ -34,7 +34,7 @@
     <button class="chat-btn" onclick="openChat()" id="chat-toggle-btn">
       <img class="chat-avatar" src="images/Ognen100.png" alt="Ognen">
       <span class="chat-label">
-        <span class="chat-name">Chat with Ognen</span>
+        <span class="chat-name" id="chat-name-text">Chat with Ognen</span>
         <span class="chat-role">climate assistant</span>
       </span>
     </button>
@@ -188,7 +188,7 @@
     <div id="map-panel" class="panel">
       <div class="panel-h">
         <div>
-          <div class="panel-title">North Macedonia</div>
+          <div class="panel-title" id="map-panel-title">North Macedonia</div>
           <div class="panel-sub" id="map-station-count" style="margin-top:3px">20 WEATHER STATIONS</div>
         </div>
       </div>
@@ -357,7 +357,7 @@
     <div class="chat-modal-content">
       <div class="chat-modal-header">
         <div class="chat-title">
-          <span>Chat with Ognen, the Climate Assistant</span>
+          <span id="chat-modal-title-text">Chat with Ognen, the Climate Assistant</span>
         </div>
         <button class="chat-close-btn" aria-label="Close chat" onclick="document.getElementById('chat-modal').classList.remove('open'); document.body.classList.remove('chat-modal-open')">✕</button>
       </div>
@@ -380,9 +380,7 @@
         <p>In case of any questions, you can try our chatbot Ognen, The Climate Assistant or visit our GitHub page. If you already like what you see, we encourage you to buy us a coffee. :)</p>
       </div>
       <div class="welcome-lang-row">
-        <button class="welcome-lang-btn" data-lang="mk">Македонски</button>
-        <button class="welcome-lang-btn" data-lang="en">English</button>
-        <button class="welcome-lang-btn" data-lang="sq">Shqip</button>
+        <!-- buttons built dynamically in init() from /api/meta languages array -->
       </div>
     </div>
   </div>
@@ -411,9 +409,7 @@
     <div class="mdr-section">
       <div class="mdr-label">Language</div>
       <select id="mdr-lang-select" class="mdr-select">
-        <option value="en">English</option>
-        <option value="mk">Македонски</option>
-        <option value="sq">Shqip</option>
+        <!-- options built dynamically in init() from /api/meta languages array -->
       </select>
     </div>
 
@@ -450,8 +446,8 @@
     <!-- Chat -->
     <div class="mdr-section" id="mdr-chat-section">
       <button class="mdr-chat-btn" onclick="openChat(); closeMobileDrawer()">
-        <img src="images/Ognen100.png" alt="Ognen" class="mdr-chat-avatar">
-        <span>Chat with Ognen, the Climate Assistant</span>
+        <img src="images/Ognen100.png" id="mdr-chat-avatar" alt="Ognen" class="mdr-chat-avatar">
+        <span id="mdr-chat-btn-text">Chat with Ognen, the Climate Assistant</span>
       </button>
     </div>
 

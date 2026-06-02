@@ -1,5 +1,5 @@
 # ── Data files (large CSVs, uncomment to be not committed) ───────────────────────────────────
-#data/
+data/
 
 # ── Deployment / secrets ─────────────────────────────────────────────────────
 deploy.sh
@@ -21,8 +21,12 @@ build/
 chat_analytics.db
 GeoLite2-Country.mmdb
 
+# ── Country config test/scratch files ────────────────────────────────────────
+countries/_test.yaml
+countries/_baseline/
+countries/_after/
+
 # ── Claude ────────────────────────────────────────────────────────────────────
-CLAUDE.md
 
 # ── Editor / OS ───────────────────────────────────────────────────────────────
 .DS_Store
@@ -34,3 +38,6 @@ CLAUDE.md
 *.bak
 test.html
 cache/
+_baseline/
+_after/
+_after_final/

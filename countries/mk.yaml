@@ -1,0 +1,76 @@
+# Single source of truth for North Macedonia.
+# Copy this file to countries/<cc>.yaml to add a new country.
+# All values that were previously hardcoded in mk_collect.py and mk_api.py
+# live here. Both collect.py and api.py will read from this file in step 2.
+
+code: mk
+name: North Macedonia
+timezone: Europe/Skopje
+default_location: Skopje
+languages: [en, mk, sq]
+default_language: mk
+
+# ── Climatology / methodology windows ─────────────────────────────────────────
+data_start_date: "1950-01-01"
+baseline:
+  start: 1950
+  end:   1980
+trend_start_year: 1950
+projection_end_year: 2050
+
+# ── Map (Highcharts station-dot map) ──────────────────────────────────────────
+map:
+  center_lat: 41.6
+  center_lon: 21.7
+  zoom: 7.1
+
+# ── Branding ──────────────────────────────────────────────────────────────────
+branding:
+  site_title: "North Macedonia Climate Explorer"
+  domain: "climate.mk"
+  chatbot_name: "Ognen"
+  chatbot_avatar: "images/Ognen100.png"
+
+# ── Feature toggles ───────────────────────────────────────────────────────────
+# Set any feature to false to hide it from the UI, disable its endpoint,
+# and suppress its help/FAQ entries. Missing keys default to false.
+features:
+  regression_chart:      true   # regression scatter + trend line
+  trend_calendar:        true   # year-round daily trend calendar bars
+  station_map:           true   # station map coloured by slope
+  hero_cards:            true   # per-location summary verdict cards
+  today_section:         true   # "Is it hot today?" + annual trend chart
+  season_heat_heatmap:   true   # seasonal heat ranking heatmap
+  spei_heatmap:          true   # seasonal drought index (SPEI) heatmap
+  drought_trend_chart:   true   # per-station SPEI trend chart (WIP)
+  chatbot:               true   # Ognen AI assistant (Azure Direct Line)
+  welcome_modal:         true   # welcome/onboarding modal on first visit
+  next_episodes_teaser:  true   # "In the next episodes…" teaser section
+  mk2036_section:        true   # Macedonia 2036 projected impacts section
+  analytics_export:      true   # /api/analytics/export + /api/analytics/chat
+
+# ── Stations ──────────────────────────────────────────────────────────────────
+# Single source of truth — mk_collect.py and mk_api.py both read from here.
+# lat/lon are ERA5-Land grid points; elevation is the real station elevation
+# used for lapse-rate temperature correction (+0.0065 °C/m).
+stations:
+  - { name: Skopje,       lat: 41.9965, lon: 21.4314, elevation: 240  }
+  - { name: Bitola,       lat: 41.0314, lon: 21.3347, elevation: 589  }
+  - { name: Ohrid,        lat: 41.1231, lon: 20.8016, elevation: 695  }
+  - { name: Tetovo,       lat: 42.0092, lon: 20.9714, elevation: 468  }
+  - { name: Kumanovo,     lat: 42.1322, lon: 21.7144, elevation: 340  }
+  - { name: Veles,        lat: 41.7153, lon: 21.7753, elevation: 230  }
+  - { name: Strumica,     lat: 41.4378, lon: 22.6431, elevation: 230  }
+  - { name: Gostivar,     lat: 41.7956, lon: 20.9089, elevation: 510  }
+  - { name: Stip,         lat: 41.7457, lon: 22.1961, elevation: 310  }
+  - { name: Kavadarci,    lat: 41.4331, lon: 22.0119, elevation: 270  }
+  - { name: Kochani,      lat: 41.9167, lon: 22.4167, elevation: 350  }
+  - { name: Kicevo,       lat: 41.5131, lon: 20.9589, elevation: 630  }
+  - { name: Gevgelija,    lat: 41.1414, lon: 22.5011, elevation: 55   }
+  - { name: Negotino,     lat: 41.4831, lon: 22.0894, elevation: 222  }
+  - { name: Debar,        lat: 41.5239, lon: 20.5239, elevation: 670  }
+  - { name: Radovis,      lat: 41.6386, lon: 22.4647, elevation: 370  }
+  - { name: Berovo,       lat: 41.7047, lon: 22.8556, elevation: 827  }
+  - { name: Lazaropole,   lat: 41.5394, lon: 20.6956, elevation: 1330 }
+  - { name: Demir_Kapija, lat: 41.4042, lon: 22.2458, elevation: 110  }
+  - { name: Prilep,       lat: 41.3453, lon: 21.5550, elevation: 640  }

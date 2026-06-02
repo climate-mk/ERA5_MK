@@ -12,7 +12,18 @@ const wait = ms => new Promise(res => setTimeout(res, ms));
 // tArr(key)     — return an array, or null if missing / not an array
 // loadLocale()  — called once in init(); page reloads on locale switch
 
-let _locale = null;
+let _locale     = null;
+let _metaConfig = null;   // set in init() from /api/meta; drives all country-specific values
+
+// Feature-toggle helper — safe default is disabled
+function isEnabled(key) {
+  return !!(_metaConfig?.features?.[key]);
+}
+
+// Display label for a language code — used to build the language selector dynamically
+const _LANG_LABELS = { en: 'English', mk: 'Македонски', sq: 'Shqip',
+                       sr: 'Srpski', bg: 'Български', hr: 'Hrvatski' };
+function _langLabel(code) { return _LANG_LABELS[code] || code.toUpperCase(); }
 
 async function loadLocale(name) {
   try {
@@ -431,10 +442,19 @@ function renderMap(data) {
       },
     ],
   });
-  requestAnimationFrame(() => mapChart?.reflow());
+  requestAnimationFrame(() => {
+    mapChart?.reflow();
+    if (_metaConfig?.map) {
+      mapChart.mapView.setView(
+        [_metaConfig.map.center_lon, _metaConfig.map.center_lat],
+        _metaConfig.map.zoom
+      );
+    }
+  });
 }
 
 async function refreshMap() {
+  if (!isEnabled("station_map")) return;
   showLoading("map-loading", true);
   try {
     const data = await fetchTrends();
@@ -847,7 +867,7 @@ function _buildTodayCardInner(r) {
     <div class="today-body">
       <div class="today-flag-wrap">${_buildTodayFlag(r.category_key)}</div>
       <div class="today-text">
-        <span class="today-cat">${_locale?.categories?.[r.category_key || r.category.toLowerCase()]?.name || r.category}</span><span class="today-sep-dot" style="background:${r.color}"></span><span class="today-desc">${(_locale?.categories?.[r.category_key || r.category.toLowerCase()]?.desc || r.description).replace('{d}', _fmtDay(r.month_num, r.day_num, r.day_label))}</span>
+        <span class="today-cat">${_locale?.categories?.[r.category_key || r.category.toLowerCase()]?.name || r.category}</span><span class="today-sep-dot" style="background:${r.color}"></span><span class="today-desc">${(_locale?.categories?.[r.category_key || r.category.toLowerCase()]?.desc || r.description).replace('{country}', _locale?.meta?.country_name || _metaConfig?.name || '').replace('{data_start_year}', String(r.year_min || '')).replace('{record_years}', String(r.year_max && r.year_min ? r.year_max - r.year_min + 1 : '')).replace('{d}', _fmtDay(r.month_num, r.day_num, r.day_label))}</span>
       </div>
     </div>
     <p class="today-explain">${t('today.explain1')}</p>
@@ -874,7 +894,7 @@ function _updateTodayCard(r) {
 
   const trendCard = document.getElementById('today-trend-card');
   if (trendCard) {
-    trendCard.innerHTML = `<div class="today-chart-title" id="today-trend-title">Macedonia annual peak temperature · loading…</div><div id="today-trend-chart"></div>`;
+    trendCard.innerHTML = `<div class="today-chart-title" id="today-trend-title">Annual peak temperatures · loading…</div><div id="today-trend-chart"></div>`;
     renderTodayTrendChart(_todayViewDate);
   }
 
@@ -910,6 +930,7 @@ async function _navigateTodayTo(newOffset) {
 }
 
 async function renderTodayStatus() {
+  if (!isEnabled("today_section")) return;
   const el = document.getElementById("today-status");
   if (!el) return;
   try {
@@ -933,19 +954,19 @@ async function renderTodayStatus() {
               <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M10 13a5 5 0 0 0 7.54.54l3-3a5 5 0 0 0-7.07-7.07l-1.72 1.71"/><path d="M14 11a5 5 0 0 0-7.54-.54l-3 3a5 5 0 0 0 7.07 7.07l1.71-1.71"/></svg>
               <span id="share-copy-lbl">Copy link</span>
             </button>
-            <a href="https://x.com/intent/tweet?url=https%3A%2F%2Fclimate.mk&text=Explore+climate+trends+for+North+Macedonia" target="_blank" rel="noopener">
+            <a href="https://x.com/intent/tweet?url=https%3A%2F%2F${encodeURIComponent(_metaConfig?.branding?.domain||'climate.mk')}&text=Explore+climate+trends+for+${encodeURIComponent(_metaConfig?.branding?.site_title||'')}" target="_blank" rel="noopener">
               <svg width="15" height="15" viewBox="0 0 24 24" fill="currentColor"><path d="M18.244 2.25h3.308l-7.227 8.26 8.502 11.24H16.17l-4.714-6.231-5.401 6.231H2.744l7.73-8.835L1.254 2.25H8.08l4.713 6.231zm-1.161 17.52h1.833L7.084 4.126H5.117z"/></svg>
               <span>X / Twitter</span>
             </a>
-            <a href="https://www.facebook.com/sharer/sharer.php?u=https%3A%2F%2Fclimate.mk" target="_blank" rel="noopener">
+            <a href="https://www.facebook.com/sharer/sharer.php?u=https%3A%2F%2F${encodeURIComponent(_metaConfig?.branding?.domain||'climate.mk')}" target="_blank" rel="noopener">
               <svg width="15" height="15" viewBox="0 0 24 24" fill="currentColor"><path d="M24 12.073c0-6.627-5.373-12-12-12s-12 5.373-12 12c0 5.99 4.388 10.954 10.125 11.854v-8.385H7.078v-3.47h3.047V9.43c0-3.007 1.792-4.669 4.533-4.669 1.312 0 2.686.235 2.686.235v2.953H15.83c-1.491 0-1.956.925-1.956 1.874v2.25h3.328l-.532 3.47h-2.796v8.385C19.612 23.027 24 18.062 24 12.073z"/></svg>
               <span>Facebook</span>
             </a>
-            <a href="https://www.linkedin.com/sharing/share-offsite/?url=https%3A%2F%2Fclimate.mk" target="_blank" rel="noopener">
+            <a href="https://www.linkedin.com/sharing/share-offsite/?url=https%3A%2F%2F${encodeURIComponent(_metaConfig?.branding?.domain||'climate.mk')}" target="_blank" rel="noopener">
               <svg width="15" height="15" viewBox="0 0 24 24" fill="currentColor"><path d="M20.447 20.452h-3.554v-5.569c0-1.328-.027-3.037-1.852-3.037-1.853 0-2.136 1.445-2.136 2.939v5.667H9.351V9h3.414v1.561h.046c.477-.9 1.637-1.85 3.37-1.85 3.601 0 4.267 2.37 4.267 5.455v6.286zM5.337 7.433c-1.144 0-2.063-.926-2.063-2.065 0-1.138.92-2.063 2.063-2.063 1.14 0 2.064.925 2.064 2.063 0 1.139-.925 2.065-2.064 2.065zm1.782 13.019H3.555V9h3.564v11.452zM22.225 0H1.771C.792 0 0 .774 0 1.729v20.542C0 23.227.792 24 1.771 24h20.451C23.2 24 24 23.227 24 22.271V1.729C24 .774 23.2 0 22.222 0h.003z"/></svg>
               <span>LinkedIn</span>
             </a>
-            <a href="https://bsky.app/intent/compose?text=Explore+climate+trends+for+North+Macedonia+https%3A%2F%2Fclimate.mk" target="_blank" rel="noopener">
+            <a href="https://bsky.app/intent/compose?text=Explore+climate+trends+for+${encodeURIComponent(_metaConfig?.branding?.site_title||'')}+https%3A%2F%2F${encodeURIComponent(_metaConfig?.branding?.domain||'climate.mk')}" target="_blank" rel="noopener">
               <svg width="15" height="15" viewBox="0 0 24 24" fill="currentColor"><path d="M12 10.8c-1.087-2.114-4.046-6.053-6.798-7.995C2.566.944 1.561 1.266.902 1.565.139 1.908 0 3.08 0 3.768c0 .69.378 5.65.624 6.479.815 2.736 3.713 3.66 6.383 3.364.136-.02.275-.039.415-.056-.138.022-.276.04-.415.056-3.912.58-7.387 2.005-2.83 7.078 5.013 5.19 6.87-1.113 7.823-4.308.953 3.195 2.05 9.271 7.733 4.308 4.267-4.308 1.172-6.498-2.74-7.078a8.741 8.741 0 0 1-.415-.056c.14.017.279.036.415.056 2.67.297 5.568-.628 6.383-3.364.246-.828.624-5.79.624-6.478 0-.69-.139-1.861-.902-2.204-.659-.299-1.664-.62-4.3 1.24C16.046 4.748 13.087 8.687 12 10.8z"/></svg>
               <span>Bluesky</span>
             </a>
@@ -956,7 +977,7 @@ async function renderTodayStatus() {
         <div class="today-card" id="today-main-card"></div>
         <div class="today-chart" id="today-dist-card"></div>
         <div class="today-chart" id="today-trend-card">
-          <div class="today-chart-title" id="today-trend-title">Macedonia annual peak temperature · loading…</div>
+          <div class="today-chart-title" id="today-trend-title">Annual peak temperatures · loading…</div>
           <div id="today-trend-chart"></div>
         </div>
       </div>`;
@@ -1244,11 +1265,12 @@ function renderCalendarPanel(calData, containerId) {
 // ── Refresh functions ─────────────────────────────────────────────────────────
 
 async function refreshRegression() {
+  if (!isEnabled("regression_chart") && !isEnabled("hero_cards")) return;
   showLoading("reg-loading", true);
   try {
     const data = await fetchRegression();
-    renderRegression(data);
-    renderHeroCards(data);
+    if (isEnabled("regression_chart")) renderRegression(data);
+    if (isEnabled("hero_cards"))       renderHeroCards(data);
   } catch(e) {
     console.error("Regression error:", e);
   } finally {
@@ -1257,6 +1279,7 @@ async function refreshRegression() {
 }
 
 async function refreshCalendar() {
+  if (!isEnabled("trend_calendar")) return;
   const locs = state.selLocs;
   if (!locs.length) return;
 
@@ -1767,7 +1790,7 @@ function _initWebChat(token, expiresIn, convId) {
         sendBoxTextColor:           "#1c1814",
         sendBoxBorderTop:           "1px solid #ddd8d0",
         timestampColor:             "#8a7f74",
-        botAvatarImage:             "/images/Ognen100.png",
+        botAvatarImage:             _metaConfig?.branding?.chatbot_avatar || "/images/Ognen100.png",
         botAvatarInitials:          "O",
         hideUserAvatar:             true,
         hideUploadButton:           true,
@@ -1821,7 +1844,7 @@ function renderMk2036() {
   set('mk2036-heading', m.heading); set('mk2036-timeline-btn-label', m.timeline_btn);
   const _tlBtn = document.querySelector('.mk2036-timeline-btn');
   if (_tlBtn) {
-    const _tlLang = localStorage.getItem('mk_lang') || 'mk';
+    const _tlLang = localStorage.getItem('mk_lang') || _metaConfig?.default_language || 'en';
     _tlBtn.href = _tlLang === 'sq' ? 'future-timeline-sq.html' : _tlLang === 'en' ? 'future-timeline.html' : 'future-timeline-mk.html';
   }
   set('mk2036-r1-name', m.r1?.name); set('mk2036-r1-i1', m.r1?.i1); set('mk2036-r1-i2', m.r1?.i2); set('mk2036-r1-i3', m.r1?.i3);
@@ -1856,24 +1879,74 @@ function renderStaticLabels() {
   if (regExplain) regExplain.textContent = t('hero.explain_reg') || '';
 }
 
-// Build the composite locale key from the two separate localStorage values
+// Build the composite locale key from the two separate localStorage values.
+// Falls back to default_language from /api/meta (set before locale loads).
 function _localeKey() {
-  return (localStorage.getItem('mk_lang') || 'mk') + '_' + (localStorage.getItem('mk_content') || 'default');
+  const dflt = _metaConfig?.default_language || 'en';
+  return (localStorage.getItem('mk_lang') || dflt) + '_' + (localStorage.getItem('mk_content') || 'default');
+}
+
+// ── Branding / lang helpers (called from init after meta is available) ────────
+
+function _applyBranding(meta) {
+  // Page <title>
+  document.title = meta.branding.site_title;
+  // Derive short country name: "North Macedonia Climate Explorer" → "North Macedonia"
+  const countryName = meta.branding.site_title.replace(/\s+Climate Explorer.*$/i, '').trim()
+                   || meta.country.toUpperCase();
+  // Map panel title
+  const mapTitle = document.getElementById('map-panel-title');
+  if (mapTitle) mapTitle.textContent = countryName;
+  // Topbar chat name
+  const chatName = document.getElementById('chat-name-text');
+  if (chatName) chatName.textContent = `Chat with ${meta.branding.chatbot_name}`;
+  // Chat modal title
+  const chatModalTitle = document.getElementById('chat-modal-title-text');
+  if (chatModalTitle) chatModalTitle.textContent = `Chat with ${meta.branding.chatbot_name}, the Climate Assistant`;
+  // Mobile drawer chat text
+  const mdrChatText = document.getElementById('mdr-chat-btn-text');
+  if (mdrChatText) mdrChatText.textContent = `Chat with ${meta.branding.chatbot_name}, the Climate Assistant`;
+  // Mobile drawer chat avatar
+  const mdrAvatar = document.getElementById('mdr-chat-avatar');
+  if (mdrAvatar) mdrAvatar.src = meta.branding.chatbot_avatar;
+}
+
+function _buildLangSelector(meta) {
+  const activeLang = localStorage.getItem('mk_lang') || meta.default_language;
+  // Mobile drawer <select>
+  const sel = document.getElementById('mdr-lang-select');
+  if (sel) {
+    sel.innerHTML = meta.languages.map(lang =>
+      `<option value="${lang}"${lang === activeLang ? ' selected' : ''}>${_langLabel(lang)}</option>`
+    ).join('');
+    sel.value = activeLang;
+  }
+  // Welcome modal language buttons
+  const langRow = document.querySelector('.welcome-lang-row');
+  if (langRow) {
+    langRow.innerHTML = meta.languages.map(lang =>
+      `<button class="welcome-lang-btn" data-lang="${lang}">${_langLabel(lang)}</button>`
+    ).join('');
+  }
 }
 
 // ── Init ──────────────────────────────────────────────────────────────────────
 
 async function init() {
 
-  // Load locale before rendering anything
-  await loadLocale(_localeKey());
-  _renderWelcomeModal();
+  // ── 1. Fetch meta first — needed for default_language, topo URL, default_location
+  const meta = await fetch("api/meta").then(r => r.json());
+  _metaConfig = meta;
+  _metaConfig.name = meta.name;   // expose full country name for {country} substitutions
 
-  // Fetch metadata + topo + initial trends in parallel
+  // ── 2. Load locale (default_language now available via _metaConfig)
+  await loadLocale(_localeKey());
+
+  // ── 3. Fetch topo (URL derived from country code) + initial trends in parallel
   const todayDoy = getTodayDOY();
-  const [meta, topo, initTrends] = await Promise.all([
-    fetch("api/meta").then(r => r.json()),
-    fetch("https://code.highcharts.com/mapdata/countries/mk/mk-all.topo.json").then(r => r.json()),
+  const topoUrl  = `https://code.highcharts.com/mapdata/countries/${meta.country}/${meta.country}-all.topo.json`;
+  const [topo, initTrends] = await Promise.all([
+    fetch(topoUrl).then(r => r.json()),
     fetch(`api/trends?var=temperature_max&doy=${todayDoy}&window=7&method=theilsen&corr=raw`)
       .then(r => r.json()).catch(() => null),
   ]);
@@ -1883,16 +1956,23 @@ async function init() {
   state.monthNames = meta.month_names;
   state.palette    = meta.palette;
 
+  // ── 4. Apply branding and build dynamic UI elements
+  _applyBranding(meta);
+  _buildLangSelector(meta);
+
+  // ── 5. Set default selection from meta (before prefs restore, which may override)
+  state.selLocs = [meta.default_location];
+
   // Restore saved preferences (locations, variable, method, corr, window, doy).
   // loadPrefs() returns true when saved locations were found — skip auto-select in that case.
   const _prefsHadLocs = loadPrefs(meta.locations, Object.keys(meta.variables));
 
-  // Auto-select Skopje + the non-Skopje station with the highest max-temp warming trend
+  // Auto-select default_location + the station with the highest max-temp warming trend
   // — only when no saved prefs exist (first visit / cleared storage).
   if (!_prefsHadLocs && initTrends && Array.isArray(initTrends.points) && initTrends.points.length > 1) {
     const sorted = [...initTrends.points].sort((a, b) => b.trend10 - a.trend10);
-    const second = sorted.find(p => p.loc !== "Skopje");
-    if (second) state.selLocs = ["Skopje", second.loc];
+    const second = sorted.find(p => p.loc !== meta.default_location);
+    if (second) state.selLocs = [meta.default_location, second.loc];
   }
 
   // Set DOY to today only if no saved DOY preference was found
@@ -1916,19 +1996,36 @@ async function init() {
   if (meta.chat_error_generic)      _chatErrorGeneric     = meta.chat_error_generic;
   if (meta.chat_error_global_limit) _chatErrorGlobalLimit = meta.chat_error_global_limit;
 
-  // Show/hide chat button based on server config
-  if (!meta.chat_enabled) {
+  // ── Feature-gated DOM: hide static sections for disabled features ────────────
+  if (!isEnabled("chatbot") || !meta.chat_enabled) {
     document.getElementById("chat-toggle-btn").style.display = "none";
+    const mdrChat = document.getElementById("mdr-chat-section");
+    if (mdrChat) mdrChat.style.display = "none";
+  }
+  if (!isEnabled("mk2036_section")) {
+    const el = document.getElementById("mk2036");
+    if (el) el.hidden = true;
+  }
+  if (!isEnabled("next_episodes_teaser")) {
+    document.querySelectorAll(".next-episodes-section").forEach(el => { el.hidden = true; });
+  }
+  if (!isEnabled("station_map")) {
+    const el = document.getElementById("map-panel");
+    if (el) el.hidden = true;
+  }
+  if (!isEnabled("regression_chart") && !isEnabled("hero_cards")) {
+    const el = document.getElementById("reg-panel");
+    if (el) el.hidden = true;
+  }
+  if (!isEnabled("hero_cards")) {
+    const el = document.getElementById("hero");
+    if (el) el.hidden = true;
+    const h = document.getElementById("heading-location");
+    if (h) h.hidden = true;
   }
 
   // Build location list (desktop dropdown)
   buildLocationList(meta.locations);
-
-  // Hide mobile chat section if chat is disabled
-  if (!meta.chat_enabled) {
-    const mdrChat = document.getElementById("mdr-chat-section");
-    if (mdrChat) mdrChat.style.display = "none";
-  }
 
   // Mark initially-selected method pill as active
   const initPill = document.querySelector("input[name='method']:checked")?.closest(".pill-radio");
@@ -1939,20 +2036,30 @@ async function init() {
 
   // Apply locale to static page elements
   renderAbout();
-  renderMk2036();
+  if (isEnabled("mk2036_section")) renderMk2036();
   renderStaticLabels();
 
-  // Init charts
-  initRegChart();
+  // Welcome modal — only when feature enabled and not dismissed
+  if (isEnabled("welcome_modal")) {
+    _renderWelcomeModal();
+    if (!localStorage.getItem("welcome_dismissed")) {
+      requestAnimationFrame(() => requestAnimationFrame(() => {
+        document.getElementById("welcome-modal").classList.add("open");
+      }));
+    }
+  }
 
-  // First load
+  // Init charts (only for enabled features)
+  if (isEnabled("regression_chart") || isEnabled("hero_cards")) initRegChart();
+
+  // First load — guards inside each function skip the call when disabled
   await refreshRegression();
-  refreshCalendar();    // async, don't await
-  refreshMap();         // async, don't await
-  renderTodayStatus();  // async, don't await — country-wide, doesn't depend on selection
-  renderPrecipHeatmap();    // async, don't await
-  renderSeasonHeatmap();    // async, don't await
-  renderSpeiTrendChart();   // async, don't await
+  refreshCalendar();         // async, don't await
+  refreshMap();              // async, don't await
+  renderTodayStatus();       // async, don't await
+  renderPrecipHeatmap();     // async, don't await
+  renderSeasonHeatmap();     // async, don't await
+  renderSpeiTrendChart();    // async, don't await
 
   // Quote + effects use locale data — must run after loadLocale() resolves
   loadQuote();
@@ -1962,6 +2069,7 @@ async function init() {
 // ── Season heatmap ────────────────────────────────────────────────────────────
 
 async function renderSeasonHeatmap() {
+  if (!isEnabled("season_heat_heatmap")) return;
   const section = document.getElementById("season-heatmap-section");
   if (!section) return;
   try {
@@ -2001,7 +2109,7 @@ async function renderSeasonHeatmap() {
 
     // ── subtitle ───────────────────────────────────────────────────────────
     const sub = document.getElementById("shm-sub");
-    const baselineLabel = d.baseline ? `1950–1980 baseline` : `all years since ${d.year_min}`;
+    const baselineLabel = d.baseline ? `${d.baseline} baseline` : `all years since ${d.year_min}`;
     if (sub) sub.textContent =
       `Percentile rank vs ${baselineLabel} · ERA5-Land · data to ${d.era5_last}`;
 
@@ -2211,6 +2319,7 @@ async function renderSeasonHeatmap() {
 }
 
 async function renderPrecipHeatmap() {
+  if (!isEnabled("spei_heatmap")) return;
   const section = document.getElementById("precip-heatmap-section");
   if (!section) return;
   try {
@@ -2249,7 +2358,7 @@ async function renderPrecipHeatmap() {
 
     // subtitle
     const sub = document.getElementById("phm-sub");
-    const baselineLabel = d.baseline ? `1950–1980 baseline` : `all years since ${d.year_min}`;
+    const baselineLabel = d.baseline ? `${d.baseline} baseline` : `all years since ${d.year_min}`;
     if (sub) sub.textContent =
       `P − ET₀ water balance, log-logistic standardised vs ${baselineLabel} · ERA5-Land · data to ${d.era5_last}`;
 
@@ -2450,6 +2559,7 @@ async function renderPrecipHeatmap() {
 }
 
 async function renderSpeiTrendChart() {
+  if (!isEnabled("drought_trend_chart")) return;
   const section = document.getElementById("spei-trend-section");
   if (!section) return;
 
@@ -2471,7 +2581,8 @@ async function renderSpeiTrendChart() {
     const SEASONS = ["Annual", "Winter", "Spring", "Summer", "Autumn"];
     const MONTHS  = ["Jan","Feb","Mar","Apr","May","Jun","Jul","Aug","Sep","Oct","Nov","Dec"];
     const stations = Object.keys(d.stations).sort();
-    let currentStation = stations.includes("Skopje") ? "Skopje" : stations[0];
+    const _defLoc = _metaConfig?.default_location || "Skopje";
+    let currentStation = stations.includes(_defLoc) ? _defLoc : stations[0];
     let currentSeason  = "Summer";
     let chart          = null;
 
@@ -2587,7 +2698,7 @@ async function renderSpeiTrendChart() {
 
         explEl.textContent =
           `Theil-Sen slope: ${(s>=0?"+":"")}${s.toFixed(3)} SPEI/decade · Mann-Kendall: ${trend.mk_trend} · ${sig}. ` +
-          `Negative trend means conditions are becoming drier relative to the 1950–1980 baseline.` +
+          `Negative trend means conditions are becoming drier relative to the ${_metaConfig?.baseline?.start ?? 1950}–${_metaConfig?.baseline?.end ?? 1980} baseline.` +
           (thresholdLine ? ` ${thresholdLine}` : "");
       } else {
         slopeEl.textContent = "—";
@@ -2682,7 +2793,7 @@ async function loadQuote() {
       // Author names always shown in English.
       // To enable translated authors in the future, replace enQuotes with localeQuotes below.
       const style    = localStorage.getItem('mk_content') || 'default';
-      const lang     = localStorage.getItem('mk_lang') || 'mk';
+      const lang     = localStorage.getItem('mk_lang') || _metaConfig?.default_language || 'en';
       const enQuotes = lang === 'en' ? localeQuotes :
         await fetch(`/locales/en_${style}.json`)
           .then(r => r.json()).then(d => d.quotes || localeQuotes).catch(() => localeQuotes);
@@ -2736,7 +2847,7 @@ function closeWelcome() {
   document.getElementById("welcome-modal").classList.remove("open");
   localStorage.setItem("welcome_dismissed", "1");
   // If lang changed in the modal, reload so the full UI reflects the new language
-  const savedLang = localStorage.getItem('mk_lang') || 'mk';
+  const savedLang = localStorage.getItem('mk_lang') || _metaConfig?.default_language || 'en';
   if (_langSel && _langSel.value !== savedLang) window.location.reload();
 }
 
@@ -2751,7 +2862,7 @@ function _renderWelcomeModal() {
   if (paras[1]) paras[1].textContent = body1;
   if (paras[2]) paras[2].textContent = body2;
 
-  const activeLang = localStorage.getItem('mk_lang') || 'mk';
+  const activeLang = localStorage.getItem('mk_lang') || _metaConfig?.default_language || 'en';
   modal.querySelectorAll(".welcome-lang-btn").forEach(btn => {
     const lang = btn.dataset.lang;
     btn.classList.toggle("active", lang === activeLang);
@@ -2765,11 +2876,7 @@ function _renderWelcomeModal() {
   });
 }
 
-if (!localStorage.getItem("welcome_dismissed")) {
-  requestAnimationFrame(() => requestAnimationFrame(() => {
-    document.getElementById("welcome-modal").classList.add("open");
-  }));
-}
+// Welcome modal show/hide is handled in init() after isEnabled('welcome_modal') check
 
 // ── Mobile drawer ─────────────────────────────────────────────────────────────
 
@@ -2827,7 +2934,7 @@ if (_savePrefsToggle) {
 const _langSel    = document.getElementById("mdr-lang-select");
 const _contentSel = document.getElementById("mdr-content-select");
 if (_langSel) {
-  _langSel.value = localStorage.getItem("mk_lang") || "mk";
+  _langSel.value = localStorage.getItem("mk_lang") || _metaConfig?.default_language || "en";
   _langSel.addEventListener("change", function() {
     localStorage.setItem("mk_lang", this.value);
     window.location.reload();
