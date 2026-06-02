@@ -40,9 +40,11 @@ args = parser.parse_args()
 
 # ── Configuration ────────────────────────────────────────────────────────────
 
-START_DATE = "1950-01-01"
+from config import CONFIG
+
+START_DATE = str(CONFIG["data_start_date"])
 END_DATE   = (datetime.now() - timedelta(days=10)).strftime("%Y-%m-%d")
-OUTPUT_DIR = "./data"
+OUTPUT_DIR = os.path.join("data", CONFIG["code"])
 
 DAILY_VARIABLES = [
     "temperature_2m_max",
@@ -52,28 +54,7 @@ DAILY_VARIABLES = [
     "et0_fao_evapotranspiration",
 ]
 
-LOCATIONS = [
-    {"name": "Skopje",        "lat": 41.9965, "lon": 21.4314, "elevation": 240},
-    {"name": "Bitola",        "lat": 41.0314, "lon": 21.3347, "elevation": 589},
-    {"name": "Ohrid",         "lat": 41.1231, "lon": 20.8016, "elevation": 695},
-    {"name": "Tetovo",        "lat": 42.0092, "lon": 20.9714, "elevation": 468},
-    {"name": "Kumanovo",      "lat": 42.1322, "lon": 21.7144, "elevation": 340},
-    {"name": "Veles",         "lat": 41.7153, "lon": 21.7753, "elevation": 230},
-    {"name": "Strumica",      "lat": 41.4378, "lon": 22.6431, "elevation": 230},
-    {"name": "Gostivar",      "lat": 41.7956, "lon": 20.9089, "elevation": 510},
-    {"name": "Stip",          "lat": 41.7457, "lon": 22.1961, "elevation": 310},
-    {"name": "Kavadarci",     "lat": 41.4331, "lon": 22.0119, "elevation": 270},
-    {"name": "Kochani",       "lat": 41.9167, "lon": 22.4167, "elevation": 350},
-    {"name": "Kicevo",        "lat": 41.5131, "lon": 20.9589, "elevation": 630},
-    {"name": "Gevgelija",     "lat": 41.1414, "lon": 22.5011, "elevation": 55},
-    {"name": "Negotino",      "lat": 41.4831, "lon": 22.0894, "elevation": 222},
-    {"name": "Debar",         "lat": 41.5239, "lon": 20.5239, "elevation": 670},
-    {"name": "Radovis",       "lat": 41.6386, "lon": 22.4647, "elevation": 370},
-    {"name": "Berovo",        "lat": 41.7047, "lon": 22.8556, "elevation": 827},
-    {"name": "Lazaropole",    "lat": 41.5394, "lon": 20.6956, "elevation": 1330},
-    {"name": "Demir_Kapija",  "lat": 41.4042, "lon": 22.2458, "elevation": 110},
-    {"name": "Prilep",        "lat": 41.3453, "lon": 21.5550, "elevation": 640},
-]
+LOCATIONS = CONFIG["stations"]
 
 # ── Setup Open-Meteo client with cache + retry ────────────────────────────────
 
@@ -84,7 +65,7 @@ cache_session.verify = False  # disable SSL verification (corporate proxy workar
 retry_session = retry(cache_session, retries=3, backoff_factor=2)
 openmeteo = openmeteo_requests.Client(session=retry_session)
 
-os.makedirs(OUTPUT_DIR, exist_ok=True)
+os.makedirs(OUTPUT_DIR, exist_ok=True)  # creates data/<COUNTRY>/ if needed
 
 # Precompute strict date bounds as date objects
 start_date = pd.to_datetime(START_DATE).date()
@@ -181,9 +162,11 @@ def seconds_until_utc_midnight():
 def wait_if_rate_limited():
     """Check API status and sleep until the appropriate limit resets."""
     try:
+        _probe_station = CONFIG["stations"][0]
         probe = cache_session.get(
             "https://archive-api.open-meteo.com/v1/archive",
-            params={"latitude": 41.9, "longitude": 21.4,
+            params={"latitude": round(_probe_station["lat"], 1),
+                    "longitude": round(_probe_station["lon"], 1),
                     "start_date": "2024-01-01", "end_date": "2024-01-02",
                     "daily": "temperature_2m_max", "timezone": "UTC"},
             timeout=10,
@@ -212,7 +195,7 @@ def fetch_location(loc):
     name      = loc["name"]
     lat       = loc["lat"]
     lon       = loc["lon"]
-    elevation = loc["elevation"]
+    elevation = loc["elevation_m"]
 
     # Use simplified filename format
     filename = get_filename_for_location(name)

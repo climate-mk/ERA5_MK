@@ -21,30 +21,11 @@ from dotenv import load_dotenv
 # Load environment variables from .env
 load_dotenv()
 
-# ── Location coordinates (for map endpoint) ────────────────────────────────────
+from config import CONFIG
 
-LOC_COORDS = {
-    "Berovo":       {"lat": 41.7047, "lon": 22.8556},
-    "Bitola":       {"lat": 41.0314, "lon": 21.3347},
-    "Debar":        {"lat": 41.5239, "lon": 20.5239},
-    "Demir_Kapija": {"lat": 41.4042, "lon": 22.2458},
-    "Gevgelija":    {"lat": 41.1414, "lon": 22.5011},
-    "Gostivar":     {"lat": 41.7956, "lon": 20.9089},
-    "Kavadarci":    {"lat": 41.4331, "lon": 22.0119},
-    "Kicevo":       {"lat": 41.5131, "lon": 20.9589},
-    "Kochani":      {"lat": 41.9167, "lon": 22.4167},
-    "Kumanovo":     {"lat": 42.1322, "lon": 21.7144},
-    "Lazaropole":   {"lat": 41.5394, "lon": 20.6956},
-    "Negotino":     {"lat": 41.4831, "lon": 22.0894},
-    "Ohrid":        {"lat": 41.1231, "lon": 20.8016},
-    "Prilep":       {"lat": 41.3453, "lon": 21.5550},
-    "Radovis":      {"lat": 41.6386, "lon": 22.4647},
-    "Skopje":       {"lat": 41.9965, "lon": 21.4314},
-    "Stip":         {"lat": 41.7457, "lon": 22.1961},
-    "Strumica":     {"lat": 41.4378, "lon": 22.6431},
-    "Tetovo":       {"lat": 42.0092, "lon": 20.9714},
-    "Veles":        {"lat": 41.7153, "lon": 21.7753},
-}
+# ── Location coordinates (for map endpoint) — derived from CONFIG, no duplication ──
+LOC_COORDS = {s["name"]: {"lat": s["lat"], "lon": s["lon"]}
+              for s in sorted(CONFIG["stations"], key=lambda s: s["name"])}
 
 # ── Direct Line config ─────────────────────────────────────────────────────────
 
@@ -62,7 +43,7 @@ _ANALYTICS_EXPORT_KEY = os.getenv("ANALYTICS_EXPORT_KEY", "")
 
 # ── Load data ──────────────────────────────────────────────────────────────────
 
-DATA_DIR = "./data"
+DATA_DIR = os.path.join("data", CONFIG["code"])
 def _load_csv(filepath):
     df = pd.read_csv(filepath)
     try:
@@ -287,7 +268,7 @@ def compute_calendar(loc, col, var, half_window, method):
         return _CAL_CACHE[key]
 
     # FS cache: survives service restarts (data only changes once/day via cron)
-    today_str   = _today_mk().date().isoformat()
+    today_str   = _today_local().date().isoformat()
     fs_filename = f"cal_{loc}_{col}_{half_window}_{method}_{today_str}.json"
     fs_path     = os.path.join(_CACHE_DIR, fs_filename)
     cached      = _fs_load(fs_path)
@@ -339,12 +320,12 @@ def compute_calendar(loc, col, var, half_window, method):
 
 # ── Timezone helper ────────────────────────────────────────────────────────────
 
-def _today_mk():
-    """Current date in Macedonia local time (CET/CEST = UTC+1/+2).
-    The server runs UTC; without this, dates drift during the 22:00–00:00 UTC
-    window (midnight–2am Skopje) causing a mismatch between Open-Meteo's
-    timezone-aware forecast and the historical distribution month/day lookup."""
-    return pd.Timestamp.now(tz="Europe/Skopje").normalize().tz_localize(None)
+def _today_local():
+    """Current date in the country's local timezone (from CONFIG).
+    The server runs UTC; without this, dates drift during the late-evening UTC
+    window causing a mismatch between Open-Meteo's timezone-aware forecast and
+    the historical distribution month/day lookup."""
+    return pd.Timestamp.now(tz=CONFIG["timezone"]).normalize().tz_localize(None)
 
 # ── Annual trend (cached) ──────────────────────────────────────────────────────
 
@@ -352,7 +333,7 @@ _ANNUAL_TREND_CACHE = {}
 
 def compute_annual_trend(target_date=None):
     if target_date is None:
-        target_date = _today_mk().date()
+        target_date = _today_local().date()
 
     month, day = target_date.month, target_date.day
     # Keyed by day-of-year (MM-DD) — the trend window is identical for any
@@ -392,8 +373,7 @@ def compute_annual_trend(target_date=None):
     annual = annual_raw
 
     # ── Configurable start year ───────────────────────────────────────────────
-    TREND_START_YEAR = 1950   # change this to adjust the baseline period
-    annual = annual[annual.index >= TREND_START_YEAR]
+    annual = annual[annual.index >= CONFIG["trend_start_year"]]
     x_arr  = annual.index.to_numpy(float)
     y_arr  = annual.values
 
@@ -417,8 +397,8 @@ def compute_annual_trend(target_date=None):
     u_hist = res.high_slope * x_hist + ic_hi
     l_hist = res.low_slope  * x_hist + ic_lo
 
-    # Projection last_yr → 2050
-    x_fc = np.linspace(last_yr, 2050, 200)
+    # Projection last_yr → projection_end_year
+    x_fc = np.linspace(last_yr, CONFIG["projection_end_year"], 200)
     y_fc = slope          * x_fc + ic
     u_fc = res.high_slope * x_fc + ic_hi
     l_fc = res.low_slope  * x_fc + ic_lo
@@ -535,7 +515,7 @@ def _save_today_to_disk(date_str, result):
 def compute_today_status(target_date=None):
     from concurrent.futures import ThreadPoolExecutor, as_completed
 
-    today_ts   = _today_mk()
+    today_ts   = _today_local()
     today_date = today_ts.date()
 
     if target_date is None:
@@ -567,7 +547,7 @@ def compute_today_status(target_date=None):
                     "latitude":  f"{lat:.4f}",
                     "longitude": f"{lon:.4f}",
                     "daily":     "temperature_2m_max",
-                    "timezone":  "Europe/Skopje",
+                    "timezone":  CONFIG["timezone"],
                     **extra_params,
                 }, timeout=10)
                 resp.raise_for_status()
@@ -784,6 +764,7 @@ def index():
 @app.route("/api/meta")
 def api_meta():
     return jsonify({
+        # ── existing keys (unchanged) ──────────────────────────────────────────
         "locations":   LOCATIONS,
         "variables":   VARIABLES,
         "month_names": MONTH_NAMES,
@@ -792,11 +773,19 @@ def api_meta():
         "chat_error_rate_limit":   CHAT_ERROR_RATE_LIMIT,
         "chat_error_generic":      CHAT_ERROR_GENERIC,
         "chat_error_global_limit": CHAT_ERROR_GLOBAL_LIMIT,
+        # ── new keys from CONFIG ───────────────────────────────────────────────
+        "country":          CONFIG["code"],
+        "default_location": CONFIG["default_location"],
+        "default_language": CONFIG["default_language"],
+        "languages":        CONFIG["languages"],
+        "map":              CONFIG["map"],
+        "branding":         CONFIG["branding"],
+        "features":         CONFIG["features"],
     })
 
 @app.route("/api/regression")
 def api_regression():
-    locs   = request.args.getlist("loc") or ["Skopje"]
+    locs   = request.args.getlist("loc") or [CONFIG["default_location"]]
     var    = request.args.get("var",    "temperature_mean")
     doy    = int(request.args.get("doy",    105))
     window = int(request.args.get("window",   7))
@@ -829,7 +818,7 @@ def api_regression():
 
 @app.route("/api/calendar")
 def api_calendar():
-    loc    = request.args.get("loc",    "Skopje")
+    loc    = request.args.get("loc",    CONFIG["default_location"])
     var    = request.args.get("var",    "temperature_mean")
     window = int(request.args.get("window",   7))
     corr   = request.args.get("corr",   "raw")
@@ -912,7 +901,7 @@ def compute_season_heatmap():
     A season is included only when its end date ≤ last ERA5 date in the dataset.
     100 % ERA5-Land — no Open-Meteo mixing.
     """
-    BASELINE_START, BASELINE_END = 1950, 1980
+    BASELINE_START, BASELINE_END = CONFIG["baseline"]["start"], CONFIG["baseline"]["end"]
     cache_key = "season_heatmap_baseline_1950_1980"
     if cache_key in _TODAY_CACHE:
         return _TODAY_CACHE[cache_key]
@@ -1063,7 +1052,7 @@ def compute_spei_heatmap():
 
     Positive SPEI = wetter than 1950–1980; negative = drier.
     """
-    BASELINE_START, BASELINE_END = 1950, 1980
+    BASELINE_START, BASELINE_END = CONFIG["baseline"]["start"], CONFIG["baseline"]["end"]
     cache_key = "spei_heatmap_v1"
     if cache_key in _TODAY_CACHE:
         return _TODAY_CACHE[cache_key]
@@ -1227,7 +1216,7 @@ def compute_spei_station_seasonal():
     Also computes an "Annual" series = mean of the 4 seasonal SPEI values per year.
     Result is cached to disk keyed by era5_last date.
     """
-    BASELINE_START, BASELINE_END = 1950, 1980
+    BASELINE_START, BASELINE_END = CONFIG["baseline"]["start"], CONFIG["baseline"]["end"]
     cache_key = "spei_station_seasonal_v2"   # bumped: adds monthly SPEI-30
     if cache_key in _TODAY_CACHE:
         return _TODAY_CACHE[cache_key]
@@ -1599,7 +1588,7 @@ def _prewarm():
     # called once per date on startup rather than on first user navigation click.
     # Cache hits from disk are instant so restarts don't re-fetch already-cached dates.
     _gap = _CSV_MAX_DATE + datetime.timedelta(days=1)
-    _today = _today_mk().date()
+    _today = _today_local().date()
     while _gap < _today:
         try: compute_today_status(_gap)
         except Exception: pass
