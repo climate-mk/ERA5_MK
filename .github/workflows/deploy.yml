@@ -42,6 +42,7 @@ jobs:
       - name: Write .env
         run: |
           ssh root@46.224.208.142 "cat > /opt/mk_climate/.env << 'EOF'
+          COUNTRY=mk
           DIRECT_LINE_SECRET=${{ secrets.DIRECT_LINE_SECRET }}
           ANALYTICS_EXPORT_KEY=${{ secrets.ANALYTICS_EXPORT_KEY }}
           EOF
@@ -78,7 +79,18 @@ jobs:
 
       - name: Warm slow caches
         run: |
-          echo "Warming SPEI station seasonal cache (can take several minutes)..."
-          ssh root@46.224.208.142 "curl -sf http://localhost:5050/api/spei_station_seasonal > /dev/null && echo 'spei_station_seasonal: OK'"
-          ssh root@46.224.208.142 "curl -sf http://localhost:5050/api/spei_heatmap > /dev/null && echo 'spei_heatmap: OK'"
-          ssh root@46.224.208.142 "curl -sf http://localhost:5050/api/season_heatmap > /dev/null && echo 'season_heatmap: OK'"
+          echo "Warming slow caches (endpoints returning 204 are disabled features — skipped)..."
+          ssh root@46.224.208.142 "
+            for url in \
+              http://localhost:5050/api/spei_station_seasonal \
+              http://localhost:5050/api/spei_heatmap \
+              http://localhost:5050/api/season_heatmap; do
+              status=\$(curl -s -o /dev/null -w '%{http_code}' \"\$url\")
+              name=\$(echo \"\$url\" | sed 's|.*/||')
+              if [ \"\$status\" = '204' ]; then
+                echo \"  skipped (disabled): \$name\"
+              else
+                echo \"  warmed [\$status]: \$name\"
+              fi
+            done
+          "
