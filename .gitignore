@@ -21,6 +21,11 @@ build/
 chat_analytics.db
 GeoLite2-Country.mmdb
 
+# ── Country config test/scratch files ────────────────────────────────────────
+countries/_test.yaml
+countries/_baseline/
+countries/_after/
+
 # ── Claude ────────────────────────────────────────────────────────────────────
 
 # ── Editor / OS ───────────────────────────────────────────────────────────────
