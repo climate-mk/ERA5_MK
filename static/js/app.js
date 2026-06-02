@@ -12,7 +12,13 @@ const wait = ms => new Promise(res => setTimeout(res, ms));
 // tArr(key)     — return an array, or null if missing / not an array
 // loadLocale()  — called once in init(); page reloads on locale switch
 
-let _locale = null;
+let _locale     = null;
+let _metaConfig = null;   // set in init() from /api/meta; drives all country-specific values
+
+// Display label for a language code — used to build the language selector dynamically
+const _LANG_LABELS = { en: 'English', mk: 'Македонски', sq: 'Shqip',
+                       sr: 'Srpski', bg: 'Български', hr: 'Hrvatski' };
+function _langLabel(code) { return _LANG_LABELS[code] || code.toUpperCase(); }
 
 async function loadLocale(name) {
   try {
@@ -431,7 +437,15 @@ function renderMap(data) {
       },
     ],
   });
-  requestAnimationFrame(() => mapChart?.reflow());
+  requestAnimationFrame(() => {
+    mapChart?.reflow();
+    if (_metaConfig?.map) {
+      mapChart.mapView.setView(
+        [_metaConfig.map.center_lon, _metaConfig.map.center_lat],
+        _metaConfig.map.zoom
+      );
+    }
+  });
 }
 
 async function refreshMap() {
@@ -874,7 +888,7 @@ function _updateTodayCard(r) {
 
   const trendCard = document.getElementById('today-trend-card');
   if (trendCard) {
-    trendCard.innerHTML = `<div class="today-chart-title" id="today-trend-title">Macedonia annual peak temperature · loading…</div><div id="today-trend-chart"></div>`;
+    trendCard.innerHTML = `<div class="today-chart-title" id="today-trend-title">Annual peak temperatures · loading…</div><div id="today-trend-chart"></div>`;
     renderTodayTrendChart(_todayViewDate);
   }
 
@@ -956,7 +970,7 @@ async function renderTodayStatus() {
         <div class="today-card" id="today-main-card"></div>
         <div class="today-chart" id="today-dist-card"></div>
         <div class="today-chart" id="today-trend-card">
-          <div class="today-chart-title" id="today-trend-title">Macedonia annual peak temperature · loading…</div>
+          <div class="today-chart-title" id="today-trend-title">Annual peak temperatures · loading…</div>
           <div id="today-trend-chart"></div>
         </div>
       </div>`;
@@ -1767,7 +1781,7 @@ function _initWebChat(token, expiresIn, convId) {
         sendBoxTextColor:           "#1c1814",
         sendBoxBorderTop:           "1px solid #ddd8d0",
         timestampColor:             "#8a7f74",
-        botAvatarImage:             "/images/Ognen100.png",
+        botAvatarImage:             _metaConfig?.branding?.chatbot_avatar || "/images/Ognen100.png",
         botAvatarInitials:          "O",
         hideUserAvatar:             true,
         hideUploadButton:           true,
@@ -1821,7 +1835,7 @@ function renderMk2036() {
   set('mk2036-heading', m.heading); set('mk2036-timeline-btn-label', m.timeline_btn);
   const _tlBtn = document.querySelector('.mk2036-timeline-btn');
   if (_tlBtn) {
-    const _tlLang = localStorage.getItem('mk_lang') || 'mk';
+    const _tlLang = localStorage.getItem('mk_lang') || _metaConfig?.default_language || 'en';
     _tlBtn.href = _tlLang === 'sq' ? 'future-timeline-sq.html' : _tlLang === 'en' ? 'future-timeline.html' : 'future-timeline-mk.html';
   }
   set('mk2036-r1-name', m.r1?.name); set('mk2036-r1-i1', m.r1?.i1); set('mk2036-r1-i2', m.r1?.i2); set('mk2036-r1-i3', m.r1?.i3);
@@ -1856,24 +1870,74 @@ function renderStaticLabels() {
   if (regExplain) regExplain.textContent = t('hero.explain_reg') || '';
 }
 
-// Build the composite locale key from the two separate localStorage values
+// Build the composite locale key from the two separate localStorage values.
+// Falls back to default_language from /api/meta (set before locale loads).
 function _localeKey() {
-  return (localStorage.getItem('mk_lang') || 'mk') + '_' + (localStorage.getItem('mk_content') || 'default');
+  const dflt = _metaConfig?.default_language || 'en';
+  return (localStorage.getItem('mk_lang') || dflt) + '_' + (localStorage.getItem('mk_content') || 'default');
+}
+
+// ── Branding / lang helpers (called from init after meta is available) ────────
+
+function _applyBranding(meta) {
+  // Page <title>
+  document.title = meta.branding.site_title;
+  // Derive short country name: "North Macedonia Climate Explorer" → "North Macedonia"
+  const countryName = meta.branding.site_title.replace(/\s+Climate Explorer.*$/i, '').trim()
+                   || meta.country.toUpperCase();
+  // Map panel title
+  const mapTitle = document.getElementById('map-panel-title');
+  if (mapTitle) mapTitle.textContent = countryName;
+  // Topbar chat name
+  const chatName = document.getElementById('chat-name-text');
+  if (chatName) chatName.textContent = `Chat with ${meta.branding.chatbot_name}`;
+  // Chat modal title
+  const chatModalTitle = document.getElementById('chat-modal-title-text');
+  if (chatModalTitle) chatModalTitle.textContent = `Chat with ${meta.branding.chatbot_name}, the Climate Assistant`;
+  // Mobile drawer chat text
+  const mdrChatText = document.getElementById('mdr-chat-btn-text');
+  if (mdrChatText) mdrChatText.textContent = `Chat with ${meta.branding.chatbot_name}, the Climate Assistant`;
+  // Mobile drawer chat avatar
+  const mdrAvatar = document.getElementById('mdr-chat-avatar');
+  if (mdrAvatar) mdrAvatar.src = meta.branding.chatbot_avatar;
+}
+
+function _buildLangSelector(meta) {
+  const activeLang = localStorage.getItem('mk_lang') || meta.default_language;
+  // Mobile drawer <select>
+  const sel = document.getElementById('mdr-lang-select');
+  if (sel) {
+    sel.innerHTML = meta.languages.map(lang =>
+      `<option value="${lang}"${lang === activeLang ? ' selected' : ''}>${_langLabel(lang)}</option>`
+    ).join('');
+    sel.value = activeLang;
+  }
+  // Welcome modal language buttons
+  const langRow = document.querySelector('.welcome-lang-row');
+  if (langRow) {
+    langRow.innerHTML = meta.languages.map(lang =>
+      `<button class="welcome-lang-btn" data-lang="${lang}">${_langLabel(lang)}</button>`
+    ).join('');
+  }
 }
 
 // ── Init ──────────────────────────────────────────────────────────────────────
 
 async function init() {
 
-  // Load locale before rendering anything
+  // ── 1. Fetch meta first — needed for default_language, topo URL, default_location
+  const meta = await fetch("api/meta").then(r => r.json());
+  _metaConfig = meta;
+
+  // ── 2. Load locale (default_language now available via _metaConfig)
   await loadLocale(_localeKey());
   _renderWelcomeModal();
 
-  // Fetch metadata + topo + initial trends in parallel
+  // ── 3. Fetch topo (URL derived from country code) + initial trends in parallel
   const todayDoy = getTodayDOY();
-  const [meta, topo, initTrends] = await Promise.all([
-    fetch("api/meta").then(r => r.json()),
-    fetch("https://code.highcharts.com/mapdata/countries/mk/mk-all.topo.json").then(r => r.json()),
+  const topoUrl  = `https://code.highcharts.com/mapdata/countries/${meta.country}/${meta.country}-all.topo.json`;
+  const [topo, initTrends] = await Promise.all([
+    fetch(topoUrl).then(r => r.json()),
     fetch(`api/trends?var=temperature_max&doy=${todayDoy}&window=7&method=theilsen&corr=raw`)
       .then(r => r.json()).catch(() => null),
   ]);
@@ -1883,16 +1947,23 @@ async function init() {
   state.monthNames = meta.month_names;
   state.palette    = meta.palette;
 
+  // ── 4. Apply branding and build dynamic UI elements
+  _applyBranding(meta);
+  _buildLangSelector(meta);
+
+  // ── 5. Set default selection from meta (before prefs restore, which may override)
+  state.selLocs = [meta.default_location];
+
   // Restore saved preferences (locations, variable, method, corr, window, doy).
   // loadPrefs() returns true when saved locations were found — skip auto-select in that case.
   const _prefsHadLocs = loadPrefs(meta.locations, Object.keys(meta.variables));
 
-  // Auto-select Skopje + the non-Skopje station with the highest max-temp warming trend
+  // Auto-select default_location + the station with the highest max-temp warming trend
   // — only when no saved prefs exist (first visit / cleared storage).
   if (!_prefsHadLocs && initTrends && Array.isArray(initTrends.points) && initTrends.points.length > 1) {
     const sorted = [...initTrends.points].sort((a, b) => b.trend10 - a.trend10);
-    const second = sorted.find(p => p.loc !== "Skopje");
-    if (second) state.selLocs = ["Skopje", second.loc];
+    const second = sorted.find(p => p.loc !== meta.default_location);
+    if (second) state.selLocs = [meta.default_location, second.loc];
   }
 
   // Set DOY to today only if no saved DOY preference was found
@@ -2471,7 +2542,8 @@ async function renderSpeiTrendChart() {
     const SEASONS = ["Annual", "Winter", "Spring", "Summer", "Autumn"];
     const MONTHS  = ["Jan","Feb","Mar","Apr","May","Jun","Jul","Aug","Sep","Oct","Nov","Dec"];
     const stations = Object.keys(d.stations).sort();
-    let currentStation = stations.includes("Skopje") ? "Skopje" : stations[0];
+    const _defLoc = _metaConfig?.default_location || "Skopje";
+    let currentStation = stations.includes(_defLoc) ? _defLoc : stations[0];
     let currentSeason  = "Summer";
     let chart          = null;
 
@@ -2682,7 +2754,7 @@ async function loadQuote() {
       // Author names always shown in English.
       // To enable translated authors in the future, replace enQuotes with localeQuotes below.
       const style    = localStorage.getItem('mk_content') || 'default';
-      const lang     = localStorage.getItem('mk_lang') || 'mk';
+      const lang     = localStorage.getItem('mk_lang') || _metaConfig?.default_language || 'en';
       const enQuotes = lang === 'en' ? localeQuotes :
         await fetch(`/locales/en_${style}.json`)
           .then(r => r.json()).then(d => d.quotes || localeQuotes).catch(() => localeQuotes);
@@ -2736,7 +2808,7 @@ function closeWelcome() {
   document.getElementById("welcome-modal").classList.remove("open");
   localStorage.setItem("welcome_dismissed", "1");
   // If lang changed in the modal, reload so the full UI reflects the new language
-  const savedLang = localStorage.getItem('mk_lang') || 'mk';
+  const savedLang = localStorage.getItem('mk_lang') || _metaConfig?.default_language || 'en';
   if (_langSel && _langSel.value !== savedLang) window.location.reload();
 }
 
@@ -2751,7 +2823,7 @@ function _renderWelcomeModal() {
   if (paras[1]) paras[1].textContent = body1;
   if (paras[2]) paras[2].textContent = body2;
 
-  const activeLang = localStorage.getItem('mk_lang') || 'mk';
+  const activeLang = localStorage.getItem('mk_lang') || _metaConfig?.default_language || 'en';
   modal.querySelectorAll(".welcome-lang-btn").forEach(btn => {
     const lang = btn.dataset.lang;
     btn.classList.toggle("active", lang === activeLang);
@@ -2827,7 +2899,7 @@ if (_savePrefsToggle) {
 const _langSel    = document.getElementById("mdr-lang-select");
 const _contentSel = document.getElementById("mdr-content-select");
 if (_langSel) {
-  _langSel.value = localStorage.getItem("mk_lang") || "mk";
+  _langSel.value = localStorage.getItem("mk_lang") || _metaConfig?.default_language || "en";
   _langSel.addEventListener("change", function() {
     localStorage.setItem("mk_lang", this.value);
     window.location.reload();

@@ -22,7 +22,7 @@ projection_end_year: 2050
 map:
   center_lat: 41.6
   center_lon: 21.7
-  zoom: 7
+  zoom: 7.1
 
 # ── Branding ──────────────────────────────────────────────────────────────────
 branding:
