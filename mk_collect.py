@@ -46,13 +46,24 @@ START_DATE = str(CONFIG["data_start_date"])
 END_DATE   = (datetime.now() - timedelta(days=10)).strftime("%Y-%m-%d")
 OUTPUT_DIR = os.path.join("data", CONFIG["code"])
 
-DAILY_VARIABLES = [
-    "temperature_2m_max",
-    "temperature_2m_min",
-    "temperature_2m_mean",
-    "precipitation_sum",
-    "et0_fao_evapotranspiration",
-]
+# ── Derive required variables from enabled features ───────────────────────────
+# Temperature: needed by regression_chart, trend_calendar, station_map,
+#              hero_cards, today_section, season_heat_heatmap
+# Precipitation + ET₀: needed only by spei_heatmap and drought_trend_chart
+_TEMP_FEATURES       = {'regression_chart', 'trend_calendar', 'station_map',
+                        'hero_cards', 'today_section', 'season_heat_heatmap'}
+_PRECIP_ET0_FEATURES = {'spei_heatmap', 'drought_trend_chart'}
+_feat = CONFIG.get('features', {})
+
+DAILY_VARIABLES = []
+if any(_feat.get(f, False) for f in _TEMP_FEATURES):
+    DAILY_VARIABLES += ["temperature_2m_max", "temperature_2m_min", "temperature_2m_mean"]
+if any(_feat.get(f, False) for f in _PRECIP_ET0_FEATURES):
+    DAILY_VARIABLES += ["precipitation_sum", "et0_fao_evapotranspiration"]
+
+if not DAILY_VARIABLES:
+    import sys as _sys
+    _sys.exit("No variables to collect — all data-requiring features are disabled in config.")
 
 LOCATIONS = CONFIG["stations"]
 

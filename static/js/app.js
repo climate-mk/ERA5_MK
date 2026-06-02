@@ -15,6 +15,11 @@ const wait = ms => new Promise(res => setTimeout(res, ms));
 let _locale     = null;
 let _metaConfig = null;   // set in init() from /api/meta; drives all country-specific values
 
+// Feature-toggle helper — safe default is disabled
+function isEnabled(key) {
+  return !!(_metaConfig?.features?.[key]);
+}
+
 // Display label for a language code — used to build the language selector dynamically
 const _LANG_LABELS = { en: 'English', mk: 'Македонски', sq: 'Shqip',
                        sr: 'Srpski', bg: 'Български', hr: 'Hrvatski' };
@@ -449,6 +454,7 @@ function renderMap(data) {
 }
 
 async function refreshMap() {
+  if (!isEnabled("station_map")) return;
   showLoading("map-loading", true);
   try {
     const data = await fetchTrends();
@@ -924,6 +930,7 @@ async function _navigateTodayTo(newOffset) {
 }
 
 async function renderTodayStatus() {
+  if (!isEnabled("today_section")) return;
   const el = document.getElementById("today-status");
   if (!el) return;
   try {
@@ -1258,11 +1265,12 @@ function renderCalendarPanel(calData, containerId) {
 // ── Refresh functions ─────────────────────────────────────────────────────────
 
 async function refreshRegression() {
+  if (!isEnabled("regression_chart") && !isEnabled("hero_cards")) return;
   showLoading("reg-loading", true);
   try {
     const data = await fetchRegression();
-    renderRegression(data);
-    renderHeroCards(data);
+    if (isEnabled("regression_chart")) renderRegression(data);
+    if (isEnabled("hero_cards"))       renderHeroCards(data);
   } catch(e) {
     console.error("Regression error:", e);
   } finally {
@@ -1271,6 +1279,7 @@ async function refreshRegression() {
 }
 
 async function refreshCalendar() {
+  if (!isEnabled("trend_calendar")) return;
   const locs = state.selLocs;
   if (!locs.length) return;
 
@@ -1931,7 +1940,6 @@ async function init() {
 
   // ── 2. Load locale (default_language now available via _metaConfig)
   await loadLocale(_localeKey());
-  _renderWelcomeModal();
 
   // ── 3. Fetch topo (URL derived from country code) + initial trends in parallel
   const todayDoy = getTodayDOY();
@@ -1987,19 +1995,36 @@ async function init() {
   if (meta.chat_error_generic)      _chatErrorGeneric     = meta.chat_error_generic;
   if (meta.chat_error_global_limit) _chatErrorGlobalLimit = meta.chat_error_global_limit;
 
-  // Show/hide chat button based on server config
-  if (!meta.chat_enabled) {
+  // ── Feature-gated DOM: hide static sections for disabled features ────────────
+  if (!isEnabled("chatbot") || !meta.chat_enabled) {
     document.getElementById("chat-toggle-btn").style.display = "none";
+    const mdrChat = document.getElementById("mdr-chat-section");
+    if (mdrChat) mdrChat.style.display = "none";
+  }
+  if (!isEnabled("mk2036_section")) {
+    const el = document.getElementById("mk2036");
+    if (el) el.hidden = true;
+  }
+  if (!isEnabled("next_episodes_teaser")) {
+    document.querySelectorAll(".next-episodes-section").forEach(el => { el.hidden = true; });
+  }
+  if (!isEnabled("station_map")) {
+    const el = document.getElementById("map-panel");
+    if (el) el.hidden = true;
+  }
+  if (!isEnabled("regression_chart") && !isEnabled("hero_cards")) {
+    const el = document.getElementById("reg-panel");
+    if (el) el.hidden = true;
+  }
+  if (!isEnabled("hero_cards")) {
+    const el = document.getElementById("hero");
+    if (el) el.hidden = true;
+    const h = document.getElementById("heading-location");
+    if (h) h.hidden = true;
   }
 
   // Build location list (desktop dropdown)
   buildLocationList(meta.locations);
-
-  // Hide mobile chat section if chat is disabled
-  if (!meta.chat_enabled) {
-    const mdrChat = document.getElementById("mdr-chat-section");
-    if (mdrChat) mdrChat.style.display = "none";
-  }
 
   // Mark initially-selected method pill as active
   const initPill = document.querySelector("input[name='method']:checked")?.closest(".pill-radio");
@@ -2010,20 +2035,30 @@ async function init() {
 
   // Apply locale to static page elements
   renderAbout();
-  renderMk2036();
+  if (isEnabled("mk2036_section")) renderMk2036();
   renderStaticLabels();
 
-  // Init charts
-  initRegChart();
+  // Welcome modal — only when feature enabled and not dismissed
+  if (isEnabled("welcome_modal")) {
+    _renderWelcomeModal();
+    if (!localStorage.getItem("welcome_dismissed")) {
+      requestAnimationFrame(() => requestAnimationFrame(() => {
+        document.getElementById("welcome-modal").classList.add("open");
+      }));
+    }
+  }
 
-  // First load
+  // Init charts (only for enabled features)
+  if (isEnabled("regression_chart") || isEnabled("hero_cards")) initRegChart();
+
+  // First load — guards inside each function skip the call when disabled
   await refreshRegression();
-  refreshCalendar();    // async, don't await
-  refreshMap();         // async, don't await
-  renderTodayStatus();  // async, don't await — country-wide, doesn't depend on selection
-  renderPrecipHeatmap();    // async, don't await
-  renderSeasonHeatmap();    // async, don't await
-  renderSpeiTrendChart();   // async, don't await
+  refreshCalendar();         // async, don't await
+  refreshMap();              // async, don't await
+  renderTodayStatus();       // async, don't await
+  renderPrecipHeatmap();     // async, don't await
+  renderSeasonHeatmap();     // async, don't await
+  renderSpeiTrendChart();    // async, don't await
 
   // Quote + effects use locale data — must run after loadLocale() resolves
   loadQuote();
@@ -2033,6 +2068,7 @@ async function init() {
 // ── Season heatmap ────────────────────────────────────────────────────────────
 
 async function renderSeasonHeatmap() {
+  if (!isEnabled("season_heat_heatmap")) return;
   const section = document.getElementById("season-heatmap-section");
   if (!section) return;
   try {
@@ -2282,6 +2318,7 @@ async function renderSeasonHeatmap() {
 }
 
 async function renderPrecipHeatmap() {
+  if (!isEnabled("spei_heatmap")) return;
   const section = document.getElementById("precip-heatmap-section");
   if (!section) return;
   try {
@@ -2521,6 +2558,7 @@ async function renderPrecipHeatmap() {
 }
 
 async function renderSpeiTrendChart() {
+  if (!isEnabled("drought_trend_chart")) return;
   const section = document.getElementById("spei-trend-section");
   if (!section) return;
 
@@ -2837,11 +2875,7 @@ function _renderWelcomeModal() {
   });
 }
 
-if (!localStorage.getItem("welcome_dismissed")) {
-  requestAnimationFrame(() => requestAnimationFrame(() => {
-    document.getElementById("welcome-modal").classList.add("open");
-  }));
-}
+// Welcome modal show/hide is handled in init() after isEnabled('welcome_modal') check
 
 // ── Mobile drawer ─────────────────────────────────────────────────────────────
 

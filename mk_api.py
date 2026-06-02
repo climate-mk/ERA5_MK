@@ -783,6 +783,10 @@ def set_cache_headers(response):
         response.headers["Cache-Control"] = "no-cache"
     return response
 
+def _feature_enabled(key: str) -> bool:
+    """Return True when the named feature is enabled in CONFIG."""
+    return bool(CONFIG["features"].get(key, False))
+
 @app.route("/")
 def index():
     return send_from_directory("static", "index.html")
@@ -811,6 +815,8 @@ def api_meta():
 
 @app.route("/api/regression")
 def api_regression():
+    if not (_feature_enabled("regression_chart") or _feature_enabled("hero_cards")):
+        return "", 204
     locs   = request.args.getlist("loc") or [CONFIG["default_location"]]
     var    = request.args.get("var",    "temperature_mean")
     doy    = int(request.args.get("doy",    105))
@@ -844,6 +850,7 @@ def api_regression():
 
 @app.route("/api/calendar")
 def api_calendar():
+    if not _feature_enabled("trend_calendar"): return "", 204
     loc    = request.args.get("loc",    CONFIG["default_location"])
     var    = request.args.get("var",    "temperature_mean")
     window = int(request.args.get("window",   7))
@@ -864,6 +871,7 @@ def api_calendar():
 
 @app.route("/api/trends")
 def api_trends():
+    if not _feature_enabled("station_map"): return "", 204
     var    = request.args.get("var",    "temperature_mean")
     doy    = int(request.args.get("doy",    105))
     window = int(request.args.get("window",   7))
@@ -896,6 +904,7 @@ def api_trends():
 
 @app.route("/api/today_status")
 def api_today_status():
+    if not _feature_enabled("today_section"): return "", 204
     date_str = request.args.get("date")
     target = None
     if date_str:
@@ -1059,6 +1068,7 @@ def compute_season_heatmap():
 
 @app.route("/api/season_heatmap")
 def api_season_heatmap():
+    if not _feature_enabled("season_heat_heatmap"): return "", 204
     return jsonify(compute_season_heatmap())
 
 
@@ -1228,6 +1238,7 @@ def compute_spei_heatmap():
 
 @app.route("/api/spei_heatmap")
 def api_spei_heatmap():
+    if not _feature_enabled("spei_heatmap"): return "", 204
     return jsonify(compute_spei_heatmap())
 
 
@@ -1431,11 +1442,13 @@ def compute_spei_station_seasonal():
 
 @app.route("/api/spei_station_seasonal")
 def api_spei_station_seasonal():
+    if not _feature_enabled("drought_trend_chart"): return "", 204
     return jsonify(compute_spei_station_seasonal())
 
 
 @app.route("/api/annual_trend")
 def api_annual_trend():
+    if not _feature_enabled("today_section"): return "", 204
     date_str = request.args.get("date")
     target = None
     if date_str:
@@ -1450,6 +1463,7 @@ def api_annual_trend():
 @limiter.limit(TOKEN_LIMIT_MINUTE)
 @limiter.limit(TOKEN_LIMIT_HOUR)
 def get_token():
+    if not _feature_enabled("chatbot"): return "", 204
     if not DIRECT_LINE_SECRET:
         return jsonify({"error": "Chat service not configured"}), 503
 
@@ -1508,6 +1522,7 @@ def get_token():
 @limiter.limit(TOKEN_LIMIT_MINUTE)
 @limiter.limit(TOKEN_LIMIT_HOUR)
 def refresh_token():
+    if not _feature_enabled("chatbot"): return "", 204
     cached = session.get("dl_token")
     if not cached:
         return jsonify({"error": "No active session"}), 400
@@ -1539,6 +1554,7 @@ def refresh_token():
 @app.route("/api/analytics/chat", methods=["POST"])
 @limiter.limit("60 per minute")
 def api_analytics_chat():
+    if not _feature_enabled("analytics_export"): return "", 204
     """
     Internal endpoint — receives one chat event from the browser.
     Body JSON: { direction: "user"|"bot", message: "...", conv_id: "..." }
@@ -1568,6 +1584,7 @@ def api_analytics_chat():
 
 @app.route("/api/analytics/export")
 def api_analytics_export():
+    if not _feature_enabled("analytics_export"): return "", 204
     """
     Private CSV export of the full chat_events table.
     Access: GET /api/analytics/export?key=<ANALYTICS_EXPORT_KEY>
