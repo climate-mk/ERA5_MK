@@ -37,7 +37,7 @@
   "categories": {
     "freezing": {
       "name": "Ngrirje",
-      "desc": "Ndër {d}-t më të ftohtat në rekord — 76 vjet të dhëna."
+      "desc": "Ndër {d}-t më të ftohtat në rekord — {record_years} vjet të dhëna."
     },
     "cold": {
       "name": "Ftohtë",
@@ -45,7 +45,7 @@
     },
     "nope": {
       "name": "Normal",
-      "desc": "Rreth temperaturës tipike për {d} në Maqedoni."
+      "desc": "Rreth temperaturës tipike për {d} në {country}."
     },
     "hot": {
       "name": "Nxehtë",
@@ -53,7 +53,7 @@
     },
     "hell": {
       "name": "Ferr",
-      "desc": "Nxehtësi e jashtëzakonshme — top 5% e të gjithë {d}-ve që nga viti 1950."
+      "desc": "Nxehtësi e jashtëzakonshme — top 5% e të gjithë {d}-ve që nga viti {data_start_year}."
     }
   },
   "charts": {

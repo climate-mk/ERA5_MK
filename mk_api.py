@@ -65,7 +65,9 @@ data = data[data["date"] <= pd.Timestamp.today()]
 data["year"]  = data["date"].dt.year
 data["month"] = data["date"].dt.month
 
-_CSV_MAX_DATE = data["date"].max().date()
+_CSV_MAX_DATE    = data["date"].max().date()
+_RECORD_YEARS    = int(data["year"].max() - data["year"].min() + 1)
+_DATA_START_YEAR = int(data["year"].min())
 
 LAPSE_RATE = 0.0065
 for _c in ["temperature_max", "temperature_min", "temperature_mean"]:
@@ -466,21 +468,45 @@ def _fs_save(path, data, glob_pattern=None, keep_days=3, anchor_date=None):
 _TODAY_CACHE     = {}
 _TODAY_CACHE_DIR = _CACHE_DIR
 
+# Thresholds and colours only — text loaded from locale at runtime.
 _TODAY_CATEGORIES = [
-    # (max_percentile_exclusive, key, name, hex, description_template)
-    (10,  "freezing", "Freezing", "#3a5a8a", "Among the coldest {d}s in our 76-year record."),
-    (20,  "cold",     "Cold",     "#6c8fb6", "Cooler than most {d}s we've measured."),
-    (80,  "nope",     "Nope",     "#e7d9b8", "Right around what {d} usually feels like in Macedonia."),
-    (95,  "hot",      "Hot",      "#c25a2c", "Among the hottest {d}s in our record."),
-    (101, "hell",     "Hell",     "#962c1a", "Exceptional heat — top 5% of all {d}s since 1950."),
+    # (max_percentile_exclusive, key, colour)
+    (10,  "freezing", "#3a5a8a"),
+    (20,  "cold",     "#6c8fb6"),
+    (80,  "nope",     "#e7d9b8"),
+    (95,  "hot",      "#c25a2c"),
+    (101, "hell",     "#962c1a"),
 ]
 
+def _load_en_locale() -> dict:
+    path = os.path.join(os.path.dirname(__file__), "static", "locales", "en_default.json")
+    try:
+        with open(path, encoding="utf-8") as _f:
+            return json.load(_f)
+    except Exception:
+        return {}
+
+_EN_LOCALE = _load_en_locale()
+
 def _categorize_today(pct, dlabel):
-    for cutoff, key, name, color, tpl in _TODAY_CATEGORIES:
+    """Return (key, name, color, description) for a given percentile.
+    Text comes from en_default.json so no country name or year is hardcoded here.
+    Variables interpolated: {d} day-label, {country}, {record_years}, {data_start_year}.
+    """
+    cats   = _EN_LOCALE.get("categories", {})
+    interp = dict(d=dlabel, country=CONFIG["name"],
+                  record_years=_RECORD_YEARS, data_start_year=_DATA_START_YEAR)
+    for cutoff, key, color in _TODAY_CATEGORIES:
         if pct < cutoff:
-            return key, name, color, tpl.format(d=dlabel)
+            cat  = cats.get(key, {})
+            name = cat.get("name", key)
+            desc = cat.get("desc", "").format_map(interp)
+            return key, name, color, desc
     last = _TODAY_CATEGORIES[-1]
-    return last[1], last[2], last[3], last[4].format(d=dlabel)
+    cat  = cats.get(last[1], {})
+    name = cat.get("name", last[1])
+    desc = cat.get("desc", "").format_map(interp)
+    return last[1], name, last[2], desc
 
 def _today_cache_path(date_str):
     return os.path.join(_TODAY_CACHE_DIR, f"today_{date_str}.json")
