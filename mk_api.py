@@ -433,7 +433,7 @@ def compute_annual_trend(target_date=None):
 
 # ── Generic filesystem cache helpers ──────────────────────────────────────────
 
-_CACHE_DIR = os.path.join(os.path.dirname(__file__), "cache")
+_CACHE_DIR = os.path.join(os.path.dirname(__file__), "cache", CONFIG["code"])
 
 def _fs_load(path):
     """Load a JSON cache file; return None on any error."""
