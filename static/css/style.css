@@ -159,8 +159,10 @@ body {
 #heading-charts               { display: none; }
 .sec-heading-sub              { padding: 0 40px 10px; font-family: 'JetBrains Mono', monospace; font-size: 11px; letter-spacing: 0.08em; text-transform: uppercase; color: var(--ink-soft); }
 .sec-heading-date             { font-family: 'Space Grotesk', sans-serif; font-style: normal; font-size: 17px; font-weight: 500; color: var(--ink-soft); letter-spacing: 0.02em; }
-.today-heading-left { display: flex; align-items: center; gap: 14px; min-width: 0; }
-.today-nav          { display: flex; gap: 3px; flex-shrink: 0; }
+.today-heading-left { display: flex; align-items: center; gap: 10px; min-width: 0; }
+.today-date-control { display: flex; align-items: center; gap: 3px; flex-shrink: 0; }
+.today-date-badge   { font-family: 'JetBrains Mono', monospace; font-weight: 600; font-size: 13px; background: var(--card); border: 1px solid var(--rule); border-radius: 7px; padding: 4px 10px; min-width: 60px; text-align: center; white-space: nowrap; cursor: pointer; line-height: 20px; }
+.today-date-badge:hover { background: var(--paper-2); }
 .today-nav-btn      { display: flex; align-items: center; justify-content: center; width: 28px; height: 28px; border-radius: 7px; border: 1px solid var(--rule); background: var(--card); color: var(--ink); cursor: pointer; transition: background 0.1s; flex-shrink: 0; }
 .today-nav-btn:hover:not(:disabled) { background: var(--paper-2); }
 .today-nav-btn:disabled { opacity: 0.3; cursor: not-allowed; }
@@ -229,7 +231,8 @@ body {
 
 /* Card */
 .loc-hero-card {
-  padding: 28px 40px 20px;
+  padding: 28px 40px 20px 40px;
+  padding-right: 150px; /* reserve space for absolute badge — prevents overlap with sig-row on short cards */
   display: flex;
   flex-direction: column;
   justify-content: space-between;
@@ -248,8 +251,8 @@ body {
 #hero:is(.hero-cards-3,.hero-cards-4,.hero-cards-5,.hero-cards-6) .hero-badge-slot .risk-icon { width: 54px; height: 54px; border-radius: 50%; }
 #hero:is(.hero-cards-3,.hero-cards-4,.hero-cards-5,.hero-cards-6) .hero-badge-slot .risk-label { font-size: 9px; }
 #hero:is(.hero-cards-3,.hero-cards-4,.hero-cards-5,.hero-cards-6) .hero-badge-slot .risk-heading { font-size: 10px; }
-/* Tighter padding for 3-per-row */
-#hero:is(.hero-cards-3, .hero-cards-4, .hero-cards-5, .hero-cards-6) .loc-hero-card { padding: 22px 28px 18px; }
+/* Tighter padding for 3-per-row — right side still reserves space for absolute badge */
+#hero:is(.hero-cards-3, .hero-cards-4, .hero-cards-5, .hero-cards-6) .loc-hero-card { padding: 22px 28px 18px; padding-right: 135px; }
 
 /* Main block: number + verdict */
 .loc-hero-main { display: flex; justify-content: space-between; align-items: flex-end; gap: 32px; }
@@ -629,6 +632,14 @@ body {
 body.chat-modal-open { overflow: hidden; }
 
 /* ── Responsive ──────────────────────────────────────────────────────────────── */
+
+@media (max-width: 1200px) {
+  /* Badge moves below eyebrow (in-flow) — no more absolute overlap at mid-width */
+  .hero-badge-slot { position: static; width: 120px; height: auto; margin-bottom: 14px; align-self: flex-start; }
+  /* Reset the right-padding reservation — badge is no longer floating in that space */
+  .loc-hero-card,
+  #hero:is(.hero-cards-3,.hero-cards-4,.hero-cards-5,.hero-cards-6) .loc-hero-card { padding-right: 20px; }
+}
 
 @media (max-width: 900px) {
   #main-row { grid-template-columns: 1fr; padding: 16px 20px 0; }
