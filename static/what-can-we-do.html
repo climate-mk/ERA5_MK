@@ -125,11 +125,18 @@
       font-weight: 600;
     }
 
+    .sections-grid {
+      display: grid;
+      grid-template-columns: repeat(2, 1fr);
+      gap: 20px;
+    }
+
     @media (max-width: 600px) {
       .topbar { padding: 14px 20px; }
       .content { padding: 32px 20px 60px; }
       h1 { font-size: 28px; margin-bottom: 32px; }
       .section { padding: 20px 20px; }
+      .sections-grid { grid-template-columns: 1fr; }
     }
   </style>
 </head>
@@ -152,42 +159,49 @@
       <rect x="-140" y="-23" width="280" height="47" fill="#003DA5"/>
       <rect x="-140" y="24"  width="280" height="46" fill="#D62828"/>
     </svg>
-
-  <div class="section" id="s1">
-    <h2 id="s1-title">1. Energy Transition, Decarbonization &amp; Grid Modernization</h2>
-    <ul id="s1-list"></ul>
   </div>
 
-  <div class="section" id="s2">
-    <h2 id="s2-title">2. Climate Adaptation, Agriculture &amp; Water Security</h2>
-    <ul id="s2-list"></ul>
-  </div>
+  <h1 id="page-heading">What can we do?</h1>
 
-  <div class="section" id="s3">
-    <h2 id="s3-title">3. Urban Environment, Smog Reduction &amp; Green Transport</h2>
-    <ul id="s3-list"></ul>
-  </div>
+  <div class="sections-grid">
 
-  <div class="section" id="s4">
-    <h2 id="s4-title">4. Economic Policy, European Alignment &amp; Solid Waste</h2>
-    <ul id="s4-list"></ul>
-  </div>
+    <div class="section" id="s1">
+      <h2 id="s1-title">1. Energy Transition, Decarbonization &amp; Grid Modernization</h2>
+      <ul id="s1-list"></ul>
+    </div>
 
-  <div class="section" id="s5">
-    <h2 id="s5-title">5. Everyday Citizen Actions &amp; Direct Household Impact</h2>
-    <ul id="s5-list"></ul>
-  </div>
+    <div class="section" id="s2">
+      <h2 id="s2-title">2. Climate Adaptation, Agriculture &amp; Water Security</h2>
+      <ul id="s2-list"></ul>
+    </div>
 
-  <div class="section" id="s6">
-    <h2 id="s6-title">6. Citizen Power: How to Directly Influence National Policies</h2>
-    <ul id="s6-list"></ul>
-  </div>
+    <div class="section" id="s3">
+      <h2 id="s3-title">3. Urban Environment, Smog Reduction &amp; Green Transport</h2>
+      <ul id="s3-list"></ul>
+    </div>
 
-</div>
+    <div class="section" id="s4">
+      <h2 id="s4-title">4. Economic Policy, European Alignment &amp; Solid Waste</h2>
+      <ul id="s4-list"></ul>
+    </div>
+
+    <div class="section" id="s5">
+      <h2 id="s5-title">5. Everyday Citizen Actions &amp; Direct Household Impact</h2>
+      <ul id="s5-list"></ul>
+    </div>
+
+    <div class="section" id="s6">
+      <h2 id="s6-title">6. Citizen Power: How to Directly Influence National Policies</h2>
+      <ul id="s6-list"></ul>
+    </div>
+
+  </div><!-- /sections-grid -->
+
+</div><!-- /content -->
 
 <script>
 (async function () {
-  const lang  = localStorage.getItem('si_lang')    || 'mk';
+  const lang  = localStorage.getItem('si_lang')    || 'en';
   const style = localStorage.getItem('si_content') || 'default';
 
   let wc = null;
@@ -226,7 +240,7 @@
   }
 
   // Translate back label
-  const backLabels = { mk: '← Назад', sq: '← Prapa', en: '← Back' };
+  const backLabels = { mk: '← Назад', sq: '← Prapa', en: '← Back', sl: '← Nazaj' };
   setText('back-label', backLabels[lang] || '← Back');
   const backEl = document.querySelector('.back-link');
   if (backEl) backEl.querySelector('svg').insertAdjacentText('afterend', '');
