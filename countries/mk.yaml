@@ -48,6 +48,7 @@ features:
   next_episodes_teaser:  true   # "In the next episodes…" teaser section
   mk2036_section:        true   # Macedonia 2036 projected impacts section
   analytics_export:      true   # /api/analytics/export + /api/analytics/chat
+  data_download:         true   # /api/data/download — zip of all station CSVs
 
 # ── Stations ──────────────────────────────────────────────────────────────────
 # Single source of truth — mk_collect.py and mk_api.py both read from here.

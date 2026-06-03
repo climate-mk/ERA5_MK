@@ -20,6 +20,7 @@ import time
 import urllib3
 import argparse
 import glob
+import zipfile
 from datetime import datetime, timedelta
 
 # ── Configuration ────────────────────────────────────────────────────────────
@@ -237,7 +238,7 @@ def fetch_location(loc):
                 print(f"Updating {name} ({lat}, {lon})... {fetch_mode}", flush=True)
             else:
                 print(f"Skipping {name} — already up-to-date (last: {last_date})", flush=True)
-                return
+                return False
         else:
             print(f"Fetching {name} ({lat}, {lon})... full (existing file is empty)", flush=True)
     else:
@@ -336,19 +337,33 @@ def fetch_location(loc):
             hrs = secs / 3600
             print(f"  Daily API limit hit — waiting {hrs:.1f} hours until UTC midnight, then will retry {name}...", flush=True)
             time.sleep(secs)
-            # Re-queue this location by recursing once
-            fetch_location(loc)
-            return
+            return fetch_location(loc)
         elif "hourly" in err and "limit exceeded" in err:
             print(f"  Hourly API limit hit — waiting 60 minutes, then will retry {name}...", flush=True)
             time.sleep(3600)
-            fetch_location(loc)
-            return
+            return fetch_location(loc)
         else:
             print(f"  Failed for {name}: {e}", flush=True)
+            return False
 
     print(f"  Waiting 65 seconds before next request...", flush=True)
     time.sleep(65)
+    return True
+
+
+# ── Zip helper ───────────────────────────────────────────────────────────────
+
+def zip_csv_files(output_dir):
+    zip_path = os.path.join(output_dir, "all_stations.zip")
+    csv_files = sorted(glob.glob(os.path.join(output_dir, "*.csv")))
+    if not csv_files:
+        print("No CSV files found to zip.")
+        return
+    with zipfile.ZipFile(zip_path, "w", zipfile.ZIP_DEFLATED) as zf:
+        for f in csv_files:
+            zf.write(f, arcname=os.path.basename(f))
+    size_mb = os.path.getsize(zip_path) / 1_048_576
+    print(f"Zipped {len(csv_files)} CSV files → {zip_path} ({size_mb:.1f} MB)")
 
 
 # ── Fetch and save ────────────────────────────────────────────────────────────
@@ -358,7 +373,26 @@ print(f"Date range: {START_DATE} to {END_DATE}")
 print(f"Locations: {len(LOCATIONS)}")
 print()
 
+files_updated = 0
 for loc in LOCATIONS:
-    fetch_location(loc)
+    if fetch_location(loc):
+        files_updated += 1
 
 print("\nDone! All files saved to:", os.path.abspath(OUTPUT_DIR))
+
+_zip_path     = os.path.join(OUTPUT_DIR, "all_stations.zip")
+_zip_exists   = os.path.exists(_zip_path)
+_zip_is_today = (
+    _zip_exists
+    and datetime.fromtimestamp(os.path.getmtime(_zip_path)).date() == datetime.now().date()
+)
+
+if not _zip_exists:
+    print("No data archive found — creating for the first time...")
+    zip_csv_files(OUTPUT_DIR)
+elif files_updated > 0 and not _zip_is_today:
+    print(f"{files_updated} station(s) updated — refreshing data archive...")
+    zip_csv_files(OUTPUT_DIR)
+else:
+    _reason = "already up-to-date for today" if _zip_is_today else "no new data collected"
+    print(f"Data archive unchanged — skipping zip ({_reason}).")
