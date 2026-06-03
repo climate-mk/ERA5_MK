@@ -880,8 +880,8 @@ function _buildTodayCardInner(r) {
 }
 
 function _updateTodayCard(r) {
-  const dateEl = document.querySelector('#today-status .sec-heading-date');
-  if (dateEl) dateEl.textContent = ` · ${_fmtDay(r.month_num, r.day_num, r.day_label)}`;
+  const badge = document.getElementById('today-date-badge');
+  if (badge) badge.textContent = _fmtDay(r.month_num, r.day_num, r.day_label);
 
   const card = document.getElementById('today-main-card');
   if (card) card.innerHTML = _buildTodayCardInner(r);
@@ -939,9 +939,10 @@ async function renderTodayStatus() {
     el.innerHTML = `
       <div class="sec-heading">
         <div class="today-heading-left">
-          <span>${t('ui.heading_today')}<span class="sec-heading-date"></span></span>
-          <div class="today-nav">
+          <span class="today-heading-title">${t('ui.heading_today')}</span>
+          <div class="today-date-control">
             <button id="today-prev" class="today-nav-btn" aria-label="Previous day"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="15 18 9 12 15 6"/></svg></button>
+            <div class="today-date-badge" id="today-date-badge" title="Click to pick a date">–</div>
             <button id="today-next" class="today-nav-btn" aria-label="Next day" disabled><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="9 18 15 12 9 6"/></svg></button>
           </div>
         </div>
@@ -987,6 +988,66 @@ async function renderTodayStatus() {
     _updateTodayCard(r);
     document.getElementById('today-prev').addEventListener('click', () => _navigateTodayTo(_todayOffset - 1));
     document.getElementById('today-next').addEventListener('click', () => _navigateTodayTo(_todayOffset + 1));
+    document.getElementById('today-date-badge').addEventListener('click', e => {
+      e.stopPropagation();
+      document.getElementById('today-doy-popup')?.remove();
+      const MONTHS = ["Jan","Feb","Mar","Apr","May","Jun","Jul","Aug","Sep","Oct","Nov","Dec"];
+      const refDate = _todayViewDate ? new Date(_todayViewDate + 'T12:00:00') : new Date();
+      let curMonth = refDate.getMonth();
+      let curDay   = refDate.getDate();
+
+      const popup = document.createElement('div');
+      popup.id = 'today-doy-popup';
+      popup.className = 'doy-popup';
+
+      const mSel = document.createElement('select');
+      MONTHS.forEach((m, i) => {
+        const o = document.createElement('option');
+        o.value = i; o.textContent = m;
+        if (i === curMonth) o.selected = true;
+        mSel.appendChild(o);
+      });
+
+      const dSel = document.createElement('select');
+      function _fillDays() {
+        dSel.innerHTML = '';
+        const daysInMonth = new Date(2001, parseInt(mSel.value) + 1, 0).getDate();
+        for (let d = 1; d <= daysInMonth; d++) {
+          const o = document.createElement('option');
+          o.value = d; o.textContent = d;
+          if (d === curDay) o.selected = true;
+          dSel.appendChild(o);
+        }
+      }
+      _fillDays();
+      mSel.addEventListener('change', () => { curMonth = parseInt(mSel.value); _fillDays(); });
+      dSel.addEventListener('change', () => { curDay = parseInt(dSel.value); });
+
+      const setBtn = document.createElement('button');
+      setBtn.className = 'doy-popup-set';
+      setBtn.textContent = 'Set';
+      setBtn.addEventListener('click', () => {
+        popup.remove();
+        const chosen = new Date(2001, parseInt(mSel.value), parseInt(dSel.value));
+        const now = new Date();
+        const target = new Date(now.getFullYear(), chosen.getMonth(), chosen.getDate());
+        if (target > now) target.setFullYear(now.getFullYear() - 1);
+        const diffMs = target - now;
+        const diffDays = Math.round(diffMs / 86400000);
+        _navigateTodayTo(Math.min(0, diffDays));
+      });
+
+      popup.appendChild(mSel);
+      popup.appendChild(dSel);
+      popup.appendChild(setBtn);
+      document.body.appendChild(popup);
+      const rect = e.currentTarget.getBoundingClientRect();
+      popup.style.top  = (rect.bottom + 6) + 'px';
+      popup.style.left = rect.left + 'px';
+
+      const close = ev => { if (!popup.contains(ev.target)) { popup.remove(); document.removeEventListener('click', close); } };
+      setTimeout(() => document.addEventListener('click', close), 0);
+    });
   } catch {
     /* network error — section stays hidden */
   }
