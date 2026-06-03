@@ -6,7 +6,7 @@ code: si
 name: Slovenia
 timezone: Europe/Ljubljana
 default_location: Ljubljana
-languages: [en]
+languages: [en, sl]
 default_language: en
 
 data_start_date: "1950-01-01"
