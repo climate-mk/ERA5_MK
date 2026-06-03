@@ -1030,10 +1030,10 @@ async function renderTodayStatus() {
         popup.remove();
         const chosen = new Date(2001, parseInt(mSel.value), parseInt(dSel.value));
         const now = new Date();
-        const target = new Date(now.getFullYear(), chosen.getMonth(), chosen.getDate());
-        if (target > now) target.setFullYear(now.getFullYear() - 1);
-        const diffMs = target - now;
-        const diffDays = Math.round(diffMs / 86400000);
+        const todayMidnight = new Date(now.getFullYear(), now.getMonth(), now.getDate());
+        const target = new Date(todayMidnight.getFullYear(), chosen.getMonth(), chosen.getDate());
+        if (target > todayMidnight) target.setFullYear(todayMidnight.getFullYear() - 1);
+        const diffDays = Math.round((target - todayMidnight) / 86400000);
         _navigateTodayTo(Math.min(0, diffDays));
       });
 
