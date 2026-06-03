@@ -8,7 +8,7 @@ import os, glob, time, hashlib, json, threading, ipaddress, sqlite3, csv, io, da
 import numpy as np
 import pandas as pd
 import requests as http_requests
-from flask import Flask, jsonify, request, send_from_directory, session, Response
+from flask import Flask, jsonify, request, send_from_directory, send_file, session, Response
 from flask_limiter import Limiter
 from flask_limiter.util import get_remote_address
 from scipy import stats
@@ -1643,6 +1643,22 @@ def _prewarm():
         except Exception: pass
 
 threading.Thread(target=_prewarm, daemon=True).start()
+
+
+@app.route("/api/data/download")
+def download_data():
+    if not _feature_enabled("data_download"): return jsonify({"error": "disabled"}), 404
+    zip_path = os.path.join(DATA_DIR, "all_stations.zip")
+    if not os.path.exists(zip_path):
+        return jsonify({"error": "No data archive available yet. Run mk_collect.py first."}), 404
+    return send_file(
+        zip_path,
+        mimetype="application/zip",
+        as_attachment=True,
+        download_name=f"{CONFIG['code']}_climate_data.zip",
+        conditional=True,
+    )
+
 
 if __name__ == "__main__":
     _port = int(os.getenv("PORT", 5050))

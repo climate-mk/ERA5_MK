@@ -1888,8 +1888,9 @@ function renderAbout() {
   const a = _locale.about;
   const setHtml = (id, val) => { const el = document.getElementById(id); if (el && val) el.innerHTML = val; };
   setHtml('about-heading',   a.heading);
-  setHtml('about-col1-title', a.col1_title);
-  setHtml('about-col1-text',  a.col1_text);
+  setHtml('about-col1-title',    a.col1_title);
+  setHtml('about-col1-text',     a.col1_text);
+  setHtml('about-col1-download', a.col1_download);
   setHtml('about-col2-title', a.col2_title);
   setHtml('about-col2-text1', a.col2_text1);
   setHtml('about-col2-text2', a.col2_text2);
@@ -2073,6 +2074,12 @@ async function init() {
   if (!isEnabled("station_map")) {
     const el = document.getElementById("map-panel");
     if (el) el.hidden = true;
+  }
+  if (!isEnabled("data_download")) {
+    const navRaw = document.getElementById("nav-raw-data");
+    if (navRaw) navRaw.hidden = true;
+    const aboutDl = document.getElementById("about-col1-download");
+    if (aboutDl) aboutDl.hidden = true;
   }
   if (!isEnabled("regression_chart") && !isEnabled("hero_cards")) {
     const el = document.getElementById("reg-panel");

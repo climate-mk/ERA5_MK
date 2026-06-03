@@ -231,6 +231,7 @@
     "heading": "About us",
     "col1_title": "About climate.mk",
     "col1_text": "Climate.mk is a volunteer-driven platform, developed with AI assistance, designed to visualize ERA5 reanalysis data for public education on regional climate change. The project aims to highlight the impacts of global warming on North Macedonia and the surrounding region. You can contact us at <a href=\"mailto:info@climate.mk\">info@climate.mk</a>, contribute via the <a href=\"https://github.com/kesma01/ERA5_MK\" target=\"_blank\" rel=\"noopener\">GitHub page</a> and, if you like what you see, we encourage you to Buy us a coffee.",
+    "col1_download": "The raw ERA5-Land station data that powers this site is available for download: <a href=\"/api/data/download\" download>Download all stations CSV (zip)</a>.",
     "col2_title": "Why do we do this?",
     "col2_text1": "Southeastern Europe is warming at nearly twice the global average rate. The effects are already here - longer summers, shrinking rivers, record-breaking heat, and fires burning wider every year.",
     "col2_text2": "Numbers make it harder to look away. When you see how many more hot days we've had this decade compared to the last, or how rainfall has shifted over time, it stops feeling like abstract news and starts feeling like what it is: a local problem, happening now. Understanding what's changing - here, in our own backyard - is the first step to doing something about it.",

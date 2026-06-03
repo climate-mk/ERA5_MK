@@ -83,6 +83,7 @@ ERA5_MK/
 | `GET /api/spei_heatmap` | — | Seasonal SPEI vs 1950–1980 baseline (all years) |
 | `GET /api/spei_station_seasonal` | — | Per-station SPEI-3 (seasonal) + SPEI-30 (monthly) series with Theil-Sen trend |
 | `GET /api/token` | — | Short-lived Direct Line token for the chatbot (rate-limited) |
+| `GET /api/data/download` | — | Zip archive of all station CSVs (tmax, tmin, tmean, precip, ET₀; 1950–present) |
 
 ---
 
