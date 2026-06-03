@@ -69,6 +69,7 @@
     "cal_increasing": "Increasing"
   },
   "locations": {},
+  "month_names_short": ["Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"],
   "hero": {
     "verdict_warming": "A century to warm by <em>{sign}{t100} {unit}</em> – at current pace, every <em>{yrs} years</em> adds another degree.",
     "verdict_cooling": "A century to cool by <em>{sign}{t100} {unit}</em> – at current pace, every <em>{yrs} years</em> adds another degree.",

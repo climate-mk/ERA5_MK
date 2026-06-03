@@ -470,6 +470,8 @@ async function refreshMap() {
 
 function doyToDate(doy) {
   const d = new Date(2001, 0, doy);
+  const short = _locale?.month_names_short;
+  if (short) return `${d.getDate()}. ${short[d.getMonth()]}`;
   return d.toLocaleDateString("en-GB", { day: "numeric", month: "short" });
 }
 
@@ -1740,6 +1742,8 @@ let _chatErrorGeneric     = "Chat is temporarily unavailable. Please try again l
 let _chatErrorGlobalLimit = "The chat assistant has reached its limit for now. Please try again in a little while.";
 
 function _fmtDay(month, day, fallback) {
+  const short = _locale?.month_names_short;
+  if (short?.[month - 1] !== undefined) return `${day}. ${short[month - 1]}`;
   if (_locale?.meta?.lang === 'mk') return `${day}.${String(month).padStart(2, '0')}`;
   return fallback;
 }

@@ -69,6 +69,7 @@
     "cal_increasing": "Povečevanje"
   },
   "locations": {},
+  "month_names_short": ["jan.", "feb.", "mar.", "apr.", "maj", "jun.", "jul.", "avg.", "sep.", "okt.", "nov.", "dec."],
   "hero": {
     "verdict_warming": "Sto let segrevanja za <em>{sign}{t100} {unit}</em> – pri trenutnem tempu vsaka <em>{yrs} let</em> doda eno stopinjo.",
     "verdict_cooling": "Sto let ohlajanja za <em>{sign}{t100} {unit}</em> – pri trenutnem tempu vsaka <em>{yrs} let</em> odšteje eno stopinjo.",
