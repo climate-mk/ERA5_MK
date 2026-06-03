@@ -146,7 +146,7 @@
       "quote": "One point five degrees Celsius over 150 years. ONE AND A HALF DEGREES. The Roman Empire had warm periods. The Vikings had warm periods. Nobody taxed their carbon then."
     },
     {
-      "author": "Local Facebook Group 'Real News Macedonia' (34,000 members)",
+      "author": "Local Facebook Group 'Resnica o podnebju' (27.000 sledilcev)",
       "quote": "This website is funded by EU globalists who want to force us onto electric vehicles made in China with batteries mined by children. Just thought you should know before you look at these charts."
     },
     {
@@ -204,86 +204,64 @@
   },
   "what_can_we_do": {
     "heading": "What could we do?",
-    "s1_title": "1. Energy Transition, Decarbonization & Grid Modernization",
+    "s1_title": "1. Energy",
     "s1_items": [
-      "Accelerate Coal Phase-Out: Establish a definitive timeline to decommission outdated coal-fired units at REK Bitola and TEC Oslomej.",
-      "Worker Retraining: Implement a Just Transition strategy to reskill coal miners and plant operators for jobs in the green economy.",
-      "Scale Renewables: Fast-track large-scale investments in solar PV and wind farms, utilizing the country's high number of sunny days.",
-      "Upgrade Power Grids: Modernize transmission infrastructure to handle the intermittent nature of decentralized renewable energy.",
-      "Residential Energy Efficiency: Scale up the UNDP Green Finance Facility to subsidize home insulation, triple-glazing, and energy-efficient heating upgrades for private households."
+      "The Šoštanj thermal power plant (TEŠ 6) is Slovenia's single largest source of CO₂. Its planned closure by 2033 is critical — supporting an accelerated timeline matters.",
+      "The Krško nuclear plant (NEK) produces ~40% of Slovenia's electricity with zero CO₂. Its continued operation and eventual replacement is the backbone of decarbonisation.",
+      "Slovenia has excellent solar potential, especially in the southwest. Eko sklad subsidies cover rooftop solar, heat pumps, and insulation — visit ekosklad.si to see what applies to your home."
     ],
-    "s2_title": "2. Climate Adaptation, Agriculture & Water Security",
+    "s2_title": "2. Transport",
     "s2_items": [
-      "Crop Diversification: Shift farming in the Pelagonia and Vardar valley regions toward drought-resistant varieties and climate-resilient sub-tropical crops.",
-      "Precision Irrigation: Replace wasteful open-channel flooding with advanced drip-irrigation networks to conserve shrinking water tables.",
-      "Transboundary Water Management: Cooperate with regional neighbors to sustainably manage shared basins like the Vardar and Drim rivers.",
-      "Forestry Protection: Deploy early-warning sensor networks and drone monitoring to prevent catastrophic wildfires in high-risk alpine zones.",
-      "Flood Mitigation: Build nature-based river defenses and restore natural floodplains in vulnerable municipalities to survive extreme downpours."
+      "Use the train. Ljubljana–Maribor and Ljubljana–Koper are competitive with driving in time and far better in emissions. The rail network is underused.",
+      "For short urban trips, cycling infrastructure is expanding in Ljubljana, Maribor, and Koper — infrastructure only improves when people use it."
     ],
-    "s3_title": "3. Urban Environment, Smog Reduction & Green Transport",
+    "s3_title": "3. Nature",
     "s3_items": [
-      "Decarbonize Winter Heating: Eliminate urban wood-burning and heavy fuel oil heating by connecting more homes in Skopje, Bitola, and Tetovo to district heating or high-efficiency heat pumps.",
-      "Finance the physical expansion of the central heating pipe network to reach high-density suburban neighborhoods that currently rely on wood or electricity.",
-      "Expand Urban Canopies: Develop green corridors (e.g., along the Serava and Vardar rivers) and enforce green roof mandates for new buildings to combat the urban heat island effect.",
-      "Public Transit Overhaul: Introduce zero-emission electric bus fleets and expand dedicated micro-mobility lanes (bikes and scooters).",
-      "E-Mobility Infrastructure: Deploy a dense national network of public electric vehicle (EV) charging stations powered by clean energy.",
-      "Mandatory Grid Connection Laws: Enforce local zoning regulations that require all newly constructed residential and commercial buildings located near existing networks to connect to the district heating grid.",
-      "Industrial Waste Heat Recovery: Capture excess thermal energy from heavy industries and local factories to feed directly into municipal heating grids, reducing the need to burn primary fuels.",
-      "Geothermal District Systems: Investigate and tap into the country's existing low-temperature geothermal springs to power localized, clean thermal energy networks for nearby towns."
+      "Slovenia's forests sequester roughly 3 million tonnes of CO₂ per year. Buy certified (FSC/PEFC) wood products and support forest protection legislation.",
+      "The Kočevje primeval forest is one of Europe's last large wilderness areas. It needs permanent legal protection — contact your MP."
     ],
-    "s4_title": "4. Economic Policy, European Alignment & Solid Waste",
+    "s4_title": "4. Civic Action",
     "s4_items": [
-      "Carbon Pricing Mechanisms: Establish a national carbon pricing or emissions trading system to comply with the EU Carbon Border Adjustment Mechanism (CBAM) and prevent export penalties.",
-      "Combating Energy Poverty: Create targeted financial safety nets to ensure carbon pricing does not disproportionately burden low-income households.",
-      "Solid Waste Overhaul: Shut down non-compliant landfills, enforce strict regional waste sorting, and promote a circular economy to cut methane."
+      "Ask your občina (municipality) for its climate adaptation plan. Flood preparedness, urban tree planting, and heat emergency protocols should be standard — if they are not, that is a question worth asking."
     ],
-    "s5_title": "5. Everyday Citizen Actions & Direct Household Impact",
+    "s5_title": "5. Key Organisations",
     "s5_items": [
-      "Household Heating: Switch from wood stoves or lignite to inverter air conditioners or pellet stoves, or connect to district heating.",
-      "Reconnection Incentives: Take advantage of municipal subsidies to reconnect to the central heating grid if the household previously disconnected due to high historic costs.",
-      "Building-Level Heat Substations: Cooperate with building homeowner associations (HOAs) to upgrade old basement heating substations and install individual heat meters for fair, consumption-based billing.",
-      "Solar Self-Consumption: Install rooftop solar panels as a prosumer to generate individual electricity and sell surplus back to the grid.",
-      "Commuting Habits: Choose public buses, walking, or cycling over private vehicles, especially during critical winter inversion smog periods.",
-      "Water and Waste Conservation: Fix local leaks, use drip lines in gardens, and actively separate organic waste and plastics to reduce landfill load.",
-      "Support Local Eco-Brands: Purchase locally grown seasonal produce to lower the high carbon footprint linked to imported foods."
+      "Umanotera (umanotera.org) — sustainable development think-tank",
+      "Focus (focus.si) — environmental action NGO",
+      "DOPPS (dopps.si) — bird and nature conservation",
+      "Eko sklad (ekosklad.si) — green finance and subsidies for households"
     ],
-    "s6_title": "6. Citizen Power: How to Directly Influence National Policies",
-    "s6_items": [
-      "ENER National Registry: Monitor and submit direct public commentary on draft environmental laws via the Electronic National Regulation Registry.",
-      "Local Municipal Council Sessions: Attend open municipal meetings to demand green local budgets, bike lanes, and city park protections.",
-      "Citizen Initiatives & Petitions: Use Article 71 of the Constitution to gather 10,000 signatures to propose binding green laws to Parliament.",
-      "Joint Civil Society Advocacy: Join and fund established Macedonian green NGOs (like Eko-svest, O2 Iniciativa, or Go Green) to scale up lobbying.",
-      "Report Environmental Crimes: Use official inspectorate lines or mobile apps (like \"Moja Opstina\") to log illegal dumping or factory pollution."
-    ]
+    "s6_title": "",
+    "s6_items": []
   },
   "mk2036": {
-    "heading": "Macedonia 2036",
-    "timeline_btn": "Click to view the future timeline",
+    "heading": "",
+    "timeline_btn": "",
     "r1": {
-      "name": "Central (Povardarie & Ovche Pole)",
-      "i1": "Vineyards damaged by prolonged extreme heat — grapes are especially vulnerable when temperatures stay high during flowering and harvest.",
-      "i2": "The Vardar River carries less water, leaving farmers with less to draw for watering their fields.",
-      "i3": "Ovche Pole — already one of the driest plains in Europe — gets even drier. The soil loses moisture faster, making it increasingly hard to farm without irrigation."
+      "name": "",
+      "i1": "",
+      "i2": "",
+      "i3": ""
     },
     "r2": {
-      "name": "Pelagonija (Bitola & Prilep)",
-      "i1": "Fields that depend only on rainwater — with no irrigation — suffer serious losses in wheat and maize when the soil dries out too early in the season.",
-      "i2": "Bad harvests stop being rare exceptions and start becoming something farmers can expect most years."
+      "name": "",
+      "i1": "",
+      "i2": ""
     },
     "r3": {
-      "name": "Mountains & NW (Mavrovo, Shar Planina)",
-      "i1": "Winters get shorter and warmer, meaning less snow and a shorter ski season — threatening the income of mountain villages that depend on winter tourism.",
-      "i2": "When heavy rain falls on dry mountain slopes, water rushes down fast with nowhere to soak in — flooding the Pena and Radika river valleys and damaging roads, bridges, and farmland."
+      "name": "",
+      "i1": "",
+      "i2": ""
     },
     "r4": {
-      "name": "Southeast (Strumica & Gevgelija)",
-      "i1": "When nights stay above 20°C, plants keep burning energy instead of recovering from the daytime heat — so crops like peppers, tomatoes, and grapes arrive at harvest already weakened.",
-      "i2": "Water stored in reservoirs runs low at exactly the moment farmers need it most — creating real shortages for irrigation in the hottest, driest part of the year."
+      "name": "",
+      "i1": "",
+      "i2": ""
     },
     "r5": {
-      "name": "Urban (Skopje)",
-      "i1": "Skopje's concrete and asphalt absorb heat all day and release it at night — so the city never cools down. Sleeping becomes difficult, elderly people are especially at risk, and hospitals see a sharp rise in heat-related illness.",
-      "i2": "When the whole city switches on air conditioning at once during a heatwave, the electrical grid can struggle to cope — increasing the risk of power cuts at the worst possible moment."
+      "name": "",
+      "i1": "",
+      "i2": ""
     }
   }
 }
