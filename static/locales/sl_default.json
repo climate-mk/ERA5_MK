@@ -21,8 +21,8 @@
   "today": {
     "explain1": "Današnji vrh je najvišja napovedana temperatura na vseh 18 postajah, razvrščena glede na 70+ let zapisov ERA5-Land za isto ±7-dnevno okno.",
     "climate_context": "Slovenija leži na stičišču štirih podnebnih con — alpske, sredozemske, celinsko in panonske — stisnjenih v eno izmed podnebno najbolj raznolikih držav v Evropi. Srednja Evropa se segreva približno 1,5-krat hitreje od svetovnega povprečja. Temperature so v zadnjih 70 letih narasle za skoraj 2 °C. Pomlad v Alpah prihaja vse prej, sredozemske suše segajo vse globlje v notranjost, severovzhodni panonski del pa se sooča z vedno hujšimi vročinskimi vali. Kar je bilo leta 1980 tipično poletje, danes sodi med hladnejšo polovico nedavnih desetletij.",
-    "chart_title": "Dnevne najvišje temperature v Sloveniji za dve tedni okoli {day_label} od {data_start_year}",
-    "trend_title": "Vrhunske temperature v Sloveniji okoli {day_label} · {year_min}–{year_max} · trend s projekcijo do {projection_end_year}",
+    "chart_title": "Dnevne najvišje temperature v Sloveniji za dve tedni okoli {day_label} od {year_min}",
+    "trend_title": "Najvišje temperature v Sloveniji okoli {day_label} · {year_min}–{year_max} · trend s projekcijo do 2050",
     "explain2": "Krivulja prikazuje, kako pogosto se je pojavila vsaka vrhunska temperatura na dneve, kot je danes, v vseh letih. Barve označujejo klimatološke cone — od hladne modre prek tipičnega bežastega pasu do ekstremne rdeče — tako da na prvi pogled vidite, kje se uvršča današnja temperatura.",
     "explain3": "Vsaka pika je 90. percentil nacionalne povprečne dnevne najvišje temperature vseh postaj v ±30-dnevnem oknu okoli tega datuma za vsako leto od {year_min}. Trend Theil-Sen je {trend} °C/desetletje ({sig}). Po tem tempu projekcija kaže {proj2050} °C do leta 2050. Zasenčeni pas je 95% interval zaupanja za nagib. Opomba: ta grafikon uporablja nacionalno povprečje vseh postaj; kartica 'Je danes vroče?' zgoraj pa uporablja nacionalni vrh (posamezna najtoplejša postaja) — obe sta veljavni, a merita različne stvari.",
     "foot": "{temp} °C · {pct}. percentil · {samples} vzorcev ({year_min}–{year_max})",
@@ -54,7 +54,7 @@
     },
     "hell": {
       "name": "Peklensko",
-      "desc": "Izjemna vročina — vrh 5 % vseh {d} od {data_start_year}."
+      "desc": "Izjemna vročina — vrh 5 % vseh {d} od {year_min}."
     }
   },
   "charts": {

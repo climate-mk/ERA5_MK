@@ -21,8 +21,8 @@
   "today": {
     "explain1": "Today's peak is the highest temperature forecast across all 20 stations, ranked against 70+ years of ERA5-Land records for this same ±7-day window.",
     "climate_context": "Slovenia sits at the crossroads of four climate zones — Alpine, Mediterranean, Continental, and Pannonian — compressed into one of Europe's most climatically diverse countries. Central Europe is warming roughly 1.5× the global average. Temperatures have risen by nearly 2°C over the past 70 years. Spring arrives earlier in the Alps, Mediterranean droughts extend further inland, and the Pannonian northeast faces increasingly extreme heat. What felt like a typical summer in 1980 now ranks in the cooler half of recent decades.",
-    "chart_title": "Slovenia daily max temperatures for the two weeks around {day_label} since {data_start_year}",
-    "trend_title": "Slovenia peak temperatures around {day_label} · {year_min}–{year_max} · trend with projection to {projection_end_year}",
+    "chart_title": "Slovenia daily max temperatures for the two weeks around {day_label} since {year_min}",
+    "trend_title": "Slovenia peak temperatures around {day_label} · {year_min}–{year_max} · trend with projection to 2050",
     "explain2": "The curve shows how often each peak temperature occurred on days like today across all years. Colours mark climatological zones — from cold blue through the typical beige band to extreme red — so you can see at a glance where today sits.",
     "explain3": "Each dot is the 90th percentile of the national mean daily-maximum temperature across all stations in a ±30-day window around this date, for every year since {year_min}. The Theil-Sen trend is {trend} °C/decade ({sig}). At this rate, by 2050 the trend projects to {proj2050} °C. The shaded band is the 95% confidence interval on the slope. Note: this chart uses the national mean across all stations; the 'Is it hot today?' card above uses the national peak (single hottest station) — both are valid, but they measure different things.",
     "foot": "{temp} °C · {pct}th percentile · {samples} samples ({year_min}–{year_max})",
@@ -54,7 +54,7 @@
     },
     "hell": {
       "name": "Hell",
-      "desc": "Exceptional heat — top 5% of all {d}s since {data_start_year}."
+      "desc": "Exceptional heat — top 5% of all {d}s since {year_min}."
     }
   },
   "charts": {
