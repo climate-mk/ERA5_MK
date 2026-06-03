@@ -809,10 +809,51 @@ const _TF_CLOUD_DEF = {
   m: '<ellipse cx="8" cy="1" rx="9" ry="7"/><ellipse cx="20" cy="-5" rx="13" ry="10"/><ellipse cx="34" cy="-3" rx="11" ry="9"/><ellipse cx="46" cy="1" rx="9" ry="7"/><rect x="-1" y="4" width="57" height="8" rx="2"/>',
   l: '<ellipse cx="9" cy="2" rx="10" ry="8"/><ellipse cx="22" cy="-5" rx="14" ry="11"/><ellipse cx="38" cy="-7" rx="16" ry="12"/><ellipse cx="54" cy="-3" rx="13" ry="10"/><ellipse cx="68" cy="2" rx="10" ry="8"/><rect x="-1" y="4" width="80" height="9" rx="2"/>',
 };
+// Slovenian flag base — three horizontal stripes + official coat of arms.
+// Coat of arms paths extracted from the Wikimedia Commons official SVG
+// (https://upload.wikimedia.org/wikipedia/commons/f/f0/Flag_of_Slovenia.svg)
+// and scaled to our viewBox ("-140 -70 280 140").
+//
+// Scaling derivation:
+//   Original SVG: viewBox="0 0 240 120", coat-of-arms group:
+//     matrix(.39140688 0 0 .39140688 60 60)
+//   Our viewBox is 280×140, so scale factor = (280/240) = 7/6 ≈ 1.16667
+//   Combined scale: 0.39140688 × 1.16667 ≈ 0.4566
+//   Translate: x = (60 × 1.16667) − 140 = −70,  y = (60 × 1.16667) − 70 = 0
+//   → transform="matrix(0.4566 0 0 0.4566 -70 0)"
+//   Shield spans: x ≈ −88 to −52, y ≈ −43 to 0 (white & blue stripes) ✓
+const _TF_SI_FLAG_BASE = (() => {
+  // Official star path (6-pointed, centred near group (0,−80))
+  const _STAR = 'm0-84.5 1.125 2.551443L3.897114-82.25 2.25-80l1.647114 2.25L1.125-78.051443 0-75.5l-1.125-2.551443-2.772114.301443L-2.25-80l-1.647114-2.25 2.772114.301443';
+  // Official wavy-line band path (filled blue wave shape)
+  const _WAVE = 'M-29.615239-37.252789A10 10 0 0 0-15-31.339746a10 10 0 0 1 10 0 10 10 0 0 0 10 0 10 10 0 0 1 10 0 10 10 0 0 0 14.615239-5.913043L30-37.113249v7.320508a10 10 0 0 0-5 1.339746 10 10 0 0 1-10 0 10 10 0 0 0-10 0 10 10 0 0 1-10 0 10 10 0 0 0-10 0 10 10 0 0 1-10 0 10 10 0 0 0-5-1.339746v-7.320508';
+  return [
+    // ── Flag stripes ───────────────────────────────────────────────────────────
+    '<rect x="-140" y="-70" width="280" height="47" fill="#FFFFFF"/>',
+    '<rect x="-140" y="-23" width="280" height="47" fill="#003DA5"/>',
+    '<rect x="-140" y="24"  width="280" height="46" fill="#D62828"/>',
+    // ── Coat of arms (official paths, scaled from Wikimedia Commons SVG) ───────
+    '<g transform="matrix(0.4566 0 0 0.4566 -70 0)">',
+    // Shield background
+    '  <path d="M-37.175342-94.368205a92.195445 92.195445 0 0 1 74.350684 0Q43-12 0-1q-43-11-37.175342-93.368205Z" fill="#003DA5"/>',
+    // Three 6-pointed yellow stars: centre, then left (−10.5,−14) and right (+10.5,−14)
+    `  <path d="${_STAR}" fill="#FFD700"/>`,
+    `  <path d="${_STAR}" transform="translate(-10.5,-14)" fill="#FFD700"/>`,
+    `  <path d="${_STAR}" transform="translate(10.5,-14)" fill="#FFD700"/>`,
+    // Triglav three-peak mountain silhouette (white)
+    '  <path d="m0-70 9 18 6-8 15 20a10 10 0 0 1-.384761 2.747211A46.400549 46.400549 0 0 1 0-6.090878a46.400549 46.400549 0 0 1-29.615239-31.161911A10 10 0 0 1-30-40l15-20 6 8z" fill="#FFFFFF"/>',
+    // Two wavy blue bands (rivers / Adriatic), second offset +5.77 in group coords
+    `  <path d="${_WAVE}" fill="#003DA5"/>`,
+    `  <path d="${_WAVE}" transform="translate(0,5.7735028)" fill="#003DA5"/>`,
+    // Red shield border / outline
+    '  <path d="M-40-93.066239a92.195445 92.195445 0 0 1 2.824658-1.301966l2.97064 47.448778A49.301041 49.301041 0 0 0 0-3.036262a49.301041 49.301041 0 0 0 34.204702-43.883164l2.97064-47.448778A92.195445 92.195445 0 0 1 40-93.066239L37.099526-46.73819A52.201533 52.201533 0 0 1 0 0a52.201533 52.201533 0 0 1-37.099526-46.738189Z" fill="#D62828"/>',
+    '</g>',
+  ].join('');
+})();
+
 const _todayFlagCache = new Map();
 function _buildTodayFlag(catKey) {
   if (_todayFlagCache.has(catKey)) return _todayFlagCache.get(catKey);
-  const P = _TF_SUN;
   const snow = catKey === 'freezing' ? _TF_SNOW_POS.map(([x,y,r,dur,del]) =>
     `<g transform="translate(${x},${y})"><path class="tf-snowflake" d="${_tfSnowPath(r)}" fill="none" stroke="rgba(210,235,255,0.95)" stroke-width="0.9" stroke-linecap="round" style="--dur:${dur}s;--delay:${del}s"/></g>`
   ).join('') : '';
@@ -823,28 +864,31 @@ function _buildTodayFlag(catKey) {
     `<g opacity="${op}" fill="rgba(255,248,248,0.82)"><g transform="scale(${sc})">${_TF_CLOUD_DEF[sh]}</g><animateTransform attributeName="transform" type="translate" from="-220 ${y}" to="220 ${y}" dur="${dur}s" begin="${del}s" repeatCount="indefinite"/></g>`
   ).join('') : '';
   const C = {
+    // ── All categories share the Slovenian flag base; each adds a weather overlay ──
     freezing: {
-      bg: '#0b1926',
-      defs: '<filter id="tf-cg" x="-40%" y="-40%" width="180%" height="180%"><feGaussianBlur in="SourceGraphic" stdDeviation="3.5" result="b"/><feMerge><feMergeNode in="b"/><feMergeNode in="SourceGraphic"/></feMerge></filter>',
-      body: `<g class="tf-cold-sun" filter="url(#tf-cg)"><path d="${P}" fill="#8ec4e0"/><circle r="22.5" fill="#b4d8f0" stroke="#0b1926" stroke-width="5"/></g>`,
+      bg: '#FFFFFF',
+      defs: '<radialGradient id="tf-frost-vgn" cx="50%" cy="50%" r="58%"><stop offset="0%" stop-color="#c8e6ff" stop-opacity="0"/><stop offset="100%" stop-color="#c8e6ff" stop-opacity="0.35"/></radialGradient>',
+      body: `${_TF_SI_FLAG_BASE}<rect x="-140" y="-70" width="280" height="140" fill="rgba(180,215,255,0.25)"/><rect x="-140" y="-70" width="280" height="140" fill="url(#tf-frost-vgn)"/>`,
     },
     cold: {
-      bg: '#1c3460', defs: '',
-      body: `<g class="tf-cool-sun"><path d="${P}" fill="#f0d830"/><circle r="22.5" fill="#f0d830" stroke="#1c3460" stroke-width="5"/></g>`,
+      bg: '#FFFFFF',
+      defs: '',
+      body: `${_TF_SI_FLAG_BASE}<rect x="-140" y="-70" width="280" height="140" fill="rgba(160,190,220,0.18)"/>`,
     },
     nope: {
-      bg: '#d82126', defs: '',
-      body: `<g><path d="${P}" fill="#f8e92e"/><circle class="tf-avg-circle" r="22.5" fill="#f8e92e" stroke="#d82126" stroke-width="5"/></g>`,
+      bg: '#FFFFFF',
+      defs: '',
+      body: `${_TF_SI_FLAG_BASE}<g transform="translate(100,-50)"><circle r="16" fill="#FFD700" opacity="0.9"/><g stroke="#FFD700" stroke-width="1.5" stroke-linecap="round"><line x1="0" y1="-22" x2="0" y2="-19"/><line x1="15.6" y1="-11" x2="13.4" y2="-9.4"/><line x1="15.6" y1="11" x2="13.4" y2="9.4"/><line x1="0" y1="22" x2="0" y2="19"/><line x1="-15.6" y1="11" x2="-13.4" y2="9.4"/><line x1="-15.6" y1="-11" x2="-13.4" y2="-9.4"/></g></g>`,
     },
     hot: {
-      bg: '#7d1000',
-      defs: '<filter id="tf-hg" x="-45%" y="-45%" width="190%" height="190%"><feGaussianBlur in="SourceGraphic" stdDeviation="6.5" result="b"/><feMerge><feMergeNode in="b"/><feMergeNode in="SourceGraphic"/></feMerge></filter><filter id="tf-hh" x="-5%" y="-5%" width="110%" height="110%"><feTurbulence type="turbulence" baseFrequency="0.010 0.022" numOctaves="2" result="t"><animate attributeName="seed" from="0" to="40" dur="4s" repeatCount="indefinite"/></feTurbulence><feDisplacementMap in="SourceGraphic" in2="t" scale="2.2" xChannelSelector="R" yChannelSelector="G"/></filter>',
-      body: `<g filter="url(#tf-hh)"><g class="tf-hot-sun" filter="url(#tf-hg)"><path d="${P}" fill="#ff8020"/><circle r="22.5" fill="#ffa030" stroke="#7d1000" stroke-width="5"/></g></g>`,
+      bg: '#FFFFFF',
+      defs: '<filter id="tf-hot-glow" x="-100%" y="-100%" width="300%" height="300%"><feGaussianBlur in="SourceGraphic" stdDeviation="8"/></filter>',
+      body: `${_TF_SI_FLAG_BASE}<rect x="-140" y="-70" width="280" height="140" fill="rgba(255,140,0,0.22)"/><g transform="translate(100,-50)"><circle r="28" fill="#FF8C00" opacity="0.5" filter="url(#tf-hot-glow)"/><circle r="24" fill="#FF8C00"/></g>`,
     },
     hell: {
-      bg: 'url(#tf-hellg)',
-      defs: '<radialGradient id="tf-hellg" cx="50%" cy="50%" r="58%"><stop offset="0%" stop-color="#420700"/><stop offset="100%" stop-color="#0d0100"/></radialGradient><filter id="tf-hhg" x="-55%" y="-55%" width="210%" height="210%"><feGaussianBlur in="SourceGraphic" stdDeviation="12" result="b"/><feMerge><feMergeNode in="b"/><feMergeNode in="SourceGraphic"/></feMerge></filter><filter id="tf-hhh" x="-7%" y="-7%" width="114%" height="114%"><feTurbulence type="turbulence" baseFrequency="0.022 0.046" numOctaves="3" result="t"><animate attributeName="seed" from="0" to="80" dur="1.6s" repeatCount="indefinite"/></feTurbulence><feDisplacementMap in="SourceGraphic" in2="t" scale="7" xChannelSelector="R" yChannelSelector="G"/></filter>',
-      body: `<g filter="url(#tf-hhh)"><g class="tf-hell-sun" filter="url(#tf-hhg)"><path d="${P}" fill="#ff4c00"/><circle r="22.5" fill="#ffbe30" stroke="#160300" stroke-width="5"/><circle r="28" fill="rgba(255,100,0,0.18)" class="tf-hell-ember" style="animation-delay:0s"/><circle r="18" fill="rgba(255,140,0,0.22)" class="tf-hell-ember" style="animation-delay:.4s"/><circle fill="#fff" opacity=".92"><animate attributeName="r" values="7;13;7" dur="1.1s" repeatCount="indefinite"/><animate attributeName="opacity" values=".7;1;.7" dur="1.1s" repeatCount="indefinite"/></circle></g></g>`,
+      bg: '#FFFFFF',
+      defs: '<filter id="tf-flame-f" x="-30%" y="-100%" width="160%" height="250%"><feTurbulence type="turbulence" baseFrequency="0.02 0.05" numOctaves="3" result="t"><animate attributeName="seed" from="0" to="100" dur="1.5s" repeatCount="indefinite"/></feTurbulence><feDisplacementMap in="SourceGraphic" in2="t" scale="8" xChannelSelector="R" yChannelSelector="G"/></filter><filter id="tf-hell-sun-glow" x="-150%" y="-150%" width="400%" height="400%"><feGaussianBlur in="SourceGraphic" stdDeviation="10" result="b"/><feMerge><feMergeNode in="b"/><feMergeNode in="SourceGraphic"/></feMerge></filter>',
+      body: `${_TF_SI_FLAG_BASE}<rect x="-140" y="-70" width="280" height="140" fill="rgba(180,30,0,0.35)"/><g filter="url(#tf-flame-f)"><path d="M-140,70 L-140,20 Q-100,0 -60,25 Q-20,50 20,20 Q60,-5 100,25 Q120,40 140,20 L140,70 Z" fill="rgba(255,80,0,0.7)"/></g><g transform="translate(100,-50)" filter="url(#tf-hell-sun-glow)"><circle r="28" fill="#FF4C00"/><circle r="22" fill="#FFB030"/><circle r="10" fill="#FFFFFF" opacity="0.9"><animate attributeName="r" values="8;14;8" dur="1.1s" repeatCount="indefinite"/><animate attributeName="opacity" values=".7;1;.7" dur="1.1s" repeatCount="indefinite"/></circle></g>`,
     },
   };
   const cfg = C[catKey] || C.nope;
