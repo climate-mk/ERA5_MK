@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>User Manual — climate.mk</title>
+  <title>User Manual — podnebje.si</title>
   <link rel="icon" type="image/x-icon" href="favicon.ico">
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
@@ -142,7 +142,7 @@
 <body>
 
 <header class="topbar">
-  <a href="/" class="home">← climate.mk</a>
+  <a href="/" class="home">← podnebje.si</a>
   <span class="topbar-sep">·</span>
   <span class="topbar-title">User Manual</span>
 </header>
@@ -155,7 +155,7 @@
     <ol>
       <li><a href="#intro">Introduction</a></li>
       <li><a href="#quickstart">Quick Start</a></li>
-      <li><a href="#today">Macedonia Today</a></li>
+      <li><a href="#today">Slovenia Today</a></li>
       <li><a href="#controls">Controls</a></li>
       <li><a href="#map">The Map</a></li>
       <li><a href="#chart">Regression Chart</a></li>
@@ -175,11 +175,11 @@
     <!-- Title -->
     <section id="intro">
       <h1>
-        climate.mk
+        podnebje.si
         <span class="sub">User Manual &amp; Statistical Reference</span>
       </h1>
 
-      <p><strong>climate.mk</strong> is an interactive web dashboard for exploring long-term climate trends across North Macedonia. It visualises ERA5-Land reanalysis data covering the period 1950–present for 20 locations, using robust statistical methods to detect and quantify trends in temperature, precipitation, and evapotranspiration.</p>
+      <p><strong>podnebje.si</strong> is an interactive web dashboard for exploring long-term climate trends across Slovenia. It visualises ERA5-Land reanalysis data covering the period 1950–present for 18 locations, using robust statistical methods to detect and quantify trends in temperature, precipitation, and evapotranspiration.</p>
 
       <p>This manual explains every control, chart, and statistic shown on the site. The <a href="#methods">Statistical Methods</a> section provides full technical detail for researchers and educators. All features are accessible without any prior statistical knowledge — the site is designed to communicate findings clearly to a general audience.</p>
 
@@ -190,8 +190,8 @@
 
       <!-- TODO: retake images/screenshots/overview.png — needs to show new page structure: Location details section with Controls subsection, "In the next episodes…" wrapping WIP charts, social icons at bottom of About us -->
       <figure>
-        <img src="images/screenshots/overview.png" alt="Full view of climate.mk showing the hero card for Skopje, the controls toolbar, and the map and regression chart panels side by side">
-        <figcaption>The climate.mk interface: Macedonia Today section at top, Location details section (with Controls subsection), map and regression chart, "In the next episodes…" section for upcoming charts, and the About us section (with social icons) and footer at the bottom.</figcaption>
+        <img src="images/screenshots/overview.png" alt="Full view of podnebje.si showing the hero card for Ljubljana, the controls toolbar, and the map and regression chart panels side by side">
+        <figcaption>The podnebje.si interface: Slovenia Today section at top, Location details section (with Controls subsection), map and regression chart, "In the next episodes…" section for upcoming charts, and the About us section (with social icons) and footer at the bottom.</figcaption>
       </figure>
     </section>
 
@@ -199,13 +199,13 @@
     <section id="quickstart">
       <span class="section-num">02</span>
       <h2>Quick Start</h2>
-      <p>Before exploring trends by location, check the <strong>Macedonia Today</strong> panel at the top of the page. It shows how today's temperature across Macedonia compares to the historical record for this time of year.</p>
+      <p>Before exploring trends by location, check the <strong>Slovenia Today</strong> panel at the top of the page. It shows how today's temperature across Slovenia compares to the historical record for this time of year.</p>
 
       <ol class="steps">
         <li>
           <div>
             <strong>Choose a location</strong>
-            Click the <strong>Location</strong> dropdown in the toolbar and select one or more stations (up to 6). Skopje and the station with the largest max-temperature trend are pre-selected automatically on load. You can also click a bubble on the map to toggle a location.
+            Click the <strong>Location</strong> dropdown in the toolbar and select one or more stations (up to 6). Ljubljana and the station with the largest max-temperature trend are pre-selected automatically on load. You can also click a bubble on the map to toggle a location.
           </div>
         </li>
         <li>
@@ -235,28 +235,28 @@
       </ol>
     </section>
 
-    <!-- Macedonia Today -->
+    <!-- Slovenia Today -->
     <section id="today">
       <span class="section-num">03</span>
-      <h2>Macedonia Today</h2>
+      <h2>Slovenia Today</h2>
 
-      <p>When the site loads, a live <strong>Macedonia Today</strong> panel appears at the top of the page. It fetches today's maximum temperature forecast from Open-Meteo for all 20 stations and compares the country-wide peak against the ERA5-Land historical record for the same ±7-day window around today's date. The panel is automatically hidden if the forecast data is unavailable.</p>
+      <p>When the site loads, a live <strong>Slovenia Today</strong> panel appears at the top of the page. It fetches today's maximum temperature forecast from Open-Meteo for all 18 stations and compares the country-wide peak against the ERA5-Land historical record for the same ±7-day window around today's date. The panel is automatically hidden if the forecast data is unavailable.</p>
 
-      <!-- TODO: retake images/screenshots/today-section.png — needs to show animated flag SVG, temperature badge in top-right, and date nav buttons (‹ date ›) in the section heading -->
+      <!-- TODO: retake images/screenshots/today-section.png -->
       <figure>
-        <img src="images/screenshots/today-section.png" alt="The Macedonia Today panel showing three side-by-side cards: the Is it Hot category card on the left, the historical distribution chart in the middle, and the annual peak trend chart on the right">
-        <figcaption>The Macedonia Today panel: three cards showing today's category (with animated flag and temperature badge), the historical temperature distribution, and the long-term annual peak trend. Date navigation buttons appear in the section heading.</figcaption>
+        <img src="images/screenshots/today-section.png" alt="The Slovenia Today panel showing three side-by-side cards: the Is it Hot category card on the left, the historical distribution chart in the middle, and the annual peak trend chart on the right">
+        <figcaption>The Slovenia Today panel: three cards showing today's category (with animated Slovenian flag and temperature badge), the historical temperature distribution, and the long-term annual peak trend. Date navigation buttons appear in the section heading.</figcaption>
       </figure>
 
-      <h3>Card 1 — Is it Hot in Macedonia Today?</h3>
+      <h3>Card 1 — Is it Hot in Slovenia Today?</h3>
       <p>The left card gives an immediate qualitative reading of today's conditions:</p>
       <ul>
-        <li><strong>Animated flag</strong> — a Sun of Vergina symbol on a colour background with weather animations that match the temperature category. Five variants: Freezing (blue + snowflakes), Cold (navy + clouds), Normal (red + heartbeat), Hot (dark red + heat shimmer), Hell (infernal flicker).</li>
+        <li><strong>Animated flag</strong> — the Slovenian flag with the official coat of arms (Triglav, three stars, wavy lines) as the base, with a weather overlay matching the temperature category. Five variants: Freezing (ice-blue tint + snowflakes), Cold (grey-blue tint + clouds), Normal (clean flag + small sun), Hot (amber tint + glowing sun), Hell (dark red tint + rising flames + blazing sun).</li>
         <li><strong>Category and description</strong> — the category name and a plain-language description appear inline, separated by a small coloured dot.</li>
         <li><strong>Temperature badge</strong> — a pill in the top-right of the card showing the day's actual peak temperature, coloured to match the category.</li>
         <li><strong>Footer</strong> — today's peak temperature (°C), its historical percentile, the number of observations used, and the year range of the historical record.</li>
       </ul>
-      <p>Today's value is the <em>highest</em> maximum temperature forecast across all 20 stations — a true country-wide peak. It is ranked against the ERA5-Land record using a ±7-day window around today's date, covering all years from 1950 to present.</p>
+      <p>Today's value is the <em>highest</em> maximum temperature forecast across all 18 stations — a true country-wide peak. It is ranked against the ERA5-Land record using a ±7-day window around today's date, covering all years from 1950 to present.</p>
 
       <h3>Card 2 — Historical distribution chart</h3>
       <p>The centre card shows a <strong>kernel density estimate (KDE)</strong> of how often each peak temperature occurred on days like today across all years in the record. The x-axis is temperature; the y-axis is relative frequency.</p>
@@ -271,7 +271,7 @@
       <h3>Card 3 — Annual peak temperature trend</h3>
       <p>The right card shows the <strong>long-term trend in country-wide peak temperatures</strong> for this time of year, using the last 30 years of ERA5-Land data and projecting forward to 2055.</p>
       <ul>
-        <li><strong>Scatter dots</strong> — one dot per year, showing the highest temperature recorded anywhere in Macedonia in the ±7-day window around today's date.</li>
+        <li><strong>Scatter dots</strong> — one dot per year, showing the highest temperature recorded anywhere in Slovenia in the ±7-day window around today's date.</li>
         <li><strong>Theil-Sen trend line</strong> — solid line for the historical period, dashed for the forecast extension. The slope is computed using the same Theil-Sen + Mann-Kendall method as the main regression chart.</li>
         <li><strong>95% confidence interval band</strong> — shaded band around the trend line, widening naturally in the forecast period to reflect increasing uncertainty over time.</li>
         <li><strong>Milestone markers</strong> — hollow circle markers at 2030, 2035, 2040, 2045, 2050, and 2055 on the forecast line, with tooltips showing the projected temperature.</li>
@@ -287,7 +287,7 @@
       <h3>Date navigation</h3>
       <p>The section heading shows today's date. Use the <strong>‹</strong> and <strong>›</strong> buttons next to the date to browse any past date:</p>
       <ul>
-        <li><strong>Today</strong> — live forecast from Open-Meteo (same 20 stations used for the map).</li>
+        <li><strong>Today</strong> — live forecast from Open-Meteo (same 18 stations used for the map).</li>
         <li><strong>Gap dates</strong> (last ~10 days before today) — actual measured data from the Open-Meteo archive API.</li>
         <li><strong>Older dates</strong> — pulled directly from the ERA5-Land CSV dataset already loaded in memory.</li>
       </ul>
@@ -312,8 +312,8 @@
           <tbody>
             <tr>
               <td><strong>Location</strong></td>
-              <td>1–6 of 20 stations</td>
-              <td>Multi-select dropdown. Select up to 6 stations to overlay on the regression chart and display separate hero cards. The map always shows all 20 stations.</td>
+              <td>1–6 of 18 stations</td>
+              <td>Multi-select dropdown. Select up to 6 stations to overlay on the regression chart and display separate hero cards. The map always shows all 18 stations.</td>
             </tr>
             <tr>
               <td><strong>Variable</strong></td>
@@ -356,11 +356,11 @@
       <h2>The Map</h2>
 
       <figure>
-        <img src="images/screenshots/map.png" alt="The North Macedonia map panel showing 20 coloured bubbles of varying sizes representing trend magnitude and direction at each station">
-        <figcaption>Map panel showing trend direction (colour) and magnitude (bubble size) for all 20 stations at the selected day of year and variable.</figcaption>
+        <img src="images/screenshots/map.png" alt="The Slovenia map panel showing 18 coloured bubbles of varying sizes representing trend magnitude and direction at each station">
+        <figcaption>Map panel showing trend direction (colour) and magnitude (bubble size) for all 18 stations at the selected day of year and variable.</figcaption>
       </figure>
 
-      <p>The map shows all 20 stations simultaneously for the currently selected variable, day of year, and window. Each station is represented by a coloured bubble.</p>
+      <p>The map shows all 18 stations simultaneously for the currently selected variable, day of year, and window. Each station is represented by a coloured bubble.</p>
 
       <h3>Bubble colour</h3>
       <p>Colour indicates the <strong>direction</strong> of the trend. For temperature variables, orange–red means warming and blue means cooling. For precipitation, blue means wetter and brown means drier. For evapotranspiration, amber means increasing and green means decreasing. Stations with little or no trend appear near-neutral grey.</p>
@@ -371,7 +371,7 @@
       <h3>Interaction</h3>
       <p>Hover over any bubble to see the station name, trend value (per decade), p-value, and significance rating. Click a bubble to toggle that station in the multi-location selection.</p>
 
-      <p>The subtitle below the "North Macedonia" heading shows the currently selected variable name alongside the station count.</p>
+      <p>The subtitle below the "Slovenia" heading shows the currently selected variable name alongside the station count.</p>
     </section>
 
     <!-- Regression chart -->
@@ -411,7 +411,7 @@
       <h2>Hero Cards &amp; Stats</h2>
 
       <figure>
-        <img src="images/screenshots/hero.png" alt="Hero card for Skopje showing the trend value +0.37 degrees Celsius per decade, a narrative verdict, and the sig-row with significance, tau squared, sample size, and autocorrelation">
+        <img src="images/screenshots/hero.png" alt="Hero card for Ljubljana showing the trend value +0.37 degrees Celsius per decade, a narrative verdict, and the sig-row with significance, tau squared, sample size, and autocorrelation">
         <figcaption>Hero card for a single location: large trend number, narrative verdict (temperature only), and the sig-row with four statistical summaries.</figcaption>
       </figure>
 
@@ -559,13 +559,13 @@
       <p>For temperature and ET₀, annual values are computed as the <strong>mean</strong> of daily values within the window. For precipitation, annual values are computed as the <strong>sum</strong> (total accumulation in the window period).</p>
 
       <h3 id="methods-lapse">Elevation Lapse-Rate Correction</h3>
-      <p>ERA5-Land values are computed at the model's grid-cell elevation, which may differ from the actual station elevation. For mountain stations like Lazaropole (1350 m a.s.l.) the difference can be substantial.</p>
+      <p>ERA5-Land values are computed at the model's grid-cell elevation, which may differ from the actual station elevation. For high-altitude Alpine stations the difference can be substantial.</p>
 
       <p>When elevation correction is enabled, temperature values are adjusted using the standard atmospheric lapse rate:</p>
       <div class="formula">
         T<sub>corrected</sub> = T<sub>ERA5</sub> + ΔElevation × 0.0065 °C/m
       </div>
-      <p>where ΔElevation = station elevation − ERA5 grid elevation. This brings temperatures to a common reference level, making comparisons between stations at different elevations more meaningful. The correction only applies to the three temperature variables and is disabled by default.</p>
+      <p>where ΔElevation = station elevation − ERA5 grid elevation. For high-altitude stations such as Kredarica (2514 m a.s.l.) the difference can be substantial. This brings temperatures to a common reference level, making comparisons between stations at different elevations more meaningful. The correction only applies to the three temperature variables and is disabled by default.</p>
 
       <h3 id="methods-sig">Significance Thresholds</h3>
       <p>Statistical significance is reported using both a p-value and a star rating for quick visual assessment:</p>
@@ -637,7 +637,7 @@
       <span class="section-num">11</span>
       <h2>Locations</h2>
 
-      <p>The dataset covers 20 stations distributed across North Macedonia, from the lowland Vardar valley to mountain sites above 1000 m elevation.</p>
+      <p>The dataset covers 18 stations distributed across Slovenia, from the Adriatic coast (Koper, 10 m) to the Alpine summit of Kredarica (2514 m), spanning four climate zones: Alpine, Mediterranean, Continental, and Pannonian.</p>
 
       <div class="table-wrap">
         <table>
@@ -645,62 +645,49 @@
             <tr><th>Station</th><th>Latitude</th><th>Longitude</th><th>Region</th></tr>
           </thead>
           <tbody>
-            <tr><td><strong>Berovo</strong></td><td>41.7047° N</td><td>22.8556° E</td><td>East</td></tr>
-            <tr><td><strong>Bitola</strong></td><td>41.0314° N</td><td>21.3347° E</td><td>Southwest</td></tr>
-            <tr><td><strong>Debar</strong></td><td>41.5239° N</td><td>20.5239° E</td><td>West</td></tr>
-            <tr><td><strong>Demir Kapija</strong></td><td>41.4042° N</td><td>22.2458° E</td><td>Southeast</td></tr>
-            <tr><td><strong>Gevgelija</strong></td><td>41.1414° N</td><td>22.5011° E</td><td>South</td></tr>
-            <tr><td><strong>Gostivar</strong></td><td>41.7956° N</td><td>20.9089° E</td><td>West</td></tr>
-            <tr><td><strong>Kavadarci</strong></td><td>41.4331° N</td><td>22.0119° E</td><td>Central</td></tr>
-            <tr><td><strong>Kičevo</strong></td><td>41.5131° N</td><td>20.9589° E</td><td>West-central</td></tr>
-            <tr><td><strong>Kochani</strong></td><td>41.9167° N</td><td>22.4167° E</td><td>East</td></tr>
-            <tr><td><strong>Kumanovo</strong></td><td>42.1322° N</td><td>21.7144° E</td><td>North</td></tr>
-            <tr><td><strong>Lazaropole</strong></td><td>41.5394° N</td><td>20.6956° E</td><td>West (mountain)</td></tr>
-            <tr><td><strong>Negotino</strong></td><td>41.4831° N</td><td>22.0894° E</td><td>Central</td></tr>
-            <tr><td><strong>Ohrid</strong></td><td>41.1231° N</td><td>20.8016° E</td><td>Southwest (lakeside)</td></tr>
-            <tr><td><strong>Prilep</strong></td><td>41.3453° N</td><td>21.5550° E</td><td>Central</td></tr>
-            <tr><td><strong>Radoviš</strong></td><td>41.6386° N</td><td>22.4647° E</td><td>East</td></tr>
-            <tr><td><strong>Skopje</strong></td><td>41.9965° N</td><td>21.4314° E</td><td>Central (capital)</td></tr>
-            <tr><td><strong>Štip</strong></td><td>41.7457° N</td><td>22.1961° E</td><td>East-central</td></tr>
-            <tr><td><strong>Strumica</strong></td><td>41.4378° N</td><td>22.6431° E</td><td>Southeast</td></tr>
-            <tr><td><strong>Tetovo</strong></td><td>42.0092° N</td><td>20.9714° E</td><td>Northwest</td></tr>
-            <tr><td><strong>Veles</strong></td><td>41.7153° N</td><td>21.7753° E</td><td>Central</td></tr>
+            <tr><td><strong>Ljubljana</strong></td><td>46.0511° N</td><td>14.5051° E</td><td>Central (capital)</td></tr>
+            <tr><td><strong>Maribor</strong></td><td>46.5547° N</td><td>15.6459° E</td><td>Northeast</td></tr>
+            <tr><td><strong>Celje</strong></td><td>46.2313° N</td><td>15.2617° E</td><td>Central-east (Savinja valley)</td></tr>
+            <tr><td><strong>Kranj</strong></td><td>46.2392° N</td><td>14.3556° E</td><td>Northwest (Alpine foot)</td></tr>
+            <tr><td><strong>Koper</strong></td><td>45.5483° N</td><td>13.7300° E</td><td>Adriatic coast</td></tr>
+            <tr><td><strong>Novo Mesto</strong></td><td>45.8011° N</td><td>15.1700° E</td><td>Southeast (Dolenjska)</td></tr>
+            <tr><td><strong>Murska Sobota</strong></td><td>46.6625° N</td><td>16.1667° E</td><td>Northeast (Pannonian)</td></tr>
+            <tr><td><strong>Nova Gorica</strong></td><td>45.9564° N</td><td>13.6431° E</td><td>West (Soča valley)</td></tr>
+            <tr><td><strong>Postojna</strong></td><td>45.7756° N</td><td>14.2133° E</td><td>Southwest (Kras plateau)</td></tr>
+            <tr><td><strong>Ptuj</strong></td><td>46.4197° N</td><td>15.8697° E</td><td>Northeast (Drava valley)</td></tr>
+            <tr><td><strong>Velenje</strong></td><td>46.3592° N</td><td>15.1119° E</td><td>Central (Šalek valley)</td></tr>
+            <tr><td><strong>Trbovlje</strong></td><td>46.1511° N</td><td>15.0511° E</td><td>Central (Sava canyon)</td></tr>
+            <tr><td><strong>Tolmin</strong></td><td>46.1858° N</td><td>13.7317° E</td><td>West (upper Soča)</td></tr>
+            <tr><td><strong>Kočevje</strong></td><td>45.6433° N</td><td>14.8619° E</td><td>Southeast (Kočevski Rog)</td></tr>
+            <tr><td><strong>Ilirska Bistrica</strong></td><td>45.5667° N</td><td>14.2358° E</td><td>Southwest (Pivka basin)</td></tr>
+            <tr><td><strong>Domžale</strong></td><td>46.1375° N</td><td>14.5942° E</td><td>Central (Ljubljana basin)</td></tr>
+            <tr><td><strong>Rateče</strong></td><td>46.4967° N</td><td>13.7131° E</td><td>Northwest (Julian Alps)</td></tr>
+            <tr><td><strong>Kredarica</strong></td><td>46.3792° N</td><td>14.5267° E</td><td>Northwest (Triglav summit, 2514 m)</td></tr>
           </tbody>
         </table>
       </div>
     </section>
 
-    <!-- AI Assistant -->
+    <!-- Questions & Support -->
     <section id="assistant">
       <span class="section-num">12</span>
-      <h2>AI Climate Assistant</h2>
+      <h2>Questions &amp; Support</h2>
 
-      <figure>
-        <img src="images/screenshots/chatbot.png" alt="The chat modal showing a conversation with Ognen, the AI climate assistant, open in the bottom-right of the screen">
-        <figcaption>The Ognen chat assistant, accessible via the button in the top-right corner of every page.</figcaption>
-      </figure>
-
-      <p>The <strong>Chat with Ognen</strong> button in the top-right corner opens an AI climate assistant powered by Microsoft Copilot Studio. Ognen can help you:</p>
+      <p>podnebje.si does not include an AI assistant. For questions about the data, methods, or site:</p>
 
       <ul>
-        <li>Understand the statistical methods used on the site</li>
-        <li>Interpret a specific trend result for a location and variable</li>
-        <li>Explain what ERA5-Land reanalysis data is and its limitations</li>
-        <li>Discuss the climate context of trends observed in North Macedonia</li>
-        <li>Answer general questions about climate change and regional impacts</li>
+        <li><strong>Email:</strong> <a href="mailto:info@podnebje.si">info@podnebje.si</a></li>
+        <li><strong>GitHub:</strong> <a href="https://github.com/kesma01/ERA5_MK" target="_blank" rel="noopener">github.com/kesma01/ERA5_MK</a> — code, issues, and contributions welcome</li>
+        <li><strong>Statistical methods:</strong> the <a href="#methods">Statistical Methods</a> section of this manual covers all methods in full technical detail</li>
+        <li><strong>Data source:</strong> ERA5-Land documentation is available from <a href="https://cds.climate.copernicus.eu/datasets/reanalysis-era5-land" target="_blank" rel="noopener">Copernicus Climate Data Store</a></li>
       </ul>
-
-      <div class="callout">
-        <div class="callout-label">Note</div>
-        <p>Ognen is an AI assistant and may occasionally produce inaccurate answers. For authoritative scientific information, consult the <a href="https://github.com/kesma01/ERA5_MK" target="_blank" rel="noopener">GitHub page</a> or primary literature.</p>
-      </div>
     </section>
 
     <!-- What can we do -->
     <section id="what-can-we-do">
       <span class="section-num">13</span>
       <h2>What can we do?</h2>
-      <p>The <a href="what-can-we-do.html">What can we do?</a> page lists concrete climate action points for North Macedonia, organised into six areas: energy transition, climate adaptation, urban environment, economic policy, household actions, and citizen advocacy. The page is accessible from the <strong>Why do we do this?</strong> card in the About us section and is available in all three supported languages.</p>
+      <p>The <a href="what-can-we-do.html">What can we do?</a> page lists concrete climate action points for Slovenia, organised into five areas: energy (TEŠ 6, Krško, solar), transport, nature (forests, Kočevje), civic action, and key organisations. The page is accessible from the <strong>Why do we do this?</strong> card in the About us section and is available in both supported languages (English and Slovenian).</p>
     </section>
 
     <!-- Limitations -->
@@ -722,7 +709,7 @@
           <strong>OLS p-values may be anti-conservative.</strong> When autocorrelation is present (AR(1) &gt; 0), OLS p-values are typically too small. Use Theil-Sen + MK for reliable significance testing.
         </li>
         <li>
-          <strong>Volunteer project.</strong> climate.mk is developed and maintained on a volunteer basis. Some features may be incomplete or subject to change. Contributions and feedback are welcome via the <a href="https://github.com/kesma01/ERA5_MK" target="_blank" rel="noopener">GitHub page</a> or by email at <a href="mailto:info@climate.mk">info@climate.mk</a>.
+          <strong>Volunteer project.</strong> podnebje.si is developed and maintained on a volunteer basis. Some features may be incomplete or subject to change. Contributions and feedback are welcome via the <a href="https://github.com/kesma01/ERA5_MK" target="_blank" rel="noopener">GitHub page</a> or by email at <a href="mailto:info@podnebje.si">info@podnebje.si</a>.
         </li>
       </ul>
     </section>
@@ -731,7 +718,7 @@
 </div>
 
 <footer class="footer">
-  climate.mk User Manual · <a href="/">Back to app</a> · <a href="https://github.com/kesma01/ERA5_MK" target="_blank" rel="noopener">GitHub</a> · <a href="mailto:info@climate.mk">info@climate.mk</a>
+  podnebje.si User Manual · <a href="/">Back to app</a> · <a href="https://github.com/kesma01/ERA5_MK" target="_blank" rel="noopener">GitHub</a> · <a href="mailto:info@podnebje.si">info@podnebje.si</a>
 </footer>
 
 </body>
