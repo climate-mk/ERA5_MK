@@ -1,8 +1,90 @@
-# Daily differential update of ERA5-Land data for MK Climate Explorer.
-# Runs at 03:00 UTC — Open-Meteo free-tier daily limit resets at UTC midnight,
-# so 3am gives a safe buffer and avoids the peak-hour API load.
-#
-# Each run fetches only new days (last date in CSV → today-10d).
-# 20 locations × 65s inter-request pause ≈ 22 min total, well before dawn.
-# The service restart at the end reloads the updated CSVs into memory.
-0 3 * * * root cd /opt/mk_climate && COUNTRY=mk /opt/mk_climate/venv/bin/python mk_collect.py >> /var/log/mk_collect.log 2>&1; systemctl restart mk_climate >> /var/log/mk_collect.log 2>&1
+name: Deploy to production
+
+on:
+  push:
+    branches: [country/slovenia]
+
+env:
+  FORCE_JAVASCRIPT_ACTIONS_TO_NODE24: true
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v5
+
+      - name: Set up SSH
+        run: |
+          mkdir -p ~/.ssh
+          echo "${{ secrets.SSH_PRIVATE_KEY }}" > ~/.ssh/id_ed25519
+          chmod 600 ~/.ssh/id_ed25519
+          ssh-keygen -y -f ~/.ssh/id_ed25519 > /dev/null
+          cat >> ~/.ssh/config << 'EOF'
+          Host 46.224.208.142
+            StrictHostKeyChecking no
+            UserKnownHostsFile /dev/null
+          EOF
+
+      - name: Deploy via rsync
+        run: |
+          rsync -az \
+            --exclude='.git' \
+            --exclude='.github' \
+            --exclude='__pycache__' \
+            --exclude='*.pyc' \
+            --exclude='venv' \
+            --exclude='data' \
+            --exclude='deploy.sh' \
+            --exclude='*.sqlite' \
+            ./ root@46.224.208.142:/opt/si_climate/
+
+      - name: Write .env
+        run: |
+          ssh root@46.224.208.142 "cat > /opt/si_climate/.env << 'EOF'
+          COUNTRY=si
+          EOF
+          chmod 600 /opt/si_climate/.env"
+
+      - name: Install dependencies & restart service
+        run: |
+          ssh root@46.224.208.142 "
+            cd /opt/si_climate &&
+            venv/bin/pip install -q -r requirements.txt &&
+            chown -R www-data:www-data /opt/si_climate &&
+            systemctl restart si_climate &&
+            sleep 4 &&
+            systemctl is-active si_climate
+          "
+
+      - name: Install cron job
+        run: |
+          ssh root@46.224.208.142 "
+            cp /opt/si_climate/cron/mk_collect /etc/cron.d/si_climate &&
+            chmod 644 /etc/cron.d/si_climate &&
+            echo 'Cron installed:' &&
+            cat /etc/cron.d/si_climate
+          "
+
+      - name: Health check
+        run: |
+          sleep 5
+          ssh root@46.224.208.142 "curl -sf http://localhost:5051/api/meta" | python3 -c "
+          import sys, json
+          d = json.load(sys.stdin)
+          print('Health OK —', len(d['locations']), 'locations loaded')
+          "
+
+      - name: Warm slow caches
+        run: |
+          echo "Warming slow caches (endpoints returning 204 are disabled features — skipped)..."
+          ssh root@46.224.208.142 "
+            for name in spei_station_seasonal spei_heatmap season_heatmap; do
+              code=\$(curl -s -o /dev/null -w '%{http_code}' http://localhost:5051/api/\$name)
+              if [ \"\$code\" = \"204\" ]; then
+                echo \"skipped (disabled): \$name\"
+              else
+                echo \"warmed [\$code]: \$name\"
+              fi
+            done
+          "

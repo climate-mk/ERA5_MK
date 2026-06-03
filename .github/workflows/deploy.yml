@@ -2,7 +2,7 @@ name: Deploy to production
 
 on:
   push:
-    branches: [main]
+    branches: [country/slovenia]
 
 env:
   FORCE_JAVASCRIPT_ACTIONS_TO_NODE24: true
@@ -37,41 +37,39 @@ jobs:
             --exclude='data' \
             --exclude='deploy.sh' \
             --exclude='*.sqlite' \
-            ./ root@46.224.208.142:/opt/mk_climate/
+            ./ root@46.224.208.142:/opt/si_climate/
 
       - name: Write .env
         run: |
-          ssh root@46.224.208.142 "cat > /opt/mk_climate/.env << 'EOF'
-          COUNTRY=mk
-          DIRECT_LINE_SECRET=${{ secrets.DIRECT_LINE_SECRET }}
-          ANALYTICS_EXPORT_KEY=${{ secrets.ANALYTICS_EXPORT_KEY }}
+          ssh root@46.224.208.142 "cat > /opt/si_climate/.env << 'EOF'
+          COUNTRY=si
           EOF
-          chmod 600 /opt/mk_climate/.env"
+          chmod 600 /opt/si_climate/.env"
 
       - name: Install dependencies & restart service
         run: |
           ssh root@46.224.208.142 "
-            cd /opt/mk_climate &&
+            cd /opt/si_climate &&
             venv/bin/pip install -q -r requirements.txt &&
-            chown -R www-data:www-data /opt/mk_climate &&
-            systemctl restart mk_climate &&
+            chown -R www-data:www-data /opt/si_climate &&
+            systemctl restart si_climate &&
             sleep 4 &&
-            systemctl is-active mk_climate
+            systemctl is-active si_climate
           "
 
       - name: Install cron job
         run: |
           ssh root@46.224.208.142 "
-            cp /opt/mk_climate/cron/mk_collect /etc/cron.d/mk_climate &&
-            chmod 644 /etc/cron.d/mk_climate &&
+            cp /opt/si_climate/cron/mk_collect /etc/cron.d/si_climate &&
+            chmod 644 /etc/cron.d/si_climate &&
             echo 'Cron installed:' &&
-            cat /etc/cron.d/mk_climate
+            cat /etc/cron.d/si_climate
           "
 
       - name: Health check
         run: |
           sleep 5
-          ssh root@46.224.208.142 "curl -sf http://localhost:5050/api/meta" | python3 -c "
+          ssh root@46.224.208.142 "curl -sf http://localhost:5051/api/meta" | python3 -c "
           import sys, json
           d = json.load(sys.stdin)
           print('Health OK —', len(d['locations']), 'locations loaded')
@@ -81,16 +79,12 @@ jobs:
         run: |
           echo "Warming slow caches (endpoints returning 204 are disabled features — skipped)..."
           ssh root@46.224.208.142 "
-            for url in \
-              http://localhost:5050/api/spei_station_seasonal \
-              http://localhost:5050/api/spei_heatmap \
-              http://localhost:5050/api/season_heatmap; do
-              status=\$(curl -s -o /dev/null -w '%{http_code}' \"\$url\")
-              name=\$(echo \"\$url\" | sed 's|.*/||')
-              if [ \"\$status\" = '204' ]; then
-                echo \"  skipped (disabled): \$name\"
+            for name in spei_station_seasonal spei_heatmap season_heatmap; do
+              code=\$(curl -s -o /dev/null -w '%{http_code}' http://localhost:5051/api/\$name)
+              if [ \"\$code\" = \"204\" ]; then
+                echo \"skipped (disabled): \$name\"
               else
-                echo \"  warmed [\$status]: \$name\"
+                echo \"warmed [\$code]: \$name\"
               fi
             done
           "
