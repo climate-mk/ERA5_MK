@@ -33,11 +33,11 @@ features:
   today_section:       true
   season_heat_heatmap: true
   spei_heatmap:        true
-  drought_trend_chart: false   # WIP — off everywhere for now
+  drought_trend_chart: true   # WIP — off everywhere for now
   chatbot:             false   # no Azure Direct Line for Slovenia
   welcome_modal:       true
-  next_episodes_teaser: false
-  mk2036_section:      false   # MK-specific content — off for all other countries
+  next_episodes_teaser: true
+  mk2036_section:      false   # TODO: create si2035 impacts section — future phase
   analytics_export:    false
 
 stations:
