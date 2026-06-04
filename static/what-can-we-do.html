@@ -212,10 +212,16 @@
 
 </div><!-- /content -->
 
+<script src="js/refs.js"></script>
 <script>
 (async function () {
   const lang  = localStorage.getItem('mk_lang')    || 'en';
   const style = localStorage.getItem('mk_content') || 'default';
+
+  // Load citation refs alongside locale
+  await window.Refs?.load();
+  window.Refs?.reset();
+  window.Refs?.initTooltip();
 
   let wc = null;
   try {
@@ -228,15 +234,20 @@
 
   if (!wc) return; // page already has English fallback text in HTML
 
+  // setText with ref token expansion via innerHTML
   const setText = (id, val) => {
     const el = document.getElementById(id);
-    if (el && val) el.textContent = val;
+    if (!el || !val) return;
+    el.innerHTML = window.Refs?.resolve(escHtml(val)) ?? escHtml(val);
   };
 
   const setList = (id, items) => {
     const ul = document.getElementById(id);
     if (!ul || !Array.isArray(items)) return;
-    ul.innerHTML = items.map(item => '<li>' + escHtml(item) + '</li>').join('');
+    ul.innerHTML = items.map(item => {
+      const safe = window.Refs?.resolve(escHtml(item)) ?? escHtml(item);
+      return '<li>' + safe + '</li>';
+    }).join('');
   };
 
   const escHtml = s => s
@@ -254,8 +265,9 @@
 
   // Translate back label
   const backLabels = { mk: '← Назад', sq: '← Prapa', en: '← Back', sl: '← Nazaj' };
-  setText('back-label', backLabels[lang] || '← Back');
   const backEl = document.querySelector('.back-link');
+  const backLabel = document.getElementById('back-label');
+  if (backLabel) backLabel.textContent = backLabels[lang] || '← Back';
   if (backEl) backEl.querySelector('svg').insertAdjacentText('afterend', '');
 })();
 </script>

@@ -1,0 +1,138 @@
+{
+  "_comment": "Citation database for podnebje.si. Keys are stable IDs used as [ref:key] tokens in locale strings.",
+
+  "arso_temp_2017": {
+    "short": "ARSO 2017",
+    "authors": "Vertačnik G, Bertalanič R",
+    "year": 2017,
+    "title": "Podnebna spremenljivost Slovenije v obdobju 1961–2011",
+    "source": "Agencija RS za okolje (ARSO)",
+    "url": "https://kazalci.arso.gov.si/en/content/precipitation-and-temperatures-1"
+  },
+
+  "arso_projections_2021": {
+    "short": "ARSO 2021",
+    "authors": "ARSO Meteorological Office",
+    "year": 2021,
+    "title": "Climate change projections for Slovenia over the 21st century",
+    "source": "Agencija RS za okolje (ARSO)",
+    "url": "https://www.meteo.si/uploads/probase/www/climate/text/en/publications/OPS21_brosura_ENG.pdf"
+  },
+
+  "arso_kazalci": {
+    "short": "ARSO Kazalci",
+    "authors": "ARSO",
+    "year": 2023,
+    "title": "Padavine in temperature — Okoljski kazalci Slovenije",
+    "source": "Agencija RS za okolje (ARSO)",
+    "url": "https://kazalci.arso.gov.si/en/content/precipitation-and-temperatures-1"
+  },
+
+  "copernicus_esotc_2025": {
+    "short": "Copernicus C3S 2025",
+    "authors": "Copernicus Climate Change Service (C3S/ECMWF)",
+    "year": 2025,
+    "title": "European State of the Climate 2025",
+    "source": "ECMWF / Copernicus C3S",
+    "url": "https://climate.copernicus.eu/esotc/2025/why-europe-warming-faster"
+  },
+
+  "wmo_europe_2022": {
+    "short": "WMO 2022",
+    "authors": "World Meteorological Organization",
+    "year": 2022,
+    "title": "State of the Climate in Europe 2021",
+    "source": "WMO / Copernicus Climate Change Service",
+    "url": "https://wmo.int/news/media-centre/temperatures-europe-increase-more-twice-global-average"
+  },
+
+  "ipcc_ar6_europe": {
+    "short": "IPCC AR6 WGI Ch.12",
+    "authors": "IPCC",
+    "year": 2021,
+    "title": "Climate Change 2021: The Physical Science Basis — Chapter 12: Central and Western Europe",
+    "source": "IPCC Sixth Assessment Report, Working Group I",
+    "url": "https://www.ipcc.ch/report/ar6/wg1/"
+  },
+
+  "ceglar_2019": {
+    "short": "Ceglar et al. 2019",
+    "authors": "Ceglar A, Toreti A, Zampieri M, Tubiello F",
+    "year": 2019,
+    "title": "Observed Northward Migration of Agro-Climate Zones in Europe Will Further Accelerate Under Climate Change",
+    "source": "Earth's Future, AGU",
+    "url": "https://agupubs.onlinelibrary.wiley.com/doi/full/10.1029/2019EF001178"
+  },
+
+  "spinoni_2015": {
+    "short": "Spinoni et al. 2015",
+    "authors": "Spinoni J et al.",
+    "year": 2015,
+    "title": "Past hydrological droughts over the European continent",
+    "source": "Journal of Hydrology: Regional Studies",
+    "url": "https://doi.org/10.1016/j.ejrh.2014.10.002"
+  },
+
+  "zagar_2006": {
+    "short": "Žagar et al. 2006",
+    "authors": "Žagar T, Kajfež-Bogataj L, Črepinšek Z",
+    "year": 2006,
+    "title": "Time series analysis of some climate variables in Slovenia",
+    "source": "Acta Agriculturae Slovenica 87(2):285–298",
+    "url": "https://www.dlib.si/details/URN:NBN:SI:DOC-NMDVQZWN"
+  },
+
+  "kajfez_bogataj_2008": {
+    "short": "Kajfež Bogataj 2008",
+    "authors": "Kajfež Bogataj L",
+    "year": 2008,
+    "title": "Kaj nam prinašajo podnebne spremembe",
+    "source": "Pedagoški inštitut, Ljubljana",
+    "url": "https://www.pedagoski-institut.si/"
+  },
+
+  "trenberth_2011": {
+    "short": "Trenberth 2011",
+    "authors": "Trenberth KE",
+    "year": 2011,
+    "title": "Changes in precipitation with climate change",
+    "source": "Climate Research 47:123–138",
+    "url": "https://doi.org/10.3354/cr00953"
+  },
+
+  "era5_land": {
+    "short": "Muñoz Sabater 2021",
+    "authors": "Muñoz Sabater J",
+    "year": 2021,
+    "title": "ERA5-Land hourly data from 1950 to present",
+    "source": "Copernicus Climate Change Service (C3S) Climate Data Store",
+    "url": "https://doi.org/10.24381/cds.e2161bac"
+  },
+
+  "theil_1950": {
+    "short": "Theil 1950 / Sen 1968",
+    "authors": "Theil H (1950); Sen PK (1968)",
+    "year": 1968,
+    "title": "Theil-Sen estimator for non-parametric slope estimation",
+    "source": "JASA 63(324):1379–1389",
+    "url": "https://doi.org/10.2307/2285891"
+  },
+
+  "yue_wang_2004": {
+    "short": "Yue & Wang 2004",
+    "authors": "Yue S, Wang CY",
+    "year": 2004,
+    "title": "The Mann-Kendall test modified by effective sample size to detect trend in serially correlated hydrological series",
+    "source": "Water Resources Management 18:201–218",
+    "url": "https://doi.org/10.1023/B:WARM.0000043140.61082.60"
+  },
+
+  "vicente_serrano_2010": {
+    "short": "Vicente-Serrano et al. 2010",
+    "authors": "Vicente-Serrano SM, Beguería S, López-Moreno JI",
+    "year": 2010,
+    "title": "A Multiscalar Drought Index Sensitive to Global Warming: The Standardized Precipitation Evapotranspiration Index",
+    "source": "Journal of Climate 23(7):1696–1718",
+    "url": "https://doi.org/10.1175/2009JCLI2909.1"
+  }
+}

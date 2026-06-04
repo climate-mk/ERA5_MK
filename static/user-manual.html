@@ -721,5 +721,20 @@
   podnebnik.org User Manual · <a href="/">Back to app</a> · <a href="https://github.com/kesma01/ERA5_MK" target="_blank" rel="noopener">GitHub</a> · <a href="mailto:info@podnebnik.org">info@podnebnik.org</a>
 </footer>
 
+<script src="js/refs.js"></script>
+<script>
+(async function () {
+  await window.Refs?.load();
+  window.Refs?.reset();
+  window.Refs?.initTooltip();
+  // Expand any [ref:key] tokens already rendered in the static HTML
+  document.querySelectorAll('.content p, .content li, .content td, .content figcaption').forEach(el => {
+    if (el.innerHTML.includes('[ref:')) {
+      el.innerHTML = window.Refs?.resolve(el.innerHTML) ?? el.innerHTML;
+    }
+  });
+})();
+</script>
+
 </body>
 </html>

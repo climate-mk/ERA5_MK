@@ -20,7 +20,7 @@
   },
   "today": {
     "explain1": "Today's peak is the highest temperature forecast across all 20 stations, ranked against 70+ years of ERA5-Land records for this same ±7-day window.",
-    "climate_context": "Slovenia sits at the crossroads of four climate zones — Alpine, Mediterranean, Continental, and Pannonian — compressed into one of Europe's most climatically diverse countries. Central Europe is warming roughly 1.5× the global average. Temperatures have risen by nearly 2°C over the past 70 years. Spring arrives earlier in the Alps, Mediterranean droughts extend further inland, and the Pannonian northeast faces increasingly extreme heat. What felt like a typical summer in 1980 now ranks in the cooler half of recent decades.",
+    "climate_context": "Slovenia sits at the crossroads of four climate zones — Alpine, Mediterranean, Continental, and Pannonian — compressed into one of Europe's most climatically diverse countries. Central Europe is warming roughly 1.5× the global average [ref:copernicus_esotc_2025]. Temperatures have risen by nearly 2°C over the past 70 years. Spring arrives earlier in the Alps, Mediterranean droughts extend further inland, and the Pannonian northeast faces increasingly extreme heat. What felt like a typical summer in 1980 now ranks in the cooler half of recent decades.",
     "chart_title": "Slovenia daily max temperatures for the two weeks around {day_label} since {year_min}",
     "trend_title": "Slovenia peak temperatures around {day_label} · {year_min}–{year_max} · trend with projection to 2050",
     "explain2": "The curve shows how often each peak temperature occurred on days like today across all years. Colours mark climatological zones — from cold blue through the typical beige band to extreme red — so you can see at a glance where today sits.",
@@ -69,7 +69,20 @@
     "cal_increasing": "Increasing"
   },
   "locations": {},
-  "month_names_short": ["Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"],
+  "month_names_short": [
+    "Jan",
+    "Feb",
+    "Mar",
+    "Apr",
+    "May",
+    "Jun",
+    "Jul",
+    "Aug",
+    "Sep",
+    "Oct",
+    "Nov",
+    "Dec"
+  ],
   "hero": {
     "verdict_warming": "A century to warm by <em>{sign}{t100} {unit}</em> – at current pace, every <em>{yrs} years</em> adds another degree.",
     "verdict_cooling": "A century to cool by <em>{sign}{t100} {unit}</em> – at current pace, every <em>{yrs} years</em> adds another degree.",
@@ -679,24 +692,24 @@
   ],
   "climate_risks": {
     "heading": "Impact risk:",
-    "Ljubljana":        "Urban heat island — summer heat stress and flash flood risk in the Ljubljana Basin",
-    "Maribor":          "Drought stress on viticulture — earlier harvests and shifting grape varieties",
-    "Celje":            "Savinja flood intensification combined with increasing summer drought",
-    "Kranj":            "Alpine snowpack loss reducing Sava river summer flow",
-    "Koper":            "Mediterranean drought extension — saltwater intrusion and storm surge risk",
-    "Novo_Mesto":       "Krka river drought threatening hop and fruit agriculture",
-    "Murska_Sobota":    "Pannonian heat and drought — most extreme temperature swings in Slovenia",
-    "Nova_Gorica":      "Mediterranean drying — Soča cold-water ecosystem and Karst viticulture at risk",
-    "Postojna":         "Karst aquifer drought — cave ecosystem and endemic fauna under thermal stress",
-    "Ptuj":             "Drava low flows — viticulture water stress and hydropower curtailment",
-    "Velenje":          "Post-mining water management under intensifying drought and flood extremes",
-    "Trbovlje":         "Sava canyon heat amplification and increasing flood risk",
-    "Tolmin":           "Soča extreme flood intensification — cold-water ecosystem contraction",
-    "Kocevje":          "Bark beetle-driven primeval forest dieback — large carnivore habitat loss",
+    "Ljubljana": "Urban heat island — summer heat stress and flash flood risk in the Ljubljana Basin",
+    "Maribor": "Drought stress on viticulture — earlier harvests and shifting grape varieties",
+    "Celje": "Savinja flood intensification combined with increasing summer drought",
+    "Kranj": "Alpine snowpack loss reducing Sava river summer flow",
+    "Koper": "Mediterranean drought extension — saltwater intrusion and storm surge risk",
+    "Novo_Mesto": "Krka river drought threatening hop and fruit agriculture",
+    "Murska_Sobota": "Pannonian heat and drought — most extreme temperature swings in Slovenia",
+    "Nova_Gorica": "Mediterranean drying — Soča cold-water ecosystem and Karst viticulture at risk",
+    "Postojna": "Karst aquifer drought — cave ecosystem and endemic fauna under thermal stress",
+    "Ptuj": "Drava low flows — viticulture water stress and hydropower curtailment",
+    "Velenje": "Post-mining water management under intensifying drought and flood extremes",
+    "Trbovlje": "Sava canyon heat amplification and increasing flood risk",
+    "Tolmin": "Soča extreme flood intensification — cold-water ecosystem contraction",
+    "Kocevje": "Bark beetle-driven primeval forest dieback — large carnivore habitat loss",
     "Ilirska_Bistrica": "Karst spring depletion — Pivka underground river system disruption",
-    "Domzale":          "Urban basin heat island — compound heat and drought for the Ljubljana region",
-    "Ratece":           "Alpine snowpack loss — ski economy threat and permafrost slope instability",
-    "Kredarica":        "Triglav glacier loss — headwater desiccation for Slovenia's major rivers"
+    "Domzale": "Urban basin heat island — compound heat and drought for the Ljubljana region",
+    "Ratece": "Alpine snowpack loss — ski economy threat and permafrost slope instability",
+    "Kredarica": "Triglav glacier loss — headwater desiccation for Slovenia's major rivers"
   },
   "welcome": {
     "greeting": "Dear friend,",
@@ -738,10 +751,31 @@
   "mk2036": {
     "heading": "",
     "timeline_btn": "",
-    "r1": { "name": "", "i1": "", "i2": "", "i3": "" },
-    "r2": { "name": "", "i1": "", "i2": "" },
-    "r3": { "name": "", "i1": "", "i2": "" },
-    "r4": { "name": "", "i1": "", "i2": "" },
-    "r5": { "name": "", "i1": "", "i2": "" }
+    "r1": {
+      "name": "",
+      "i1": "",
+      "i2": "",
+      "i3": ""
+    },
+    "r2": {
+      "name": "",
+      "i1": "",
+      "i2": ""
+    },
+    "r3": {
+      "name": "",
+      "i1": "",
+      "i2": ""
+    },
+    "r4": {
+      "name": "",
+      "i1": "",
+      "i2": ""
+    },
+    "r5": {
+      "name": "",
+      "i1": "",
+      "i2": ""
+    }
   }
 }

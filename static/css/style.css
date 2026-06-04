@@ -587,6 +587,33 @@ body {
 .contact-strip a { display: inline-flex; align-items: center; justify-content: center; color: var(--ink-soft); padding: 8px; text-decoration: none; }
 .contact-strip a:hover { color: var(--accent); }
 
+/* ── Citation reference marks ────────────────────────────────────────────────── */
+.ref-mark {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 14px;
+  height: 14px;
+  font-size: 9px;
+  font-weight: 700;
+  line-height: 1;
+  vertical-align: super;
+  background: var(--ink-soft, #888);
+  color: var(--card, #fff);
+  border-radius: 50%;
+  cursor: help;
+  margin-left: 1px;
+  text-decoration: none;
+  transition: background 0.15s;
+  font-family: 'JetBrains Mono', monospace;
+  user-select: none;
+}
+.ref-mark:hover,
+.ref-mark:focus {
+  background: var(--accent, #c0392b);
+  outline: none;
+}
+
 /* ── Loading overlay ─────────────────────────────────────────────────────────── */
 
 .chart-wrap { position: relative; }

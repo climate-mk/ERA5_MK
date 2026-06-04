@@ -42,7 +42,9 @@ function t(key, vars = {}) {
   let val = _locale;
   for (const p of parts) { val = val?.[p]; if (val === undefined) return key; }
   if (typeof val !== 'string') return key;
-  return val.replace(/\{(\w+)\}/g, (_, k) => (vars[k] !== undefined ? vars[k] : `{${k}}`));
+  const interpolated = val.replace(/\{(\w+)\}/g, (_, k) => (vars[k] !== undefined ? vars[k] : `{${k}}`));
+  // Expand [ref:key] citation tokens if the Refs module is loaded
+  return window.Refs?.resolve(interpolated) ?? interpolated;
 }
 
 function tArr(key) {
@@ -1989,6 +1991,9 @@ async function init() {
 
   // ── 2. Load locale (default_language now available via _metaConfig)
   await loadLocale(_localeKey());
+  await window.Refs?.load();
+  window.Refs?.reset();
+  window.Refs?.initTooltip();
 
   // ── 3. Fetch topo (URL derived from country code) + initial trends in parallel
   const todayDoy = getTodayDOY();
@@ -2922,6 +2927,7 @@ function _renderWelcomeModal() {
       localStorage.setItem('mk_lang', lang);
       const style = localStorage.getItem('mk_content') || 'default';
       await loadLocale(`${lang}_${style}`);
+      window.Refs?.reset();
       _renderWelcomeModal();
     };
   });
