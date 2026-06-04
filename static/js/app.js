@@ -2047,6 +2047,9 @@ async function init() {
   // ── Feature-gated DOM: hide static sections for disabled features ────────────
   if (!isEnabled("chatbot") || !meta.chat_enabled) {
     document.getElementById("chat-toggle-btn").style.display = "none";
+    // chat-btn had margin-left:auto that pushed it right; restore that on hamburger
+    const _hb = document.getElementById("hamburger-btn");
+    if (_hb) _hb.style.marginLeft = "auto";
     const mdrChat = document.getElementById("mdr-chat-section");
     if (mdrChat) mdrChat.style.display = "none";
   }
