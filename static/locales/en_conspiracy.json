@@ -84,7 +84,7 @@
   "about": {
     "heading": "About This Website",
     "col1_title": "What Is This, Really?",
-    "col1_text": "podnebje.si uses ERA5 data — satellite-derived measurements processed by the ECMWF, an organisation funded by 35 European governments with a very clear interest in climate policy. We present their numbers so YOU can look at them yourself and form your own opinion. If a straight line going slightly upward since 1950 convinces you to accept carbon taxes and eat bugs, that's between you and your critical thinking skills. The <a href=\"https://github.com/kesma01/ERA5_MK\" target=\"_blank\" rel=\"noopener\">GitHub page</a> is public — check the code, check the data, check everything.",
+    "col1_text": "podnebnik.org uses ERA5 data — satellite-derived measurements processed by the ECMWF, an organisation funded by 35 European governments with a very clear interest in climate policy. We present their numbers so YOU can look at them yourself and form your own opinion. If a straight line going slightly upward since 1950 convinces you to accept carbon taxes and eat bugs, that's between you and your critical thinking skills. The <a href=\"https://github.com/kesma01/ERA5_MK\" target=\"_blank\" rel=\"noopener\">GitHub page</a> is public — check the code, check the data, check everything.",
     "col2_title": "Why Are They Doing This?",
     "col2_text1": "Central Europe is supposedly warming at 1.5× the global average. OR: most weather stations in the region are in cities that have grown dramatically since 1950, surrounded by concrete and asphalt — the Urban Heat Island effect — which has NOTHING to do with CO₂ and EVERYTHING to do with urban development.",
     "col2_text2": "When you see a scary number going up on a chart, ask: WHO made the chart? WHO funded the research? WHAT policy do they want to pass with it? We're not saying the data is fake. We're saying: context matters. A 0.3°C rise per decade sounds terrifying in a headline. In a sweater, it's called Tuesday.",
@@ -199,7 +199,7 @@
   },
   "welcome": {
     "greeting": "Fellow truth-seeker,",
-    "body1": "Welcome to podnebje.si — the data THEY don't want you to see. This is a volunteer operation running on caffeine and righteous fury. Some features may be suppressed by Big Weather.",
+    "body1": "Welcome to podnebnik.org — the data THEY don't want you to see. This is a volunteer operation running on caffeine and righteous fury. Some features may be suppressed by Big Weather.",
     "body2": "Find us on GitHub before we get deplatformed. If you appreciate our courageous work, consider buying us a coffee before the chemtrails get us. :)"
   },
   "what_can_we_do": {

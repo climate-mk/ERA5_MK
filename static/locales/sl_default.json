@@ -216,14 +216,14 @@
   },
   "about": {
     "heading": "O nas",
-    "col1_title": "O podnebje.si",
-    "col1_text": "podnebje.si vizualizira 75+ let reanalitičnih podatkov ERA5-Land za 18 lokacij po vsej Sloveniji. Vsak trend, grafikon in projekcija je izračunana iz iste zbirke podatkov z odprtimi statističnimi metodami. Brez klepetalnika. Brez reklam. Le podatki.",
+    "col1_title": "O podnebnik.org",
+    "col1_text": "podnebnik.org vizualizira 75+ let reanalitičnih podatkov ERA5-Land za 18 lokacij po vsej Sloveniji. Vsak trend, grafikon in projekcija je izračunana iz iste zbirke podatkov z odprtimi statističnimi metodami. Brez klepetalnika. Brez reklam. Le podatki.",
     "col2_title": "Zakaj to počnemo?",
     "col2_text1": "Osrednja Evropa se segreva pri skoraj 1,5-kratni stopnji globalnega povprečja. Učinki so že tukaj — daljša poletja, taljenje alpskih ledenikov, rekordne temperature in vedno intenzivnejše suše.",
     "col2_text2": "Številke otežujejo odklonitev pogleda. Ko vidite, koliko hitreje se segreva vaša bližnja pokrajina v primerjavi z zgodovinskimi zapisi, preneha biti abstraktna novica in postane to, kar je: lokalen problem, ki se dogaja zdaj. Razumevanje, kaj se spreminja — tukaj, pri nas doma — je prvi korak k ukrepanju.",
     "col2_btn": "Kaj lahko storimo? →",
     "col3_title": "Uporabljene metode",
-    "col3_text": "Zgrajeno na reanalitičnih podatkih ERA5-Land iz storitve Copernicus Climate Change Service. Statistične metode: Theil-Senov nagib s testom Mann-Kendall TFPW Yue-Wang. SPEI izračunan z 3-parametrično log-logistično porazdelitvijo. Kontakt: info@podnebje.si"
+    "col3_text": "Zgrajeno na reanalitičnih podatkih ERA5-Land iz storitve Copernicus Climate Change Service. Statistične metode: Theil-Senov nagib s testom Mann-Kendall TFPW Yue-Wang. SPEI izračunan z 3-parametrično log-logistično porazdelitvijo. Kontakt: info@podnebnik.org"
   },
   "quotes": [
     {

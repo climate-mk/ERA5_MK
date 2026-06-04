@@ -216,14 +216,14 @@
   },
   "about": {
     "heading": "About us",
-    "col1_title": "About podnebje.si",
-    "col1_text": "podnebje.si visualises 75+ years of ERA5-Land reanalysis data for 18 locations across Slovenia. Every trend, chart, and projection is computed from the same underlying dataset using open statistical methods. No chatbot. No ads. Just data.",
+    "col1_title": "About podnebnik.org",
+    "col1_text": "podnebnik.org visualises 75+ years of ERA5-Land reanalysis data for 18 locations across Slovenia. Every trend, chart, and projection is computed from the same underlying dataset using open statistical methods. No chatbot. No ads. Just data.",
     "col2_title": "Why do we do this?",
     "col2_text1": "Southeastern Europe is warming at nearly twice the global average rate. The effects are already here - longer summers, shrinking rivers, record-breaking heat, and fires burning wider every year.",
     "col2_text2": "Numbers make it harder to look away. When you see how many more hot days we've had this decade compared to the last, or how rainfall has shifted over time, it stops feeling like abstract news and starts feeling like what it is: a local problem, happening now. Understanding what's changing - here, in our own backyard - is the first step to doing something about it.",
     "col2_btn": "What can we do? →",
     "col3_title": "Methods used",
-    "col3_text": "Built on ERA5-Land reanalysis data from the Copernicus Climate Change Service. Statistical methods: Theil-Sen slope with Yue-Wang TFPW Mann-Kendall significance testing. SPEI computed via 3-parameter log-logistic distribution. Contact: info@podnebje.si"
+    "col3_text": "Built on ERA5-Land reanalysis data from the Copernicus Climate Change Service. Statistical methods: Theil-Sen slope with Yue-Wang TFPW Mann-Kendall significance testing. SPEI computed via 3-parameter log-logistic distribution. Contact: info@podnebnik.org"
   },
   "quotes": [
     {

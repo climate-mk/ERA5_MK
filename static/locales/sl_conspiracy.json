@@ -216,7 +216,7 @@
   "about": {
     "heading": "O tej spletni strani",
     "col1_title": "Kaj je to, resnično?",
-    "col1_text": "podnebje.si uporablja podatke ERA5 — satelitsko pridobljene meritve, ki jih obdela ECMWF, organizacija, ki jo financira 35 evropskih vlad z zelo jasnim interesom za podnebno politiko. Prikazujemo njihove številke, da jih SAMI pregledate in oblikujete lastno mnenje. Stran GitHub je javna — preverite kodo, preverite podatke, preverite vse.",
+    "col1_text": "podnebnik.org uporablja podatke ERA5 — satelitsko pridobljene meritve, ki jih obdela ECMWF, organizacija, ki jo financira 35 evropskih vlad z zelo jasnim interesom za podnebno politiko. Prikazujemo njihove številke, da jih SAMI pregledate in oblikujete lastno mnenje. Stran GitHub je javna — preverite kodo, preverite podatke, preverite vse.",
     "col2_title": "Zakaj to počnejo?",
     "col2_text1": "Osrednja Evropa naj bi se segrevala 1,5-krat hitreje od globalnega povprečja. ALI: večina meteoroloških postaj v regiji je v mestih, ki so se od leta 1950 dramatično razrasla, obdana z betonom in asfaltom — učinek mestnega toplotnega otoka — kar NIMA NIČ SKUPNEGA s CO₂ in ima VSE SKUPNEGA z urbanim razvojem.",
     "col2_text2": "Ko vidite strašljivo številko, ki gre navzgor na grafikonu, vprašajte: KDO je naredil grafikon? KDO je financiral raziskavo? KATERI zakon želijo z njim uvesti? Ne trdimo, da so podatki lažni. Trdimo: kontekst je pomemben. Porast 0,3 °C na desetletje zveni grozljivo v naslovu. Z jopo je to samo torek.",
@@ -331,7 +331,7 @@
   },
   "welcome": {
     "greeting": "Dragi iskalec resnice,",
-    "body1": "Dobrodošli na podnebje.si — podatki, ki jih ONI ne želijo, da jih vidite. To je prostovoljna operacija, ki teče na kavi in pravičnem besu. Nekatere funkcije so morda zatrte s strani Big Weather.",
+    "body1": "Dobrodošli na podnebnik.org — podatki, ki jih ONI ne želijo, da jih vidite. To je prostovoljna operacija, ki teče na kavi in pravičnem besu. Nekatere funkcije so morda zatrte s strani Big Weather.",
     "body2": "Poiščite nas na GitHubu, preden nas ukinejo. Če cenite naše pogumno delo, nas spodbujamo, da nam kupite kavo, preden nas pokrijejo kemitrali. :)"
   },
   "what_can_we_do": {
