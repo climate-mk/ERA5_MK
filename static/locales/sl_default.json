@@ -20,7 +20,7 @@
   },
   "today": {
     "explain1": "Današnji vrh je najvišja napovedana temperatura na vseh 18 postajah, razvrščena glede na 70+ let zapisov ERA5-Land za isto ±7-dnevno okno.",
-    "climate_context": "Slovenija leži na stičišču štirih podnebnih con — alpske, sredozemske, celinsko in panonske — stisnjenih v eno izmed podnebno najbolj raznolikih držav v Evropi. Srednja Evropa se segreva približno 1,5-krat hitreje od svetovnega povprečja. Temperature so v zadnjih 70 letih narasle za skoraj 2 °C. Pomlad v Alpah prihaja vse prej, sredozemske suše segajo vse globlje v notranjost, severovzhodni panonski del pa se sooča z vedno hujšimi vročinskimi vali. Kar je bilo leta 1980 tipično poletje, danes sodi med hladnejšo polovico nedavnih desetletij.",
+    "climate_context": "Slovenija leži na stičišču štirih podnebnih con — alpske, sredozemske, celinsko in panonske — stisnjenih v eno izmed podnebno najbolj raznolikih držav v Evropi. Srednja Evropa se segreva približno 1,5-krat hitreje od svetovnega povprečja [ref:copernicus_esotc_2025]. Temperature so v zadnjih 70 letih narasle za skoraj 2 °C. Pomlad v Alpah prihaja vse prej, sredozemske suše segajo vse globlje v notranjost, severovzhodni panonski del pa se sooča z vedno hujšimi vročinskimi vali. Kar je bilo leta 1980 tipično poletje, danes sodi med hladnejšo polovico nedavnih desetletij.",
     "chart_title": "Dnevne najvišje temperature v Sloveniji za dve tedni okoli {day_label} od {year_min}",
     "trend_title": "Najvišje temperature v Sloveniji okoli {day_label} · {year_min}–{year_max} · trend s projekcijo do 2050",
     "explain2": "Krivulja prikazuje, kako pogosto se je pojavila vsaka vrhunska temperatura na dneve, kot je danes, v vseh letih. Barve označujejo klimatološke cone — od hladne modre prek tipičnega bežastega pasu do ekstremne rdeče — tako da na prvi pogled vidite, kje se uvršča današnja temperatura.",
@@ -69,7 +69,20 @@
     "cal_increasing": "Povečevanje"
   },
   "locations": {},
-  "month_names_short": ["jan.", "feb.", "mar.", "apr.", "maj", "jun.", "jul.", "avg.", "sep.", "okt.", "nov.", "dec."],
+  "month_names_short": [
+    "jan.",
+    "feb.",
+    "mar.",
+    "apr.",
+    "maj",
+    "jun.",
+    "jul.",
+    "avg.",
+    "sep.",
+    "okt.",
+    "nov.",
+    "dec."
+  ],
   "hero": {
     "verdict_warming": "Sto let segrevanja za <em>{sign}{t100} {unit}</em> – pri trenutnem tempu vsaka <em>{yrs} let</em> doda eno stopinjo.",
     "verdict_cooling": "Sto let ohlajanja za <em>{sign}{t100} {unit}</em> – pri trenutnem tempu vsaka <em>{yrs} let</em> odšteje eno stopinjo.",
@@ -363,24 +376,24 @@
   ],
   "climate_risks": {
     "heading": "Tveganje vpliva:",
-    "Ljubljana":        "Mestni toplotni otok — poletni vročinski stres in tveganje hudourniških poplav v Ljubljanski kotlini",
-    "Maribor":          "Sušni stres v vinogradništvu — zgodnejše trgatve in premik vinskih sort",
-    "Celje":            "Okrepitev poplav Savinje v kombinaciji z naraščajočo poletno sušo",
-    "Kranj":            "Izguba alpske snežne odeje, ki zmanjšuje poletni pretok Save",
-    "Koper":            "Podaljšanje sredozemske suše — tveganje vdora slane vode in dviga morske gladine",
-    "Novo_Mesto":       "Suša reke Krke ogroža pridelavo hmelja in sadja",
-    "Murska_Sobota":    "Panonska vročina in suša — najtoplejše temperaturne razlike v Sloveniji",
-    "Nova_Gorica":      "Sredozemsko sušenje — ekosistem hladnovodne Soče in kraško vinogradništvo v nevarnosti",
-    "Postojna":         "Suša kraškega vodonosnika — jamsni ekosistem in endemska favna pod toplotnim stresom",
-    "Ptuj":             "Nizki vodostaji Drave — vodni stres v vinogradništvu in zmanjšanje hidroenergetskih zmogljivosti",
-    "Velenje":          "Upravljanje z vodo po izkopavanju premoga ob stopnjevanju suše in poplav",
-    "Trbovlje":         "Ojačanje vročine v savski soteski in naraščajoče tveganje poplav",
-    "Tolmin":           "Stopnjevanje ekstremnih poplav Soče — krčenje ekosistema hladnovodnih rib",
-    "Kocevje":          "Propad pragozdov pod napadom lubadarja — izguba habitata velikih zveri",
+    "Ljubljana": "Mestni toplotni otok — poletni vročinski stres in tveganje hudourniških poplav v Ljubljanski kotlini",
+    "Maribor": "Sušni stres v vinogradništvu — zgodnejše trgatve in premik vinskih sort",
+    "Celje": "Okrepitev poplav Savinje v kombinaciji z naraščajočo poletno sušo",
+    "Kranj": "Izguba alpske snežne odeje, ki zmanjšuje poletni pretok Save",
+    "Koper": "Podaljšanje sredozemske suše — tveganje vdora slane vode in dviga morske gladine",
+    "Novo_Mesto": "Suša reke Krke ogroža pridelavo hmelja in sadja",
+    "Murska_Sobota": "Panonska vročina in suša — najtoplejše temperaturne razlike v Sloveniji",
+    "Nova_Gorica": "Sredozemsko sušenje — ekosistem hladnovodne Soče in kraško vinogradništvo v nevarnosti",
+    "Postojna": "Suša kraškega vodonosnika — jamsni ekosistem in endemska favna pod toplotnim stresom",
+    "Ptuj": "Nizki vodostaji Drave — vodni stres v vinogradništvu in zmanjšanje hidroenergetskih zmogljivosti",
+    "Velenje": "Upravljanje z vodo po izkopavanju premoga ob stopnjevanju suše in poplav",
+    "Trbovlje": "Ojačanje vročine v savski soteski in naraščajoče tveganje poplav",
+    "Tolmin": "Stopnjevanje ekstremnih poplav Soče — krčenje ekosistema hladnovodnih rib",
+    "Kocevje": "Propad pragozdov pod napadom lubadarja — izguba habitata velikih zveri",
     "Ilirska_Bistrica": "Izčrpavanje kraških izvirov — motnja podzemnega rečnega sistema Pivke",
-    "Domzale":          "Mestni toplotni otok v kotlini — kombinirani vročinski in sušni stres za Ljubljansko regijo",
-    "Ratece":           "Izguba alpske snežne odeje — grožnja smučarskemu gospodarstvu in nestabilnost permafrost pobočij",
-    "Kredarica":        "Izguba Triglavskega ledenika — izsušitev izvirnih vod za Slovenijo reke"
+    "Domzale": "Mestni toplotni otok v kotlini — kombinirani vročinski in sušni stres za Ljubljansko regijo",
+    "Ratece": "Izguba alpske snežne odeje — grožnja smučarskemu gospodarstvu in nestabilnost permafrost pobočij",
+    "Kredarica": "Izguba Triglavskega ledenika — izsušitev izvirnih vod za Slovenijo reke"
   },
   "welcome": {
     "greeting": "Dragi obiskovalec,",
@@ -422,10 +435,31 @@
   "mk2036": {
     "heading": "",
     "timeline_btn": "",
-    "r1": { "name": "", "i1": "", "i2": "", "i3": "" },
-    "r2": { "name": "", "i1": "", "i2": "" },
-    "r3": { "name": "", "i1": "", "i2": "" },
-    "r4": { "name": "", "i1": "", "i2": "" },
-    "r5": { "name": "", "i1": "", "i2": "" }
+    "r1": {
+      "name": "",
+      "i1": "",
+      "i2": "",
+      "i3": ""
+    },
+    "r2": {
+      "name": "",
+      "i1": "",
+      "i2": ""
+    },
+    "r3": {
+      "name": "",
+      "i1": "",
+      "i2": ""
+    },
+    "r4": {
+      "name": "",
+      "i1": "",
+      "i2": ""
+    },
+    "r5": {
+      "name": "",
+      "i1": "",
+      "i2": ""
+    }
   }
 }
