@@ -495,7 +495,8 @@ def _categorize_today(pct, dlabel):
     """
     cats   = _EN_LOCALE.get("categories", {})
     interp = dict(d=dlabel, country=CONFIG["name"],
-                  record_years=_RECORD_YEARS, data_start_year=_DATA_START_YEAR)
+                  record_years=_RECORD_YEARS, data_start_year=_DATA_START_YEAR,
+                  year_min=_DATA_START_YEAR)  # alias: {year_min} == {data_start_year}
     for cutoff, key, color in _TODAY_CATEGORIES:
         if pct < cutoff:
             cat  = cats.get(key, {})
