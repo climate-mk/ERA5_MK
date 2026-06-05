@@ -51,6 +51,8 @@ _FEATURE_DEFAULTS = {
     "next_episodes_teaser":  False,
     "mk2036_section":        False,
     "analytics_export":      False,
+    "data_download":         False,
+    "hot_nights_chart":      False,
 }
 
 

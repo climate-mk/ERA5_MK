@@ -17,12 +17,12 @@
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500;600&family=Playfair+Display&display=swap" rel="stylesheet">
   <link rel="stylesheet" href="css/style.css">
-  <!-- Highcharts CDN -->
-  <script src="https://code.highcharts.com/highcharts.js"></script>
-  <script src="https://code.highcharts.com/highcharts-more.js"></script>
-  <script src="https://code.highcharts.com/maps/modules/map.js"></script>
-  <script src="https://code.highcharts.com/maps/modules/tiledwebmap.js"></script>
-  <script src="https://code.highcharts.com/modules/accessibility.js"></script>
+  <!-- Highcharts (vendored locally — no CDN rate-limit dependency) -->
+  <script src="js/vendor/highcharts.js"></script>
+  <script src="js/vendor/highcharts-more.js"></script>
+  <script src="js/vendor/map.js"></script>
+  <script src="js/vendor/tiledwebmap.js"></script>
+  <script src="js/vendor/accessibility.js"></script>
 </head>
 <body>
 <div id="app">
@@ -249,7 +249,7 @@
   <!-- In the next episodes -->
   <section class="next-episodes-section">
     <div class="sec-heading">In the next episodes…</div>
-    <div class="sec-heading-sub">Seasonal heat ranking · Seasonal drought index (SPEI) · Drought trend per station — work in progress</div>
+    <div class="sec-heading-sub">Seasonal heat ranking · Seasonal drought index (SPEI) · Drought trend per station — work in progress · Nights hotter than 20°C — work in progress</div>
 
     <!-- Season heatmap -->
     <section id="season-heatmap-section" class="season-heatmap-section" hidden>
@@ -293,6 +293,29 @@
         <p id="spei-trend-explain" class="panel-explain"></p>
       </div>
     </section>
+
+    <!-- Hot nights chart (WIP) -->
+    <section id="hot-nights-section" class="spei-trend-section" hidden>
+      <div class="sec-heading">Nights hotter than 20°C <span class="wip-badge">work in progress</span></div>
+      <div class="sec-heading-sub" id="hot-nights-sub"></div>
+      <div id="hot-nights-controls" class="shm-controls"></div>
+      <div class="panel spei-trend-panel" id="hot-nights-panel">
+        <div class="panel-h">
+          <div>
+            <div class="panel-title" id="hot-nights-title">—</div>
+            <div class="panel-sub" id="hot-nights-obs">—</div>
+          </div>
+          <div class="chart-stats-box" id="hot-nights-stats-box">
+            <div class="chart-big" id="hot-nights-slope">—</div>
+            <div class="chart-change-lbl" id="hot-nights-slope-lbl">nights / decade</div>
+          </div>
+        </div>
+        <div class="chart-wrap">
+          <div id="hot-nights-chart"></div>
+        </div>
+        <p id="hot-nights-explain" class="panel-explain"></p>
+      </div>
+    </section>
   </section>
 
   <!-- About -->
@@ -323,7 +346,7 @@
       <a href="https://x.com/Climate_MK" target="_blank" rel="noopener" aria-label="X">
         <svg width="20" height="20" viewBox="0 0 24 24" fill="currentColor"><path d="M18.244 2.25h3.308l-7.227 8.26 8.502 11.24H16.17l-4.714-6.231-5.401 6.231H2.744l7.73-8.835L1.254 2.25H8.08l4.713 6.231zm-1.161 17.52h1.833L7.084 4.126H5.117z"/></svg>
       </a>
-      <a href="https://bsky.app/profile/PLACEHOLDER" target="_blank" rel="noopener" aria-label="Bluesky" style="display:none">
+      <a href="https://bsky.app/profile/climate-mk.bsky.social" target="_blank" rel="noopener" aria-label="Bluesky">
         <svg width="20" height="20" viewBox="0 0 24 24" fill="currentColor"><path d="M12 10.8c-1.087-2.114-4.046-6.053-6.798-7.995C2.566.944 1.561 1.266.902 1.565.139 1.908 0 3.08 0 3.768c0 .69.378 5.65.624 6.479.815 2.736 3.713 3.66 6.383 3.364.136-.02.275-.039.415-.056-.138.022-.276.04-.415.056-3.912.58-7.387 2.005-2.83 7.078 5.013 5.19 6.87-1.113 7.823-4.308.953 3.195 2.05 9.271 7.733 4.308 4.267-4.308 1.172-6.498-2.74-7.078a8.741 8.741 0 0 1-.415-.056c.14.017.279.036.415.056 2.67.297 5.568-.628 6.383-3.364.246-.828.624-5.79.624-6.478 0-.69-.139-1.861-.902-2.204-.659-.299-1.664-.62-4.3 1.24C16.046 4.748 13.087 8.687 12 10.8z"/></svg>
       </a>
       <a href="https://instagram.com/PLACEHOLDER" target="_blank" rel="noopener" aria-label="Instagram" style="display:none">

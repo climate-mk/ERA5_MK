@@ -2006,9 +2006,9 @@ async function init() {
 
   // ── 3. Fetch topo (URL derived from country code) + initial trends in parallel
   const todayDoy = getTodayDOY();
-  const topoUrl  = `https://code.highcharts.com/mapdata/countries/${meta.country}/${meta.country}-all.topo.json`;
+  const topoUrl  = `/geo/${meta.country}-all.topo.json`;
   const [topo, initTrends] = await Promise.all([
-    fetch(topoUrl).then(r => r.json()),
+    fetch(topoUrl).then(r => r.json()).catch(() => null),
     fetch(`api/trends?var=temperature_max&doy=${todayDoy}&window=7&method=theilsen&corr=raw`)
       .then(r => r.json()).catch(() => null),
   ]);
@@ -2128,6 +2128,7 @@ async function init() {
   renderPrecipHeatmap();     // async, don't await
   renderSeasonHeatmap();     // async, don't await
   renderSpeiTrendChart();    // async, don't await
+  renderHotNightsChart();   // async, don't await
 
   // Quote + effects use locale data — must run after loadLocale() resolves
   loadQuote();
@@ -2846,6 +2847,247 @@ async function renderSpeiTrendChart() {
 
   } catch(e) {
     console.warn("SPEI trend chart error:", e);
+  }
+}
+
+async function renderHotNightsChart() {
+  if (!isEnabled("hot_nights_chart")) return;
+  const section = document.getElementById("hot-nights-section");
+  if (!section) return;
+
+  section.hidden = false;
+
+  const chartDiv = document.getElementById("hot-nights-chart");
+  if (chartDiv) chartDiv.innerHTML =
+    `<div style="display:flex;align-items:center;justify-content:center;height:320px;color:var(--ink-soft);font-family:'JetBrains Mono',monospace;font-size:11px;gap:10px">
+      <div class="spinner"></div> Loading tropical nights data…
+    </div>`;
+
+  try {
+    const _defLoc      = _metaConfig?.default_location || "Skopje";
+    let currentStation = null;
+    let chart          = null;
+
+    const ctrlEl  = document.getElementById("hot-nights-controls");
+    const slopeEl = document.getElementById("hot-nights-slope");
+    const lblEl   = document.getElementById("hot-nights-slope-lbl");
+    const titleEl = document.getElementById("hot-nights-title");
+    const obsEl   = document.getElementById("hot-nights-obs");
+    const explEl  = document.getElementById("hot-nights-explain");
+
+    const d = await fetch("/api/hot_nights").then(r => r.json());
+    if (!d.stations) { section.hidden = true; return; }
+    if (chartDiv) chartDiv.innerHTML = "";
+
+    const stations = Object.keys(d.stations).sort();
+    currentStation = stations.includes(_defLoc) ? _defLoc : stations[0];
+
+    document.getElementById("hot-nights-sub").textContent =
+      `Count of nights with min. temperature over 20°C per year · elevation-corrected · ERA5-Land · data to ${d.era5_last}`;
+
+    // Location picker only — no method toggle
+    ctrlEl.innerHTML =
+      `<div class="spei-ctrl-row">` +
+      stations.map(s =>
+        `<button class="shm-btn spei-loc-btn${s === currentStation ? " shm-btn--active" : ""}" data-hn-loc="${s}">${s.replace(/_/g, " ")}</button>`
+      ).join("") +
+      `</div>`;
+
+    ctrlEl.addEventListener("click", e => {
+      const btn = e.target.closest("[data-hn-loc]");
+      if (!btn) return;
+      currentStation = btn.dataset.hnLoc;
+      ctrlEl.querySelectorAll("[data-hn-loc]").forEach(b =>
+        b.classList.toggle("shm-btn--active", b.dataset.hnLoc === currentStation));
+      renderChart();
+    });
+
+    renderChart();
+
+    function renderChart() {
+      const series = d.stations[currentStation];
+      if (!series) return;
+
+      const { years, counts, trend } = series;
+      const n = years.length;
+      const currentYear = new Date().getFullYear();
+
+      titleEl.textContent = currentStation.replace(/_/g, " ");
+      obsEl.textContent   = `${n} years · ${years[0]}–${years[n - 1]}`;
+
+      let trendLineSeries = [];
+      let ciSeries        = [];
+      let piSeries        = [];
+      let trendLegendName = "";
+      let xPlotLines      = [];
+
+      if (trend?.model_used && trend.x_line) {
+        const rate = trend.rate_per_year;
+        const npd  = trend.nights_per_decade;
+        const pFmt  = trend.p_value < 0.001 ? "p<0.001" : `p=${trend.p_value.toFixed(3)}`;
+        const pFull = trend.p_value < 0.001 ? "p < 0.001" : `p = ${trend.p_value.toFixed(3)}`;
+        const sig   = trend.p_value < 0.05 ? `statistically significant (${pFull})` : `not significant (${pFull})`;
+
+        // Stats box: nights per decade
+        slopeEl.textContent = (npd >= 0 ? "+" : "") + npd.toFixed(1);
+        slopeEl.style.color = npd > 0 ? "var(--accent)" : "#4a80b0";
+        if (lblEl) lblEl.textContent = "nights / decade";
+
+        const techLine =
+          `NB GLM: ${rate >= 0 ? "+" : ""}${rate.toFixed(2)}%/yr · ` +
+          `${npd >= 0 ? "+" : ""}${npd.toFixed(1)} nights/decade · ` +
+          `95% CI · ${sig} · AIC ${trend.aic} · α=${trend.alpha}. ` +
+          `Temperature uses ERA5-Land lapse-rate elevation correction.`;
+
+        // Plain-language explanation for non-statisticians
+        const absNpd     = Math.abs(npd).toFixed(1);
+        const dir        = npd > 0 ? "more" : "fewer";
+        const sigPlain   = trend.p_value < 0.05 ? "a statistically significant trend" : "a trend that is not yet statistically significant";
+        const fittedLast = trend.y_line[trend.y_line.length - 1];
+        const yTo2050    = 2050 - trend.fit_year_max;
+        const proj2050   = Math.round(fittedLast * Math.pow(1 + trend.rate_per_year / 100, yTo2050));
+        const forwardSentence = trend.p_value < 0.05 && proj2050 > 0
+          ? `If the trend continues, around ${proj2050} tropical nights per year could be typical by 2050 — compared to roughly ${Math.round(fittedLast)} in ${trend.fit_year_max}.`
+          : `The data does not yet show a clear signal, but the direction of change is worth watching as temperatures continue to rise.`;
+        const plainLine =
+          `A tropical night — when the temperature stays above 20°C through the night — prevents the body from recovering from daytime heat and raises health risks for vulnerable people. ` +
+          `This location shows ${sigPlain}: roughly ${absNpd} ${dir} tropical nights every 10 years. ` +
+          forwardSentence;
+
+        explEl.innerHTML = `${techLine}<br><br>${plainLine}`;
+
+        trendLegendName = `NB fit (${rate >= 0 ? "+" : ""}${rate.toFixed(1)}%/yr · ${pFmt})`;
+        trendLineSeries = trend.x_line.map((x, i) => ({ x, y: trend.y_line[i] }));
+        ciSeries        = trend.x_line.map((x, i) => [x, trend.ci_low[i], trend.ci_high[i]]);
+        if (trend.pi_low) {
+          piSeries = trend.x_line.map((x, i) => [x, trend.pi_low[i], trend.pi_high[i]]);
+        }
+
+        // Fit-cutoff marker
+        xPlotLines = [{
+          value: trend.fit_year_max + 0.5,
+          color: "var(--ink-soft)",
+          width: 1,
+          dashStyle: "Dot",
+          zIndex: 4,
+          label: {
+            text: `trend fitted to ${trend.fit_year_max}`,
+            rotation: 0,
+            align: "right",
+            x: -4,
+            y: -4,
+            style: { fontSize: "9px", color: "var(--ink-soft)", fontFamily: "'JetBrains Mono', monospace" },
+          },
+        }];
+      } else {
+        slopeEl.textContent = "—";
+        slopeEl.style.color = "";
+        if (lblEl) lblEl.textContent = "nights / decade";
+        const nz = series.nonzero_count ?? 0;
+        explEl.textContent = nz < 10
+          ? `Too few years with tropical nights to fit a trend (${nz} non-zero year${nz === 1 ? "" : "s"} recorded). Trend analysis requires at least 10.`
+          : "";
+      }
+
+      // Partial current-year bar rendered faded
+      const barData = years.map((y, i) => ({
+        x: y, y: counts[i],
+        ...(y === currentYear ? { color: "var(--accent)", opacity: 0.4 } : {}),
+      }));
+
+      const opts = {
+        chart: {
+          type: "column",
+          height: 320,
+          backgroundColor: "transparent",
+          style: { fontFamily: "'Space Grotesk', sans-serif" },
+          animation: false,
+        },
+        title:   { text: "" },
+        credits: { enabled: false },
+        legend: {
+          enabled: true,
+          itemStyle: { fontSize: "11px", fontWeight: "400", color: "var(--ink)" },
+        },
+        tooltip: {
+          formatter() {
+            if (this.series.type === "line") {
+              return `<b>${Math.round(this.x)}</b><br>Trend: <b>${this.y.toFixed(1)}</b> nights`;
+            }
+            if (this.series.type === "arearange") return false;
+            const partial = this.x === currentYear ? " <i>(year in progress)</i>" : "";
+            return `<b>${this.x}</b>${partial}<br>Tropical nights: <b>${this.y}</b>`;
+          },
+        },
+        xAxis: {
+          title: { text: "" },
+          labels: { style: { fontSize: "10px", color: "var(--ink-soft)" } },
+          gridLineWidth: 0,
+          tickColor: "var(--rule)",
+          plotLines: xPlotLines,
+        },
+        yAxis: {
+          title: { text: "Nights", style: { fontSize: "10px", color: "var(--ink-soft)" } },
+          min: 0,
+          gridLineColor: "var(--rule)",
+          labels: { style: { fontSize: "10px", color: "var(--ink-soft)" } },
+        },
+        series: [
+          {
+            type: "column",
+            name: "Tropical nights (tmin > 20 °C, elevation-corrected)",
+            data: barData,
+            color: "var(--accent)",
+            borderWidth: 0,
+            dataLabels: {
+              enabled: true,
+              style: { fontSize: "8px", fontWeight: "400", color: "var(--ink-soft)", textOutline: "none" },
+              formatter() { return this.y; },
+            },
+            zIndex: 2,
+          },
+          ...(piSeries.length ? [{
+            type: "arearange",
+            name: "95% prediction interval",
+            data: piSeries,
+            color: "var(--ink)",
+            fillOpacity: 0.05,
+            lineWidth: 0,
+            marker: { enabled: false },
+            enableMouseTracking: false,
+            zIndex: 0,
+          }] : []),
+          ...(ciSeries.length ? [{
+            type: "arearange",
+            name: "95% CI (mean)",
+            data: ciSeries,
+            color: "var(--ink)",
+            fillOpacity: 0.12,
+            lineWidth: 0,
+            marker: { enabled: false },
+            enableMouseTracking: false,
+            zIndex: 1,
+          }] : []),
+          ...(trendLineSeries.length ? [{
+            type: "line",
+            name: trendLegendName,
+            data: trendLineSeries,
+            color: "var(--ink)",
+            lineWidth: 2,
+            dashStyle: "Solid",
+            marker: { enabled: false },
+            enableMouseTracking: true,
+            zIndex: 3,
+          }] : []),
+        ],
+      };
+
+      if (chart) { chart.destroy(); chart = null; }
+      chart = Highcharts.chart("hot-nights-chart", opts);
+    }
+
+  } catch(e) {
+    console.warn("Hot nights chart error:", e);
   }
 }
 

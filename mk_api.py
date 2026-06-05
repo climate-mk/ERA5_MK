@@ -14,6 +14,7 @@ from flask_limiter.util import get_remote_address
 from scipy import stats
 from scipy.stats import theilslopes, gaussian_kde
 import pymannkendall as mk_test
+import statsmodels.api as sm
 import warnings
 warnings.filterwarnings("ignore")
 from dotenv import load_dotenv
@@ -791,6 +792,10 @@ def _feature_enabled(key: str) -> bool:
 def index():
     return send_from_directory("static", "index.html")
 
+@app.route("/geo/<path:filename>")
+def serve_geo(filename):
+    return send_from_directory(os.path.join("static", "geo"), filename)
+
 @app.route("/api/meta")
 def api_meta():
     return jsonify({
@@ -1445,6 +1450,87 @@ def compute_spei_station_seasonal():
 def api_spei_station_seasonal():
     if not _feature_enabled("drought_trend_chart"): return "", 204
     return jsonify(compute_spei_station_seasonal())
+
+
+def compute_hot_nights():
+    THRESHOLD = 20.0
+    result = {}
+    for loc in LOCATIONS:
+        loc_df = data[data["location"] == loc].copy()
+        annual = (
+            loc_df[loc_df["temperature_min_corr"] > THRESHOLD]
+            .groupby("year")
+            .size()
+            .reindex(range(int(loc_df["year"].min()), int(loc_df["year"].max()) + 1), fill_value=0)
+        )
+        years  = annual.index.tolist()
+        counts = [int(v) for v in annual.values]
+        # Exclude the current incomplete year from the NB fit (bars still show it)
+        current_year = _CSV_MAX_DATE.year
+        fit_mask   = [i for i, y in enumerate(years) if y != current_year]
+        fit_years  = [years[i]  for i in fit_mask]
+        fit_counts = [counts[i] for i in fit_mask]
+        trend         = {}
+        nonzero_count = sum(1 for c in fit_counts if c > 0)
+        if len(fit_years) >= 10 and nonzero_count >= 10:
+            try:
+                years_arr = np.array(fit_years, dtype=float)
+                year_mean = float(years_arr[0])
+                X_c       = sm.add_constant(years_arr - year_mean)
+                fitted    = sm.NegativeBinomial(fit_counts, X_c).fit(disp=False, maxiter=200)
+                x_dense   = np.linspace(years[0], years[-1], len(years))
+                X_dense   = sm.add_constant(x_dense - year_mean)
+                pred      = fitted.get_prediction(X_dense)
+                pred_df   = pred.summary_frame(alpha=0.05)
+                # Nights per decade (absolute, evaluated at the fit midpoint)
+                mid_year          = float(np.median(fit_years))
+                mid_mu            = float(np.exp(fitted.params[0] + fitted.params[1] * (mid_year - year_mean)))
+                nights_per_decade = round(mid_mu * (float(np.exp(fitted.params[1] * 10)) - 1), 1)
+                alpha_val         = round(float(fitted.params[-1]), 3)
+                # Prediction interval: NB2 variance = mu + mu²*alpha
+                mu_dense = pred_df["predicted"].values
+                se_pred  = np.sqrt(mu_dense + mu_dense**2 * alpha_val)
+                pi_low   = np.maximum(0.0, mu_dense - 1.96 * se_pred)
+                pi_high  = mu_dense + 1.96 * se_pred
+                trend     = {
+                    "model_used":        "nb",
+                    "rate_per_year":     round(max(-50.0, min(50.0, float(np.exp(fitted.params[1]) - 1) * 100)), 2),
+                    "nights_per_decade": nights_per_decade,
+                    "p_value":           round(max(0.0001, min(0.9999, float(fitted.pvalues[1]))), 3),
+                    "alpha":             alpha_val,
+                    "aic":               round(float(fitted.aic), 1),
+                    "fit_year_max":      int(fit_years[-1]),
+                    "x_line":            [round(float(x), 2) for x in x_dense],
+                    "y_line":            pred_df["predicted"].round(2).tolist(),
+                    "ci_low":            pred_df["ci_lower"].round(2).tolist(),
+                    "ci_high":           pred_df["ci_upper"].round(2).tolist(),
+                    "pi_low":            pi_low.round(2).tolist(),
+                    "pi_high":           pi_high.round(2).tolist(),
+                }
+                # Discard trend if any output is unreliable
+                yl = trend["y_line"]; cl = trend["ci_low"]; ch = trend["ci_high"]
+                if not (
+                    all(np.isfinite(v) and v >= 0 for v in yl) and
+                    all(np.isfinite(v)             for v in cl) and
+                    all(np.isfinite(v)             for v in ch) and
+                    all(cl[i] <= ch[i] for i in range(len(cl)))
+                ):
+                    trend = {}
+            except Exception as e:
+                import sys
+                print(f"[hot_nights] fit failed for {loc}: {e}", file=sys.stderr)
+        result[loc] = {"years": years, "counts": counts, "trend": trend, "nonzero_count": nonzero_count}
+    return {
+        "stations":  result,
+        "era5_last": str(_CSV_MAX_DATE),
+        "threshold": THRESHOLD,
+    }
+
+
+@app.route("/api/hot_nights")
+def api_hot_nights():
+    if not _feature_enabled("hot_nights_chart"): return "", 204
+    return jsonify(compute_hot_nights())
 
 
 @app.route("/api/annual_trend")
