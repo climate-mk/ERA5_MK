@@ -116,26 +116,34 @@
     return { x: nw.x, y: nw.y, w: se.x - nw.x, h: se.y - nw.y };
   }
 
-  // Schematic flood polygons in WGS84 for the two coastal lowland zones.
-  // Used as fallback when pre-generated DEM PNGs are not available.
-  // Zone A: Sečovlje saltpans  /  Zone B: Koper harbour + Semedela flat
-  const SCHEMATIC_ZONES = [
-    // Saltpans — simplified rectangle matching FLOOD_RISK_ZONES[0]
-    [[45.462, 13.582],[45.462, 13.636],[45.491, 13.636],[45.491, 13.582]],
-    // Koper coast — simplified rectangle matching FLOOD_RISK_ZONES[1]
-    [[45.538, 13.716],[45.538, 13.752],[45.552, 13.752],[45.552, 13.716]],
+  // Leaflet polygon layers for schematic flood zones (used when DEM PNGs unavailable).
+  // Stored so we can remove + re-add when colors change.
+  let schematicLayers = [];
+
+  // Approximate coastal lowland polygons (WGS84).
+  // Zone A: Sečovlje saltpans / Zone B: Koper harbour + Semedela flat
+  const SCHEMATIC_POLYS = [
+    [[45.462, 13.582],[45.491, 13.582],[45.491, 13.636],[45.462, 13.636]],
+    [[45.538, 13.716],[45.552, 13.716],[45.552, 13.752],[45.538, 13.752]],
   ];
 
-  function drawSchematic(ctx, colour) {
-    ctx.fillStyle = colour;
-    for (const poly of SCHEMATIC_ZONES) {
-      const pts = poly.map(([lat, lng]) => leafletMap.latLngToContainerPoint(L.latLng(lat, lng)));
-      ctx.beginPath();
-      ctx.moveTo(pts[0].x, pts[0].y);
-      for (let i = 1; i < pts.length; i++) ctx.lineTo(pts[i].x, pts[i].y);
-      ctx.closePath();
-      ctx.fill();
-    }
+  function clearSchematic() {
+    schematicLayers.forEach(l => leafletMap.removeLayer(l));
+    schematicLayers = [];
+  }
+
+  function drawSchematicLeaflet(fillColour, borderColour) {
+    SCHEMATIC_POLYS.forEach(coords => {
+      const layer = L.polygon(coords, {
+        color:       borderColour,
+        weight:      1.5,
+        fillColor:   fillColour,
+        fillOpacity: 0.62,
+        opacity:     0.85,
+        interactive: false,
+      }).addTo(leafletMap);
+      schematicLayers.push(layer);
+    });
   }
 
   async function renderFloodCanvas() {
@@ -154,7 +162,7 @@
     const tL = snapLevel(todayCm);
     const fL = snapLevel(futureCm);
 
-    // Try pre-generated DEM PNGs; fall back to schematic polygons
+    // Try pre-generated DEM PNGs
     let todayImg, futureImg;
     try {
       [todayImg, futureImg] = await Promise.all([loadImg(tL), loadImg(fL)]);
@@ -164,6 +172,7 @@
 
     if (todayImg && futureImg) {
       // ── Precise DEM-based rendering ───────────────────────────────────────
+      clearSchematic();
       const { x, y, w, h } = getFloodScreenRect();
       if (w <= 0 || h <= 0) return;
 
@@ -185,19 +194,43 @@
       ctx.restore();
       ctx.globalCompositeOperation = 'source-over';
     } else {
-      // ── Schematic fallback — show approximate zones ───────────────────────
-      // Left of divider: today (always flooded — indigo)
-      ctx.save();
-      ctx.beginPath(); ctx.rect(0, 0, divX, floodCanvas.height); ctx.clip();
-      drawSchematic(ctx, 'rgba(60,30,200,0.72)');
-      ctx.restore();
+      // ── Schematic fallback via Leaflet vector layers ───────────────────────
+      // Divider LEFT = TODAY view (indigo), RIGHT = FUTURE view (coral).
+      // We re-draw based on where the divider sits relative to each zone.
+      clearSchematic();
 
-      // Right of divider: future new area in coral, today overlap in indigo
+      // Determine divider longitude (map pixel divX → geographic lng)
+      const divLng = leafletMap.containerPointToLatLng(L.point(divX, floodCanvas.height / 2)).lng;
+
+      SCHEMATIC_POLYS.forEach(coords => {
+        // bounding lng of this polygon
+        const lngs   = coords.map(c => c[1]);
+        const zoneW  = Math.max(...lngs);   // easternmost lng of zone
+        const zoneE  = Math.min(...lngs);   // westernmost
+
+        // Choose colour by majority side: if zone center is left of divider → today, else future
+        const centerLng = (zoneW + zoneE) / 2;
+        const isToday   = centerLng < divLng;
+        const fill      = isToday ? '#3c1ec8' : (futureCm > todayCm ? '#d21e2d' : '#3c1ec8');
+        const border    = isToday ? '#6655ff' : (futureCm > todayCm ? '#ff4455' : '#6655ff');
+
+        const layer = L.polygon(coords, {
+          color: border, weight: 1.5,
+          fillColor: fill, fillOpacity: 0.65,
+          opacity: 0.9, interactive: false,
+        }).addTo(leafletMap);
+        schematicLayers.push(layer);
+      });
+
+      // Draw divider line on canvas (the Leaflet layers handle the coloring)
       ctx.save();
-      ctx.beginPath(); ctx.rect(divX, 0, floodCanvas.width - divX, floodCanvas.height); ctx.clip();
-      // Draw future (coral) only when rise > today surcharge
-      if (futureCm > todayCm) drawSchematic(ctx, 'rgba(210,30,45,0.73)');
-      drawSchematic(ctx, 'rgba(60,30,200,0.72)');   // today always on top
+      ctx.strokeStyle = 'rgba(255,255,255,0.85)';
+      ctx.lineWidth   = 2;
+      ctx.setLineDash([]);
+      ctx.beginPath();
+      ctx.moveTo(divX, 0);
+      ctx.lineTo(divX, floodCanvas.height);
+      ctx.stroke();
       ctx.restore();
     }
   }
