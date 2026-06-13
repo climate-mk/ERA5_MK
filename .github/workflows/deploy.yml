@@ -34,7 +34,7 @@ jobs:
             --exclude='__pycache__' \
             --exclude='*.pyc' \
             --exclude='venv' \
-            --exclude='data' \
+            --exclude='/data' \
             --exclude='deploy.sh' \
             --exclude='*.sqlite' \
             ./ root@46.224.208.142:/opt/si_climate/

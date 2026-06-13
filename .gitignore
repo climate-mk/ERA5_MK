@@ -1,5 +1,5 @@
-# ── Data files (large CSVs, uncomment to be not committed) ───────────────────────────────────
-data/
+# ── Data files (large CSVs — root only, NOT static/data/) ────────────────────────────────────
+/data/
 
 # ── Deployment / secrets ─────────────────────────────────────────────────────
 deploy.sh
@@ -42,3 +42,12 @@ cache/
 _baseline/
 _after/
 _after_final/
+
+# ── Local runtime / scratch ────────────────────────────────────────────────────
+collect_log.txt
+dashboard.log
+data.zip
+data.bak*/
+assets/
+static/images/lidar-coast-preview.png
+static/js/leaflet/images.tar.gz
