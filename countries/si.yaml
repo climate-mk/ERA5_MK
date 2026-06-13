@@ -33,6 +33,7 @@ features:
   today_section:       true
   season_heat_heatmap: true
   spei_heatmap:        true
+  sea_level_section:   true   # Sea level rise visualization (Koper coast)
   drought_trend_chart: true   # WIP — off everywhere for now
   chatbot:             false   # no Azure Direct Line for Slovenia
   welcome_modal:       true

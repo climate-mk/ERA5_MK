@@ -1997,7 +1997,7 @@ async function init() {
 
   // ── 3. Fetch topo (URL derived from country code) + initial trends in parallel
   const todayDoy = getTodayDOY();
-  const topoUrl  = `https://code.highcharts.com/mapdata/countries/${meta.country}/${meta.country}-all.topo.json`;
+  const topoUrl  = `/js/highcharts/mapdata/countries/${meta.country}/${meta.country}-all.topo.json`;
   const [topo, initTrends] = await Promise.all([
     fetch(topoUrl).then(r => r.json()),
     fetch(`api/trends?var=temperature_max&doy=${todayDoy}&window=7&method=theilsen&corr=raw`)

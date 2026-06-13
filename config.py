@@ -46,6 +46,7 @@ _FEATURE_DEFAULTS = {
     "season_heat_heatmap":   False,
     "spei_heatmap":          False,
     "drought_trend_chart":   False,
+    "sea_level_section":     False,
     "chatbot":               False,
     "welcome_modal":         False,
     "next_episodes_teaser":  False,

@@ -792,6 +792,50 @@ def _feature_enabled(key: str) -> bool:
 def index():
     return send_from_directory("static", "index.html")
 
+_LIDAR_URL = (
+    "https://geohub.gov.si/ags/rest/services/TEMELJNE_KARTE/"
+    "LIDAR_TlaZgradbe_SI/MapServer/export"
+    "?bbox=13.535,45.425,13.795,45.605&bboxSR=4326&imageSR=4326"
+    "&size=860,500&format=png&transparent=false&f=image"
+)
+_lidar_cache: dict = {}   # {data: bytes, ct: str, ts: float}
+
+@app.route("/data/flood/<path:filename>")
+def flood_data(filename):
+    path = os.path.join(os.path.dirname(__file__), "static", "data", "flood")
+    return send_from_directory(path, filename, max_age=86400)
+
+@app.route("/data/buildings.json")
+def buildings_json():
+    path = os.path.join(os.path.dirname(__file__), "static", "data")
+    return send_from_directory(path, "buildings.json", max_age=86400)
+
+@app.route("/data/flood-stats.json")
+def flood_stats():
+    path = os.path.join(os.path.dirname(__file__), "static", "data")
+    return send_from_directory(path, "flood-stats.json", max_age=86400)
+
+@app.route("/js/highcharts/mapdata/<path:filename>")
+def highcharts_mapdata(filename):
+    path = os.path.join(os.path.dirname(__file__), "static", "js", "highcharts", "mapdata")
+    return send_from_directory(path, filename, max_age=86400)
+
+@app.route("/api/lidar-map")
+def api_lidar_map():
+    import time
+    now = time.time()
+    if _lidar_cache and now - _lidar_cache.get("ts", 0) < 86400:
+        return Response(_lidar_cache["data"], content_type=_lidar_cache["ct"])
+    try:
+        r = http_requests.get(_LIDAR_URL, timeout=15)
+        r.raise_for_status()
+        _lidar_cache.update(data=r.content, ct=r.headers.get("content-type", "image/png"), ts=now)
+        resp = Response(r.content, content_type=_lidar_cache["ct"])
+        resp.headers["Cache-Control"] = "public, max-age=86400"
+        return resp
+    except Exception as exc:
+        return Response(str(exc), status=502)
+
 @app.route("/api/meta")
 def api_meta():
     return jsonify({
