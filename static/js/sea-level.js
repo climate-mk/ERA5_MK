@@ -116,54 +116,90 @@
     return { x: nw.x, y: nw.y, w: se.x - nw.x, h: se.y - nw.y };
   }
 
+  // Schematic flood polygons in WGS84 for the two coastal lowland zones.
+  // Used as fallback when pre-generated DEM PNGs are not available.
+  // Zone A: Sečovlje saltpans  /  Zone B: Koper harbour + Semedela flat
+  const SCHEMATIC_ZONES = [
+    // Saltpans — simplified rectangle matching FLOOD_RISK_ZONES[0]
+    [[45.462, 13.582],[45.462, 13.636],[45.491, 13.636],[45.491, 13.582]],
+    // Koper coast — simplified rectangle matching FLOOD_RISK_ZONES[1]
+    [[45.538, 13.716],[45.538, 13.752],[45.552, 13.752],[45.552, 13.716]],
+  ];
+
+  function drawSchematic(ctx, colour) {
+    ctx.fillStyle = colour;
+    for (const poly of SCHEMATIC_ZONES) {
+      const pts = poly.map(([lat, lng]) => leafletMap.latLngToContainerPoint(L.latLng(lat, lng)));
+      ctx.beginPath();
+      ctx.moveTo(pts[0].x, pts[0].y);
+      for (let i = 1; i < pts.length; i++) ctx.lineTo(pts[i].x, pts[i].y);
+      ctx.closePath();
+      ctx.fill();
+    }
+  }
+
   async function renderFloodCanvas() {
     if (!leafletMap || !floodCanvas) return;
 
-    const todayCm  = DATA.surcharge[state.prob];
-    const futureCm = getMeanRise(state.scn, state.year) + DATA.surcharge[state.prob];
-    const tL = snapLevel(todayCm);
-    const fL = snapLevel(futureCm);
-
-    let todayImg, futureImg;
-    try {
-      [todayImg, futureImg] = await Promise.all([loadImg(tL), loadImg(fL)]);
-    } catch (e) {
-      console.warn('[sea-level] flood PNG missing', e);
-      return;
-    }
-
-    // Match canvas to container size
     const container = leafletMap.getContainer();
     floodCanvas.width  = container.offsetWidth;
     floodCanvas.height = container.offsetHeight;
 
     const ctx = floodCtx;
     ctx.clearRect(0, 0, floodCanvas.width, floodCanvas.height);
-
-    const { x, y, w, h } = getFloodScreenRect();
-    if (w <= 0 || h <= 0) return;  // bbox not visible
-
-    const todayCyan   = tintImg(todayImg,  'rgba(60,30,200,0.82)');   // deep indigo
-    const futureCoral = tintImg(futureImg, 'rgba(210,30,45,0.83)');   // alarm red
     const divX = floodCanvas.width * state.divPct / 100;
 
-    // ── Left: TODAY ────────────────────────────────────────────────────────
-    ctx.save();
-    ctx.beginPath(); ctx.rect(0, 0, divX, floodCanvas.height); ctx.clip();
-    ctx.drawImage(todayCyan, x, y, w, h);
-    ctx.restore();
+    const todayCm  = DATA.surcharge[state.prob];
+    const futureCm = getMeanRise(state.scn, state.year) + DATA.surcharge[state.prob];
+    const tL = snapLevel(todayCm);
+    const fL = snapLevel(futureCm);
 
-    // ── Right: FUTURE ──────────────────────────────────────────────────────
-    // Coral for all future areas, punch out today overlap, redraw today in cyan
-    ctx.save();
-    ctx.beginPath(); ctx.rect(divX, 0, floodCanvas.width - divX, floodCanvas.height); ctx.clip();
-    ctx.drawImage(futureCoral, x, y, w, h);
-    ctx.globalCompositeOperation = 'destination-out';
-    ctx.drawImage(todayImg, x, y, w, h);       // erase today pixels from coral
-    ctx.globalCompositeOperation = 'source-over';
-    ctx.drawImage(todayCyan, x, y, w, h);      // redraw today in cyan (no blend)
-    ctx.restore();
-    ctx.globalCompositeOperation = 'source-over';
+    // Try pre-generated DEM PNGs; fall back to schematic polygons
+    let todayImg, futureImg;
+    try {
+      [todayImg, futureImg] = await Promise.all([loadImg(tL), loadImg(fL)]);
+    } catch (_) {
+      todayImg = futureImg = null;
+    }
+
+    if (todayImg && futureImg) {
+      // ── Precise DEM-based rendering ───────────────────────────────────────
+      const { x, y, w, h } = getFloodScreenRect();
+      if (w <= 0 || h <= 0) return;
+
+      const todayCyan   = tintImg(todayImg,  'rgba(60,30,200,0.82)');
+      const futureCoral = tintImg(futureImg, 'rgba(210,30,45,0.83)');
+
+      ctx.save();
+      ctx.beginPath(); ctx.rect(0, 0, divX, floodCanvas.height); ctx.clip();
+      ctx.drawImage(todayCyan, x, y, w, h);
+      ctx.restore();
+
+      ctx.save();
+      ctx.beginPath(); ctx.rect(divX, 0, floodCanvas.width - divX, floodCanvas.height); ctx.clip();
+      ctx.drawImage(futureCoral, x, y, w, h);
+      ctx.globalCompositeOperation = 'destination-out';
+      ctx.drawImage(todayImg, x, y, w, h);
+      ctx.globalCompositeOperation = 'source-over';
+      ctx.drawImage(todayCyan, x, y, w, h);
+      ctx.restore();
+      ctx.globalCompositeOperation = 'source-over';
+    } else {
+      // ── Schematic fallback — show approximate zones ───────────────────────
+      // Left of divider: today (always flooded — indigo)
+      ctx.save();
+      ctx.beginPath(); ctx.rect(0, 0, divX, floodCanvas.height); ctx.clip();
+      drawSchematic(ctx, 'rgba(60,30,200,0.72)');
+      ctx.restore();
+
+      // Right of divider: future new area in coral, today overlap in indigo
+      ctx.save();
+      ctx.beginPath(); ctx.rect(divX, 0, floodCanvas.width - divX, floodCanvas.height); ctx.clip();
+      // Draw future (coral) only when rise > today surcharge
+      if (futureCm > todayCm) drawSchematic(ctx, 'rgba(210,30,45,0.73)');
+      drawSchematic(ctx, 'rgba(60,30,200,0.72)');   // today always on top
+      ctx.restore();
+    }
   }
 
   // ── Flood stats (DEM ha + OSM buildings) ──────────────────────────────────
