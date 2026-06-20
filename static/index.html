@@ -249,7 +249,7 @@
   <!-- In the next episodes -->
   <section class="next-episodes-section">
     <div class="sec-heading">In the next episodes…</div>
-    <div class="sec-heading-sub">Seasonal heat ranking · Seasonal drought index (SPEI) · Drought trend per station — work in progress · Nights hotter than 20°C — work in progress</div>
+    <div class="sec-heading-sub">Seasonal heat ranking · Seasonal drought index (SPEI) · Drought trend per station — work in progress · Tropical days · Tropical nights — work in progress</div>
 
     <!-- Season heatmap -->
     <section id="season-heatmap-section" class="season-heatmap-section" hidden>
@@ -294,26 +294,49 @@
       </div>
     </section>
 
-    <!-- Hot nights chart (WIP) -->
-    <section id="hot-nights-section" class="spei-trend-section" hidden>
-      <div class="sec-heading">Nights hotter than 20°C <span class="wip-badge">work in progress</span></div>
-      <div class="sec-heading-sub" id="hot-nights-sub"></div>
-      <div id="hot-nights-controls" class="shm-controls"></div>
-      <div class="panel spei-trend-panel" id="hot-nights-panel">
+    <!-- Tropical days (WIP) -->
+    <section id="tropical-days-section" class="spei-trend-section" hidden>
+      <div class="sec-heading" id="tropical-days-heading">—</div>
+      <div class="sec-heading-sub" id="tropical-days-sub"></div>
+      <div id="tropical-days-controls" class="shm-controls"></div>
+      <div class="panel spei-trend-panel" id="tropical-days-panel">
         <div class="panel-h">
           <div>
-            <div class="panel-title" id="hot-nights-title">—</div>
-            <div class="panel-sub" id="hot-nights-obs">—</div>
+            <div class="panel-title" id="tropical-days-title">—</div>
+            <div class="panel-sub" id="tropical-days-obs">—</div>
           </div>
-          <div class="chart-stats-box" id="hot-nights-stats-box">
-            <div class="chart-big" id="hot-nights-slope">—</div>
-            <div class="chart-change-lbl" id="hot-nights-slope-lbl">nights / decade</div>
+          <div class="chart-stats-box" id="tropical-days-stats-box">
+            <div class="chart-big" id="tropical-days-slope">—</div>
+            <div class="chart-change-lbl" id="tropical-days-slope-lbl">—</div>
           </div>
         </div>
         <div class="chart-wrap">
-          <div id="hot-nights-chart"></div>
+          <div id="tropical-days-chart"></div>
         </div>
-        <p id="hot-nights-explain" class="panel-explain"></p>
+        <p id="tropical-days-explain" class="panel-explain"></p>
+      </div>
+    </section>
+
+    <!-- Tropical nights (WIP) -->
+    <section id="tropical-nights-section" class="spei-trend-section" hidden>
+      <div class="sec-heading" id="tropical-nights-heading">—</div>
+      <div class="sec-heading-sub" id="tropical-nights-sub"></div>
+      <div id="tropical-nights-controls" class="shm-controls"></div>
+      <div class="panel spei-trend-panel" id="tropical-nights-panel">
+        <div class="panel-h">
+          <div>
+            <div class="panel-title" id="tropical-nights-title">—</div>
+            <div class="panel-sub" id="tropical-nights-obs">—</div>
+          </div>
+          <div class="chart-stats-box" id="tropical-nights-stats-box">
+            <div class="chart-big" id="tropical-nights-slope">—</div>
+            <div class="chart-change-lbl" id="tropical-nights-slope-lbl">—</div>
+          </div>
+        </div>
+        <div class="chart-wrap">
+          <div id="tropical-nights-chart"></div>
+        </div>
+        <p id="tropical-nights-explain" class="panel-explain"></p>
       </div>
     </section>
   </section>
