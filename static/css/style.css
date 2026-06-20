@@ -560,6 +560,10 @@ body {
 #spei-trend-chart { flex: 1; min-height: 280px; width: 100%; }
 .spei-ctrl-row { display: flex; flex-wrap: wrap; gap: 4px; align-items: center; }
 .spei-ctrl-sep { display: inline-block; width: 1px; height: 18px; background: var(--rule); margin: 0 6px; flex-shrink: 0; }
+.trop-param-row { gap: 16px; margin-top: 8px; }
+.trop-param-lbl { display: flex; align-items: center; gap: 6px; font-size: 11px; font-family: 'JetBrains Mono', monospace; color: var(--ink-soft); letter-spacing: 0.03em; }
+.trop-param-input { width: 56px; background: transparent; border: 1px solid var(--rule-2); border-radius: 6px; padding: 3px 6px; font-size: 11px; font-family: 'JetBrains Mono', monospace; color: var(--ink); }
+.trop-param-input:focus { outline: none; border-color: var(--accent); }
 @media (max-width: 700px) {
   .spei-trend-section { padding: 16px 14px 28px; }
 }

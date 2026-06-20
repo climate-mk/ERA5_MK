@@ -52,7 +52,8 @@ _FEATURE_DEFAULTS = {
     "mk2036_section":        False,
     "analytics_export":      False,
     "data_download":         False,
-    "hot_nights_chart":      False,
+    "tropical_days_chart":   False,
+    "tropical_nights_chart": False,
 }
 
 
