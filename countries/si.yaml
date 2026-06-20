@@ -40,6 +40,8 @@ features:
   next_episodes_teaser: true
   mk2036_section:      false   # TODO: create si2035 impacts section — future phase
   analytics_export:    false
+  tropical_days_chart:   true   # days with tmax > threshold per year (WIP)
+  tropical_nights_chart: true   # nights with tmin > threshold per year (WIP)
 
 stations:
   - { name: Ljubljana,          lat: 46.0511, lon: 14.5051, elevation: 299  }

@@ -2116,6 +2116,8 @@ async function init() {
   renderPrecipHeatmap();     // async, don't await
   renderSeasonHeatmap();     // async, don't await
   renderSpeiTrendChart();    // async, don't await
+  renderTropicalChart("days");    // async, don't await
+  renderTropicalChart("nights");  // async, don't await
 
   // Quote + effects use locale data — must run after loadLocale() resolves
   loadQuote();
@@ -2835,6 +2837,303 @@ async function renderSpeiTrendChart() {
   } catch(e) {
     console.warn("SPEI trend chart error:", e);
   }
+}
+
+function debounce(fn, ms) {
+  let t;
+  return (...args) => { clearTimeout(t); t = setTimeout(() => fn(...args), ms); };
+}
+
+// ── Tropical days / nights ──────────────────────────────────────────────────
+// Generalised from the original "Nights hotter than 20°C" chart: same per-station
+// Negative Binomial GLM trend, but with an editable threshold and a "min.
+// consecutive days" streak filter (only days inside a run of >= N qualifying
+// days are counted — at N=1 this is identical to a plain threshold count).
+
+const TROP_CONFIGS = {
+  days: {
+    prefix: "tropical-days", endpoint: "/api/tropical_days", featureFlag: "tropical_days_chart",
+    unitLabel: "days", defaultThreshold: 30, minT: 15, maxT: 45,
+    subLabel: (th, st) => `Count of days with max. temperature over ${th}°C` +
+      (st > 1 ? `, in runs of ${st}+ consecutive days` : "") + ` per year · elevation-corrected · ERA5-Land`,
+    seriesName: th => `Tropical days (tmax > ${th} °C, elevation-corrected)`,
+    tooltipNoun: "Tropical days",
+    plainNoun: "tropical day",
+    plainDesc: th => `A tropical day — when daytime temperatures climb above ${th}°C — raises heat stress, strains infrastructure and outdoor work, and increases health risks for vulnerable people.`,
+  },
+  nights: {
+    prefix: "tropical-nights", endpoint: "/api/tropical_nights", featureFlag: "tropical_nights_chart",
+    unitLabel: "nights", defaultThreshold: 20, minT: 5, maxT: 35,
+    subLabel: (th, st) => `Count of nights with min. temperature over ${th}°C` +
+      (st > 1 ? `, in runs of ${st}+ consecutive nights` : "") + ` per year · elevation-corrected · ERA5-Land`,
+    seriesName: th => `Tropical nights (tmin > ${th} °C, elevation-corrected)`,
+    tooltipNoun: "Tropical nights",
+    plainNoun: "tropical night",
+    plainDesc: th => `A tropical night — when the temperature stays above ${th}°C through the night — prevents the body from recovering from daytime heat and raises health risks for vulnerable people.`,
+  },
+};
+
+async function renderTropicalChart(kind) {
+  const cfg = TROP_CONFIGS[kind];
+  if (!isEnabled(cfg.featureFlag)) return;
+  const section = document.getElementById(`${cfg.prefix}-section`);
+  if (!section) return;
+  section.hidden = false;
+
+  const chartDiv = document.getElementById(`${cfg.prefix}-chart`);
+  const ctrlEl   = document.getElementById(`${cfg.prefix}-controls`);
+  const slopeEl  = document.getElementById(`${cfg.prefix}-slope`);
+  const lblEl    = document.getElementById(`${cfg.prefix}-slope-lbl`);
+  const titleEl  = document.getElementById(`${cfg.prefix}-title`);
+  const obsEl    = document.getElementById(`${cfg.prefix}-obs`);
+  const explEl   = document.getElementById(`${cfg.prefix}-explain`);
+  const subEl    = document.getElementById(`${cfg.prefix}-sub`);
+
+  let threshold       = cfg.defaultThreshold;
+  let streak          = 1;
+  let currentStation  = null;
+  let chart           = null;
+
+  function showLoading(msg) {
+    if (chartDiv) chartDiv.innerHTML =
+      `<div style="display:flex;align-items:center;justify-content:center;height:320px;color:var(--ink-soft);font-family:'JetBrains Mono',monospace;font-size:11px;gap:10px">
+        <div class="spinner"></div> ${msg}
+      </div>`;
+  }
+
+  async function load() {
+    showLoading(`Loading ${cfg.unitLabel} data…`);
+    let d;
+    try {
+      d = await fetch(`${cfg.endpoint}?threshold=${threshold}&streak=${streak}`).then(r => r.json());
+    } catch (e) {
+      console.warn(`Tropical ${kind} chart fetch error:`, e);
+      return;
+    }
+    if (!d.stations) { section.hidden = true; return; }
+    if (chartDiv) chartDiv.innerHTML = "";
+
+    const stations = Object.keys(d.stations).sort();
+    if (!currentStation || !stations.includes(currentStation)) {
+      const _defLoc = _metaConfig?.default_location || stations[0];
+      currentStation = stations.includes(_defLoc) ? _defLoc : stations[0];
+    }
+
+    if (subEl) subEl.textContent = `${cfg.subLabel(threshold, streak)} · data to ${d.era5_last}`;
+
+    ctrlEl.innerHTML =
+      `<div class="spei-ctrl-row">` +
+      stations.map(s =>
+        `<button class="shm-btn spei-loc-btn${s === currentStation ? " shm-btn--active" : ""}" data-loc="${s}">${s.replace(/_/g, " ")}</button>`
+      ).join("") +
+      `</div>` +
+      `<div class="spei-ctrl-row trop-param-row">` +
+        `<label class="trop-param-lbl">Threshold ` +
+          `<input type="number" class="trop-param-input" id="${cfg.prefix}-threshold-input" value="${threshold}" step="0.5" min="${cfg.minT}" max="${cfg.maxT}"> °C</label>` +
+        `<label class="trop-param-lbl">Min. consecutive ${cfg.unitLabel} ` +
+          `<input type="number" class="trop-param-input" id="${cfg.prefix}-streak-input" value="${streak}" step="1" min="1" max="60"></label>` +
+      `</div>`;
+
+    ctrlEl.querySelectorAll("[data-loc]").forEach(btn =>
+      btn.addEventListener("click", () => {
+        currentStation = btn.dataset.loc;
+        ctrlEl.querySelectorAll("[data-loc]").forEach(b =>
+          b.classList.toggle("shm-btn--active", b.dataset.loc === currentStation));
+        renderChart(d);
+      }));
+
+    const thInput = document.getElementById(`${cfg.prefix}-threshold-input`);
+    const stInput = document.getElementById(`${cfg.prefix}-streak-input`);
+    const onParamChange = debounce(() => {
+      threshold = Math.max(cfg.minT, Math.min(cfg.maxT, parseFloat(thInput.value) || cfg.defaultThreshold));
+      streak    = Math.max(1, Math.min(60, parseInt(stInput.value, 10) || 1));
+      load();
+    }, 500);
+    thInput.addEventListener("change", onParamChange);
+    stInput.addEventListener("change", onParamChange);
+
+    renderChart(d);
+  }
+
+  function renderChart(d) {
+    const series = d.stations[currentStation];
+    if (!series) return;
+
+    const { years, counts, trend } = series;
+    const n = years.length;
+    const currentYear = new Date().getFullYear();
+
+    titleEl.textContent = currentStation.replace(/_/g, " ");
+    obsEl.textContent   = `${n} years · ${years[0]}–${years[n - 1]}`;
+
+    let trendLineSeries = [];
+    let ciSeries        = [];
+    let piSeries        = [];
+    let trendLegendName = "";
+    let xPlotLines      = [];
+
+    if (trend?.model_used && trend.x_line) {
+      const rate = trend.rate_per_year;
+      const dpd  = trend.days_per_decade;
+      const pFmt  = trend.p_value < 0.001 ? "p<0.001" : `p=${trend.p_value.toFixed(3)}`;
+      const pFull = trend.p_value < 0.001 ? "p < 0.001" : `p = ${trend.p_value.toFixed(3)}`;
+      const sig   = trend.p_value < 0.05 ? `statistically significant (${pFull})` : `not significant (${pFull})`;
+
+      slopeEl.textContent = (dpd >= 0 ? "+" : "") + dpd.toFixed(1);
+      slopeEl.style.color = dpd > 0 ? "var(--accent)" : "#4a80b0";
+      if (lblEl) lblEl.textContent = `${cfg.unitLabel} / decade`;
+
+      const techLine =
+        `NB GLM: ${rate >= 0 ? "+" : ""}${rate.toFixed(2)}%/yr · ` +
+        `${dpd >= 0 ? "+" : ""}${dpd.toFixed(1)} ${cfg.unitLabel}/decade · ` +
+        `95% CI · ${sig} · AIC ${trend.aic} · α=${trend.alpha}. ` +
+        `Temperature uses ERA5-Land lapse-rate elevation correction.`;
+
+      const absDpd      = Math.abs(dpd).toFixed(1);
+      const dir          = dpd > 0 ? "more" : "fewer";
+      const sigPlain      = trend.p_value < 0.05 ? "a statistically significant trend" : "a trend that is not yet statistically significant";
+      const fittedLast   = trend.y_line[trend.y_line.length - 1];
+      const yTo2050      = 2050 - trend.fit_year_max;
+      const proj2050     = Math.round(fittedLast * Math.pow(1 + trend.rate_per_year / 100, yTo2050));
+      const forwardSentence = trend.p_value < 0.05 && proj2050 > 0
+        ? `If the trend continues, around ${proj2050} ${cfg.unitLabel} per year could be typical by 2050 — compared to roughly ${Math.round(fittedLast)} in ${trend.fit_year_max}.`
+        : `The data does not yet show a clear signal, but the direction of change is worth watching as temperatures continue to rise.`;
+      const plainLine =
+        `${cfg.plainDesc(threshold)} ` +
+        `This location shows ${sigPlain}: roughly ${absDpd} ${dir} ${cfg.plainNoun}s every 10 years. ` +
+        forwardSentence;
+
+      explEl.innerHTML = `${techLine}<br><br>${plainLine}`;
+
+      trendLegendName = `NB fit (${rate >= 0 ? "+" : ""}${rate.toFixed(1)}%/yr · ${pFmt})`;
+      trendLineSeries = trend.x_line.map((x, i) => ({ x, y: trend.y_line[i] }));
+      ciSeries        = trend.x_line.map((x, i) => [x, trend.ci_low[i], trend.ci_high[i]]);
+      if (trend.pi_low) {
+        piSeries = trend.x_line.map((x, i) => [x, trend.pi_low[i], trend.pi_high[i]]);
+      }
+
+      xPlotLines = [{
+        value: trend.fit_year_max + 0.5,
+        color: "var(--ink-soft)",
+        width: 1,
+        dashStyle: "Dot",
+        zIndex: 4,
+        label: {
+          text: `trend fitted to ${trend.fit_year_max}`,
+          rotation: 0,
+          align: "right",
+          x: -4,
+          y: -4,
+          style: { fontSize: "9px", color: "var(--ink-soft)", fontFamily: "'JetBrains Mono', monospace" },
+        },
+      }];
+    } else {
+      slopeEl.textContent = "—";
+      slopeEl.style.color = "";
+      if (lblEl) lblEl.textContent = `${cfg.unitLabel} / decade`;
+      const nz = series.nonzero_count ?? 0;
+      explEl.textContent = nz < 10
+        ? `Too few years with ${cfg.plainNoun}s to fit a trend (${nz} non-zero year${nz === 1 ? "" : "s"} recorded). Trend analysis requires at least 10.`
+        : "";
+    }
+
+    const barData = years.map((y, i) => ({
+      x: y, y: counts[i],
+      ...(y === currentYear ? { color: "var(--accent)", opacity: 0.4 } : {}),
+    }));
+
+    const opts = {
+      chart: {
+        type: "column",
+        height: 320,
+        backgroundColor: "transparent",
+        style: { fontFamily: "'Space Grotesk', sans-serif" },
+        animation: false,
+      },
+      title:   { text: "" },
+      credits: { enabled: false },
+      legend: {
+        enabled: true,
+        itemStyle: { fontSize: "11px", fontWeight: "400", color: "var(--ink)" },
+      },
+      tooltip: {
+        formatter() {
+          if (this.series.type === "line") {
+            return `<b>${Math.round(this.x)}</b><br>Trend: <b>${this.y.toFixed(1)}</b> ${cfg.unitLabel}`;
+          }
+          if (this.series.type === "arearange") return false;
+          const partial = this.x === currentYear ? " <i>(year in progress)</i>" : "";
+          return `<b>${this.x}</b>${partial}<br>${cfg.tooltipNoun}: <b>${this.y}</b>`;
+        },
+      },
+      xAxis: {
+        title: { text: "" },
+        labels: { style: { fontSize: "10px", color: "var(--ink-soft)" } },
+        gridLineWidth: 0,
+        tickColor: "var(--rule)",
+        plotLines: xPlotLines,
+      },
+      yAxis: {
+        title: { text: cfg.unitLabel[0].toUpperCase() + cfg.unitLabel.slice(1), style: { fontSize: "10px", color: "var(--ink-soft)" } },
+        min: 0,
+        gridLineColor: "var(--rule)",
+        labels: { style: { fontSize: "10px", color: "var(--ink-soft)" } },
+      },
+      series: [
+        {
+          type: "column",
+          name: cfg.seriesName(threshold),
+          data: barData,
+          color: "var(--accent)",
+          borderWidth: 0,
+          dataLabels: {
+            enabled: true,
+            style: { fontSize: "8px", fontWeight: "400", color: "var(--ink-soft)", textOutline: "none" },
+            formatter() { return this.y; },
+          },
+          zIndex: 2,
+        },
+        ...(piSeries.length ? [{
+          type: "arearange",
+          name: "95% prediction interval",
+          data: piSeries,
+          color: "var(--ink)",
+          fillOpacity: 0.05,
+          lineWidth: 0,
+          marker: { enabled: false },
+          enableMouseTracking: false,
+          zIndex: 0,
+        }] : []),
+        ...(ciSeries.length ? [{
+          type: "arearange",
+          name: "95% CI (mean)",
+          data: ciSeries,
+          color: "var(--ink)",
+          fillOpacity: 0.12,
+          lineWidth: 0,
+          marker: { enabled: false },
+          enableMouseTracking: false,
+          zIndex: 1,
+        }] : []),
+        ...(trendLineSeries.length ? [{
+          type: "line",
+          name: trendLegendName,
+          data: trendLineSeries,
+          color: "var(--ink)",
+          lineWidth: 2,
+          dashStyle: "Solid",
+          marker: { enabled: false },
+          enableMouseTracking: true,
+          zIndex: 3,
+        }] : []),
+      ],
+    };
+
+    if (chart) { chart.destroy(); chart = null; }
+    chart = Highcharts.chart(`${cfg.prefix}-chart`, opts);
+  }
+
+  load();
 }
 
 init().catch(console.error);

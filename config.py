@@ -52,6 +52,8 @@ _FEATURE_DEFAULTS = {
     "next_episodes_teaser":  False,
     "mk2036_section":        False,
     "analytics_export":      False,
+    "tropical_days_chart":   False,
+    "tropical_nights_chart": False,
 }
 
 
