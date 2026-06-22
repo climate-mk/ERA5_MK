@@ -1,0 +1,6 @@
+# Refresh climate news from SerpApi (Google News search results) once daily.
+# Separate from cron/climate_news (which runs every 6h for the free RSS
+# feeds) because SerpApi is a paid API with a limited free tier — querying
+# once/day x 2 queries keeps us at ~60 searches/month, well under the
+# 100/month free quota. Requires SERPAPI_KEY in .env.
+0 4 * * * root cd /opt/mk_climate && COUNTRY=mk /opt/mk_climate/venv/bin/python climate_news.py --serpapi >> /var/log/climate_news_serpapi.log 2>&1

@@ -54,6 +54,7 @@ _FEATURE_DEFAULTS = {
     "data_download":         False,
     "tropical_days_chart":   False,
     "tropical_nights_chart": False,
+    "climate_news":          False,
 }
 
 

@@ -34,6 +34,7 @@ Interactive web dashboard for exploring long-term climate trends across 20 locat
 - Chat with **Ognen** — AI climate assistant (Azure Bot Framework / Direct Line)
 - Welcome modal, "In the next episodes…" teaser section
 - Dark/light variable theming via CSS custom properties
+- **Climate news** (`climate-news.html`, MK only) — recent climate-related headlines aggregated from Macedonian news outlet RSS feeds, plus the site's X (Twitter) timeline
 
 ---
 
@@ -55,13 +56,17 @@ Interactive web dashboard for exploring long-term climate trends across 20 locat
 ERA5_MK/
 ├── mk_collect.py          # Data collection — fetches ERA5-Land CSVs from Open-Meteo
 ├── mk_api.py              # Flask API — all statistics and route handlers
+├── climate_news.py        # Standalone climate-news aggregation (MK outlet RSS → cache)
 ├── requirements.txt       # Python dependencies
 ├── cron/
-│   └── mk_collect         # cron.d file — runs mk_collect.py nightly
+│   ├── mk_collect         # cron.d file — runs mk_collect.py nightly
+│   └── climate_news       # cron.d file — refreshes climate-news cache every 6h
 ├── static/
 │   ├── index.html         # Single-page app shell
 │   ├── app.js             # All chart logic, API calls, UI interactions
 │   ├── style.css          # Light-theme responsive CSS
+│   ├── user-manual.html   # Standalone user manual page
+│   ├── climate-news.html  # Standalone climate-news page (MK only)
 │   └── locales/           # JSON translation files (en, mk, sq)
 ├── data/                  # ERA5-Land CSVs, one per station (gitignored on server)
 └── cache/                 # Auto-generated JSON cache files (gitignored)
@@ -84,6 +89,7 @@ ERA5_MK/
 | `GET /api/spei_station_seasonal` | — | Per-station SPEI-3 (seasonal) + SPEI-30 (monthly) series with Theil-Sen trend |
 | `GET /api/token` | — | Short-lived Direct Line token for the chatbot (rate-limited) |
 | `GET /api/data/download` | — | Zip archive of all station CSVs (tmax, tmin, tmean, precip, ET₀; 1950–present) |
+| `GET /api/climate_news` | — | Recent Macedonian climate-news headlines, aggregated from MK outlet RSS feeds and filtered by keyword (archive refreshed by cron every 6h via `climate_news.py`) |
 
 ---
 

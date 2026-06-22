@@ -1,0 +1,113 @@
+# Config for the Climate News page / RSS feed (climate_news.py).
+# Edit this file to change which outlets are polled, which keywords trigger a
+# match, or the retention/poll-frequency tunables — no code changes needed.
+
+# How many days of matched items to keep before they age out of the archive.
+max_age_days: 30
+
+# How often (in hours) the outlet feeds get re-polled. Each outlet's RSS feed
+# only exposes its latest ~10-20 items (a few hours of content), so polling
+# too infrequently risks missing a story before it scrolls off the feed.
+poll_interval_hours: 6
+
+# Macedonian-language keywords. A story matches if ANY of these appear
+# (case-insensitive) in its title or summary text.
+keywords_mk:
+  - "климатски промени"     # климатски промени / климатска криза
+  - "климатск"              # климатски промени / климатска криза
+  - "аридност"              # Aridity
+  - "најтопла"              # hottest
+  - "најтопло"              # hottest
+  - "најтопли"              # hottest
+  - "најтоплиот"            # hottest
+  - "најтоплиот ден"        # hottest day
+  - "најтоплиот месец"      # hottest month
+  - "најтоплиот период"     # hottest period 
+  - "најтопла година"       # hottest year
+  - "најтоплата година"       # hottest year
+  - "најтопла сезона"       # hottest season 
+  - "ел нињо"               # El Niño
+  - "ла ниња"               # La Niña
+  - "глобално затоплување"  # global warming
+  - "затоплување"           # broader: "се загрева", "глобално затоплување", etc.
+  - "суша"                  # drought
+  - "топлински бран"        # heatwave
+  - "стакленички ефект"     # greenhouse effect
+  - "ефект на стаклена градина"     # greenhouse effect
+  - "емисии на јаглерод"
+  - "co2 емисии"
+  - "топење на мразот"
+  - "мразот се топи"          # ice melt
+
+# Macedonian-language RSS sources, polled with keywords_mk.
+sources_mk:
+  МИА:             "https://mia.mk/feed"
+  Слободен Печат:  "https://slobodenpecat.mk/feed"
+  Нова Македонија: "https://novamakedonija.com.mk/feed"
+  Република:       "https://republika.mk/feed"
+  Мета.мк:         "https://meta.mk/feed"
+  Плусинфо:        "https://plusinfo.mk/feed"
+  Независен:       "https://nezavisen.mk/feed"
+  МКД.мк:          "https://mkd.mk/feed"
+  Вечер:           "https://vecer.press/feed"
+  Скопје1:         "https://skopje1.mk/feed"
+  Макфакс:         "https://makfax.com.mk/feed"
+  Рацин.мк:        "https://racin.mk/feed"
+  Точка:           "https://tocka.com.mk/rss"
+  Пари.мк:         "https://pari.com.mk/feed"
+  Окно:            "https://okno.mk/rss.xml"
+  DW Македонски:   "https://rss.dw.com/rdf/rss-maz-all"
+  4news.mk:        "https://4news.mk/feed"
+  УМНО:            "https://umno.mk/feed"
+  Метаморфозис:    "https://metamorphosis.org.mk/feed"
+  Факултети (живот): "https://www.fakulteti.mk/rss/rss.ashx?cat=zhivot"
+  Факултети (наука): "https://www.fakulteti.mk/rss/rss.ashx?cat=nauka"
+
+# English-language keywords, used only for sources_en below.
+keywords_en:
+  - "climate"
+  - "el niño"
+  - "el nino"
+  - "la niña"
+  - "la nina"
+  - "drought"
+  - "heatwave"
+  - "heat wave"
+  - "flood"
+  - "global warming"
+  - "greenhouse gas"
+  - "carbon emission"
+
+# English-language sources. Both are already scoped to North Macedonia
+# specifically (Balkan Insight's BTJ Macedonia category feed, and SkopjeDiem's
+# general MK coverage), so no extra country-name filter is needed.
+sources_en:
+  Balkan Insight (Macedonia): "https://balkaninsight.com/category/btj/btj-macedonia/feed/"
+  SkopjeDiem:                 "https://skopjediem.com/feed"
+
+# Our own Bluesky account — every post is included (no keyword filter), since
+# it's our own published content rather than a third-party source being mined.
+bluesky_handle: "climate-mk.bsky.social"
+
+# SerpApi (serpapi.com) — Google News search results, used as an EXTRA source
+# alongside the direct RSS feeds above (not a replacement). Requires SERPAPI_KEY
+# in .env. Queried once/day (separate from poll_interval_hours) to stay well
+# within the free tier (100 searches/month; 3 queries x 30 days = 90/month).
+#
+# IMPORTANT: must use engine=google with tbm=nws and NO gl/hl params — Google
+# only returns Macedonian-language results this way. Adding gl/hl, or using the
+# dedicated google_news engine, makes Google ignore locale entirely and return
+# generic/English results regardless of the query (confirmed by testing).
+serpapi_poll_interval_hours: 24
+serpapi_queries:
+  - "климатски промени"
+  - "ел нињо"
+  - "глобално затоплување"
+
+# Bing News search RSS export (free, no API key, no quota) — an extra source on
+# the same free 6h poll cycle as the direct outlet RSS feeds above, since it has
+# no rate limit to protect. https://www.bing.com/news/search?q=<query>&format=rss
+bing_queries:
+  - "климатски промени"
+  - "ел нињо"
+  - "глобално затоплување"

@@ -7,7 +7,8 @@
   },
   "ui": {
     "heading_today": "WEATHER MANIPULATION CONFIRMED",
-    "title_today": "Is the Big Climate Hoax Activated Today?",
+    "nav_climate_news": "Climate News",
+    "title_today": "Is the Big Climate Hoax Activated in {location} Today?",
     "subtitle_today": "compared to the fabricated historical baseline",
     "heading_location": "Location Indoctrination Data",
     "heading_controls": "Controls",
@@ -15,14 +16,18 @@
     "heading_about": "About This Propaganda Machine",
     "label_effects": "Globalist Agenda Talking Points (DEBUNKED)",
     "map_falling": "COOLING (they won't tell you)",
-    "map_rising": "urban heat island, not CO₂"
+    "map_rising": "urban heat island, not CO₂",
+    "today_location_label": "Location",
+    "today_location_short": "Macedonia"
   },
   "today": {
     "explain1": "According to THEIR sensors — conveniently placed next to airport tarmacs, air conditioning vents, and asphalt parking lots — today's temperature is supposedly higher than normal. We've been told to trust 70+ years of 'reanalysis data'. Remember: whoever controls the data, controls the narrative. Do your own research before this page gets taken down.",
-    "chart_title": "Official Narrative Temperatures around {day_label} since {year_min} (Unverified)",
-    "trend_title": "Their Temperature Trend around {day_label} · {year_min}–{year_max} · Linear Extrapolation to 2050 (conveniently far away)",
+    "explain1_location": "According to THEIR sensor at {location} — conveniently placed next to an airport tarmac, an air conditioning vent, or an asphalt parking lot, who knows — today's temperature is supposedly higher than normal. We've been told to trust 70+ years of 'reanalysis data'. Do your own research before this page gets taken down.",
+    "chart_title": "Official Narrative Temperatures for {location} around {day_label} since {year_min} (Unverified)",
+    "trend_title": "Their Temperature Trend for {location} around {day_label} · {year_min}–{year_max} · Linear Extrapolation to 2050 (conveniently far away)",
     "explain2": "Big Climate's famous bell curve. Notice how they use emotional colours — cold blue (bad) to fiery red (panic now) — to manipulate your lizard brain. What they don't show: the Medieval Warm Period, when Vikings farmed Greenland with ZERO SUVs. Real scientists who disagree get zero funding. Ask yourself: who benefits from the fear?",
     "explain3": "Each dot is supposedly the 90th percentile of some 'national mean' temperature calculated across all their sensors in a ±30-day window since {year_min}. They claim the trend is {trend} °C/decade ({sig}) — conveniently alarming. By 2050 they project {proj2050} °C. The shaded band is their '95% confidence interval' — they narrowed it by changing their own method. Funny how that works. Follow the grant money. Also note: they quietly use a different metric here (national mean) than in the card above (national peak) — but don't worry, both confirm the narrative.",
+    "explain3_location": "Each dot is supposedly the 90th percentile of {location}'s own 'mean' temperature in a ±30-day window since {year_min} — straight from their single sensor, no averaging tricks this time. They claim the trend is {trend} °C/decade ({sig}) — conveniently alarming. By 2050 they project {proj2050} °C. The shaded band is their '95% confidence interval' — they narrowed it by changing their own method. Follow the grant money.",
     "foot": "{temp} °C · allegedly {pct}th percentile · {samples} 'verified' samples ({year_min}–{year_max})",
     "foot2": "Their Data: {temp} °C · allegedly {pct}th percentile · median {median} °C · {samples} 'unverified' observations · {year_min}–{year_max}",
     "today_label": "THEIR DATA",

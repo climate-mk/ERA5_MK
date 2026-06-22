@@ -51,6 +51,7 @@ features:
   data_download:         true   # /api/data/download — zip of all station CSVs
   tropical_days_chart:   true   # days with tmax > threshold per year (WIP)
   tropical_nights_chart: true   # nights with tmin > threshold per year (WIP)
+  climate_news:          true   # Climate news page — Macedonian climate news + X timeline
 
 # ── Stations ──────────────────────────────────────────────────────────────────
 # Single source of truth — mk_collect.py and mk_api.py both read from here.

@@ -7,7 +7,8 @@
   },
   "ui": {
     "heading_today": "Macedonia Today",
-    "title_today": "Is it Hot in Macedonia Today?",
+    "nav_climate_news": "Climate News",
+    "title_today": "Is it Hot in {location} Today?",
     "subtitle_today": "compared to the same date historically",
     "heading_location": "Location details",
     "heading_controls": "Controls",
@@ -16,15 +17,19 @@
     "heading_about": "About us",
     "label_effects": "Some effects of the climate changes",
     "map_falling": "falling",
-    "map_rising": "rising"
+    "map_rising": "rising",
+    "today_location_label": "Location",
+    "today_location_short": "Macedonia"
   },
   "today": {
     "explain1": "Today's peak is the highest temperature forecast across all 20 stations, ranked against 70+ years of ERA5-Land records for this same ±7-day window.",
+    "explain1_location": "Today's peak is the temperature forecast at {location}, ranked against 70+ years of ERA5-Land records for this same ±7-day window.",
     "climate_context": "Macedonia sits at the heart of a regional climate hotspot — Southeastern Europe is warming at nearly twice the global average rate. Temperatures have risen by almost 2°C in the past 70 years and continue to climb. Springs arrive earlier, summers last longer, snowpack shrinks each decade, and autumn rains come later. What felt like a typical summer in 1980 now falls in the cooler half of the historical record.",
-    "chart_title": "Macedonia daily max temperatures for the two weeks around {day_label} since {year_min}",
-    "trend_title": "Macedonia peak temperatures around {day_label} · {year_min}–{year_max} · trend with projection to 2050",
+    "chart_title": "{location} daily max temperatures for the two weeks around {day_label} since {year_min}",
+    "trend_title": "{location} peak temperatures around {day_label} · {year_min}–{year_max} · trend with projection to 2050",
     "explain2": "The curve shows how often each peak temperature occurred on days like today across all years. Colours mark climatological zones — from cold blue through the typical beige band to extreme red — so you can see at a glance where today sits.",
     "explain3": "Each dot is the 90th percentile of the national mean daily-maximum temperature across all stations in a ±30-day window around this date, for every year since {year_min}. The Theil-Sen trend is {trend} °C/decade ({sig}). At this rate, by 2050 the trend projects to {proj2050} °C. The shaded band is the 95% confidence interval on the slope. Note: this chart uses the national mean across all stations; the 'Is it hot today?' card above uses the national peak (single hottest station) — both are valid, but they measure different things.",
+    "explain3_location": "Each dot is the 90th percentile of {location}'s mean daily-maximum temperature in a ±30-day window around this date, for every year since {year_min}. The Theil-Sen trend is {trend} °C/decade ({sig}). At this rate, by 2050 the trend projects to {proj2050} °C. The shaded band is the 95% confidence interval on the slope.",
     "foot": "{temp} °C · {pct}th percentile · {samples} samples ({year_min}–{year_max})",
     "foot2": "Today: {temp} °C · {pct}th percentile · median {median} °C · {samples} observations · {year_min}–{year_max}",
     "today_label": "TODAY",
