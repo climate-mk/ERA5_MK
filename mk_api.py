@@ -612,19 +612,25 @@ def compute_today_status(target_date=None, loc=None):
     # 3. Get today_temp via the right source
     if is_today:
         # Live forecast from Open-Meteo
-        temps_by_station = _fetch_om("https://api.open-meteo.com/v1/forecast", {"forecast_days": 1})
+        url, extra = "https://api.open-meteo.com/v1/forecast", {"forecast_days": 1}
+        temps_by_station = _fetch_om(url, extra)
+        if loc and loc not in temps_by_station:
+            # One station's request can fail transiently even when the other 19
+            # succeed — retry once for just that station before giving up, rather
+            # than failing (and memoizing) the whole response over one bad request.
+            temps_by_station.update(_fetch_om(url, extra))
         if not temps_by_station or (loc and loc not in temps_by_station):
-            _TODAY_CACHE[mem_key] = {"available": False}
-            return _TODAY_CACHE[mem_key]
+            return {"available": False}  # not cached — a later retry may succeed
         today_temp = temps_by_station[loc] if loc else max(temps_by_station.values())
     elif target_date > _CSV_MAX_DATE:
         # Gap between CSV coverage and today — use Open-Meteo archive (ERA5-T near-real-time)
         ds = cache_key
-        temps_by_station = _fetch_om("https://archive-api.open-meteo.com/v1/archive",
-                          {"start_date": ds, "end_date": ds})
+        url, extra = "https://archive-api.open-meteo.com/v1/archive", {"start_date": ds, "end_date": ds}
+        temps_by_station = _fetch_om(url, extra)
+        if loc and loc not in temps_by_station:
+            temps_by_station.update(_fetch_om(url, extra))
         if not temps_by_station or (loc and loc not in temps_by_station):
-            _TODAY_CACHE[mem_key] = {"available": False}
-            return _TODAY_CACHE[mem_key]
+            return {"available": False}  # not cached — a later retry may succeed
         today_temp = temps_by_station[loc] if loc else max(temps_by_station.values())
     else:
         # Within CSV coverage — read directly from ERA5 in-memory data
