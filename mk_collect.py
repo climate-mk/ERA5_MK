@@ -396,3 +396,48 @@ elif files_updated > 0 and not _zip_is_today:
 else:
     _reason = "already up-to-date for today" if _zip_is_today else "no new data collected"
     print(f"Data archive unchanged — skipping zip ({_reason}).")
+
+# ── Prune stale per-location "today" / "annual_trend" gap-day caches ───────────
+# A date inside the ERA5-T gap (CSV max date < target < today) is served from
+# the live near-real-time archive (see compute_today_status in mk_api.py) and
+# cached to disk. Once that date is covered by freshly-collected CSV data, the
+# old gap-derived cache value is stale — delete it so the next request
+# recomputes from the now-authoritative CSV instead of waiting out the
+# existing 3-day cache-pruning window.
+if files_updated > 0:
+    _api_cache_dir = os.path.join("cache", CONFIG["code"])
+    if os.path.isdir(_api_cache_dir):
+        _pruned = 0
+        _station_max_dates = {}
+        for loc in LOCATIONS:
+            _name = loc["name"]
+            try:
+                _df = pd.read_csv(os.path.join(OUTPUT_DIR, get_filename_for_location(_name)),
+                                   usecols=["date"])
+                _station_max_dates[_name] = pd.to_datetime(_df["date"]).max().date()
+            except Exception:
+                continue
+            for _p in glob.glob(os.path.join(_api_cache_dir, f"today_*_{_name}.json")):
+                _stem = os.path.basename(_p)[len("today_"):-len(".json")]
+                _file_date = pd.to_datetime(_stem[:10]).date()
+                if _file_date <= _station_max_dates[_name]:
+                    try:
+                        os.remove(_p)
+                        _pruned += 1
+                    except Exception:
+                        pass
+        # National gap-day values are a max() across all stations, so a date only
+        # becomes fully CSV-covered nationally once every station's CSV reaches it.
+        if _station_max_dates:
+            _national_max_date = min(_station_max_dates.values())
+            for _p in glob.glob(os.path.join(_api_cache_dir, "today_*_national.json")):
+                _stem = os.path.basename(_p)[len("today_"):-len(".json")]
+                _file_date = pd.to_datetime(_stem[:10]).date()
+                if _file_date <= _national_max_date:
+                    try:
+                        os.remove(_p)
+                        _pruned += 1
+                    except Exception:
+                        pass
+        if _pruned:
+            print(f"Pruned {_pruned} stale gap-day cache file(s) now covered by fresh CSV data.")
