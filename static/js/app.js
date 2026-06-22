@@ -99,6 +99,7 @@ const state = {
   doy:        105,
   window:     7,
   playing:    false,
+  todayLoc:   null,   // null = national ("Македонија"); else a station name
 };
 
 // ── Preferences (localStorage persistence) ───────────────────────────────────
@@ -856,10 +857,12 @@ function _buildTodayFlag(catKey) {
 // ── Render "Is it Hot in Macedonia Today?" ────────────────────────────────────
 
 function _buildTodayCardInner(r) {
+  const placeName = r.loc ? locName(r.loc) : (t('ui.today_location_short') || _locale?.meta?.country_name || _metaConfig?.name || '');
+  const explain1Key = r.loc ? 'today.explain1_location' : 'today.explain1';
   return `
     <div class="today-h-row">
       <div class="today-h-wrap">
-        <div class="today-h">${t('ui.title_today')}</div>
+        <div class="today-h">${t('ui.title_today', {location: placeName})}</div>
         <div class="today-subtitle">${t('ui.subtitle_today')}</div>
       </div>
       <div class="today-temp-badge" style="background:${r.color};color:${r.category_key === 'nope' ? 'var(--ink)' : '#fff'}">${r.today_temp.toFixed(1)}°C</div>
@@ -867,10 +870,10 @@ function _buildTodayCardInner(r) {
     <div class="today-body">
       <div class="today-flag-wrap">${_buildTodayFlag(r.category_key)}</div>
       <div class="today-text">
-        <span class="today-cat">${_locale?.categories?.[r.category_key || r.category.toLowerCase()]?.name || r.category}</span><span class="today-sep-dot" style="background:${r.color}"></span><span class="today-desc">${(_locale?.categories?.[r.category_key || r.category.toLowerCase()]?.desc || r.description).replace('{country}', _locale?.meta?.country_name || _metaConfig?.name || '').replace('{data_start_year}', String(r.year_min || '')).replace('{record_years}', String(r.year_max && r.year_min ? r.year_max - r.year_min + 1 : '')).replace('{d}', _fmtDay(r.month_num, r.day_num, r.day_label))}</span>
+        <span class="today-cat">${_locale?.categories?.[r.category_key || r.category.toLowerCase()]?.name || r.category}</span><span class="today-sep-dot" style="background:${r.color}"></span><span class="today-desc">${(_locale?.categories?.[r.category_key || r.category.toLowerCase()]?.desc || r.description).replace('{country}', placeName).replace('{data_start_year}', String(r.year_min || '')).replace('{record_years}', String(r.year_max && r.year_min ? r.year_max - r.year_min + 1 : '')).replace('{d}', _fmtDay(r.month_num, r.day_num, r.day_label))}</span>
       </div>
     </div>
-    <p class="today-explain">${t('today.explain1')}</p>
+    <p class="today-explain">${t(explain1Key, {location: placeName})}</p>
     ${t('today.climate_context') ? `<p class="today-context">${t('today.climate_context')}</p>` : ''}
     <div class="today-foot">
       ${_locale?.today?.foot
@@ -888,7 +891,8 @@ function _updateTodayCard(r) {
 
   const distCard = document.getElementById('today-dist-card');
   if (distCard) {
-    distCard.innerHTML = `<div class="today-chart-title">${t('today.chart_title', {day_label: _fmtDay(r.month_num, r.day_num, r.day_label), year_min: r.year_min})}</div><div id="today-dist-chart"></div>`;
+    const placeName = r.loc ? locName(r.loc) : (t('ui.today_location_short') || _locale?.meta?.country_name || _metaConfig?.name || '');
+    distCard.innerHTML = `<div class="today-chart-title">${t('today.chart_title', {day_label: _fmtDay(r.month_num, r.day_num, r.day_label), year_min: r.year_min, location: placeName})}</div><div id="today-dist-chart"></div>`;
     renderTodayChart(r);
   }
 
@@ -914,7 +918,8 @@ async function _navigateTodayTo(newOffset) {
     const d = new Date();
     d.setDate(d.getDate() + newOffset);
     const dateStr = d.toISOString().slice(0, 10);
-    const r = await fetch(`api/today_status?date=${dateStr}`).then(res => res.json());
+    const locParam = state.todayLoc ? `&loc=${encodeURIComponent(state.todayLoc)}` : "";
+    const r = await fetch(`api/today_status?date=${dateStr}${locParam}`).then(res => res.json());
     if (!r.available) {
       if (prevBtn) prevBtn.disabled = false;
       if (nextBtn) nextBtn.disabled = _todayOffset === 0;
@@ -929,24 +934,58 @@ async function _navigateTodayTo(newOffset) {
   }
 }
 
+// Populate the today-section location <select>: national default + every station.
+function _populateTodayLocSelect() {
+  const sel = document.getElementById('today-loc-select');
+  if (!sel) return;
+  sel.innerHTML = '';
+  const natOpt = document.createElement('option');
+  natOpt.value = '';
+  natOpt.textContent = t('ui.today_location_short') || _locale?.meta?.country_name || _metaConfig?.name || 'Македонија';
+  sel.appendChild(natOpt);
+  (state.locations || []).forEach(loc => {
+    const opt = document.createElement('option');
+    opt.value = loc;
+    opt.textContent = locName(loc);
+    sel.appendChild(opt);
+  });
+  sel.value = state.todayLoc || '';
+}
+
+// Re-fetch today_status + annual_trend for the currently selected location,
+// preserving whatever date offset/view the user had navigated to.
+async function _refreshTodayForLoc() {
+  const params = new URLSearchParams();
+  if (_todayViewDate)  params.set('date', _todayViewDate);
+  if (state.todayLoc)  params.set('loc', state.todayLoc);
+  try {
+    const r = await fetch(`api/today_status?${params}`).then(res => res.json());
+    if (!r.available) return;
+    _updateTodayCard(r);
+  } catch {
+    /* network error — keep prior view */
+  }
+}
+
 async function renderTodayStatus() {
   if (!isEnabled("today_section")) return;
   const el = document.getElementById("today-status");
   if (!el) return;
   try {
-    const r = await fetch("api/today_status").then(res => res.json());
+    const locParam = state.todayLoc ? `?loc=${encodeURIComponent(state.todayLoc)}` : "";
+    const r = await fetch(`api/today_status${locParam}`).then(res => res.json());
     if (!r.available) return;
     el.innerHTML = `
-      <div class="sec-heading">
-        <div class="today-heading-left">
-          <span class="today-heading-title">${t('ui.heading_today')}</span>
-          <div class="today-date-control">
-            <button id="today-prev" class="today-nav-btn" aria-label="Previous day"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="15 18 9 12 15 6"/></svg></button>
-            <div class="today-date-badge" id="today-date-badge" title="Click to pick a date">–</div>
-            <button id="today-next" class="today-nav-btn" aria-label="Next day" disabled><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="9 18 15 12 9 6"/></svg></button>
+      <div class="sec-heading today-sec-heading">
+        <div class="today-heading-row">
+          <div class="today-heading-left">
+            <span class="today-heading-title">${t('ui.heading_today')}</span>
+            <a href="climate-news.html" class="mk2036-timeline-btn">
+              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 11a9 9 0 0 1 9 9"/><path d="M4 4a16 16 0 0 1 16 16"/><circle cx="5" cy="19" r="1"/></svg>
+              <span>${t('ui.nav_climate_news')}</span>
+            </a>
           </div>
-        </div>
-        <div id="share-widget">
+          <div id="share-widget">
           <button id="share-toggle" aria-label="Share this site">
             <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><circle cx="18" cy="5" r="3"/><circle cx="6" cy="12" r="3"/><circle cx="18" cy="19" r="3"/><line x1="8.59" y1="13.51" x2="15.42" y2="17.49"/><line x1="15.41" y1="6.51" x2="8.59" y2="10.49"/></svg>
           </button>
@@ -973,6 +1012,13 @@ async function renderTodayStatus() {
             </a>
           </div>
         </div>
+        </div>
+        <div class="today-date-control">
+          <button id="today-prev" class="today-nav-btn" aria-label="Previous day"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="15 18 9 12 15 6"/></svg></button>
+          <div class="today-date-badge" id="today-date-badge" title="Click to pick a date">–</div>
+          <button id="today-next" class="today-nav-btn" aria-label="Next day" disabled><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="9 18 15 12 9 6"/></svg></button>
+          <select id="today-loc-select" class="today-loc-select" aria-label="${t('ui.today_location_label')}"></select>
+        </div>
       </div>
       <div class="today-grid">
         <div class="today-card" id="today-main-card"></div>
@@ -988,6 +1034,11 @@ async function renderTodayStatus() {
     _updateTodayCard(r);
     document.getElementById('today-prev').addEventListener('click', () => _navigateTodayTo(_todayOffset - 1));
     document.getElementById('today-next').addEventListener('click', () => _navigateTodayTo(_todayOffset + 1));
+    _populateTodayLocSelect();
+    document.getElementById('today-loc-select').addEventListener('change', e => {
+      state.todayLoc = e.target.value || null;
+      _refreshTodayForLoc();
+    });
     document.getElementById('today-date-badge').addEventListener('click', e => {
       e.stopPropagation();
       document.getElementById('today-doy-popup')?.remove();
@@ -1166,13 +1217,17 @@ function renderTodayChart(r) {
 
 async function renderTodayTrendChart(dateStr = null) {
   try {
-    const url = dateStr ? `api/annual_trend?date=${dateStr}` : 'api/annual_trend';
+    const params = new URLSearchParams();
+    if (dateStr)        params.set('date', dateStr);
+    if (state.todayLoc) params.set('loc', state.todayLoc);
+    const url = `api/annual_trend?${params}`;
     const d = await fetch(url).then(r => r.json());
     const currentYear = new Date().getFullYear();
+    const placeName = d.loc ? locName(d.loc) : (t('ui.today_location_short') || _locale?.meta?.country_name || _metaConfig?.name || '');
 
     // Update title with actual year range
     const titleEl = document.getElementById("today-trend-title");
-    if (titleEl) titleEl.textContent = t('today.trend_title', {day_label: _fmtDay(d.month_num, d.day_num, d.day_label), year_min: d.year_min, year_max: d.year_max});
+    if (titleEl) titleEl.textContent = t('today.trend_title', {day_label: _fmtDay(d.month_num, d.day_num, d.day_label), year_min: d.year_min, year_max: d.year_max, location: placeName});
 
     const s    = d.stats;
     const sign = s.trend10 >= 0 ? "+" : "";
@@ -1255,8 +1310,9 @@ async function renderTodayTrendChart(dateStr = null) {
     const explain3 = document.createElement("p");
     explain3.className = "today-explain";
     explain3.style.padding = "4px 0 2px";
-    explain3.textContent = t("today.explain3", {
-      year_min: d.year_min, trend: trendStr, sig, proj2050,
+    const explain3Key = d.loc ? "today.explain3_location" : "today.explain3";
+    explain3.textContent = t(explain3Key, {
+      year_min: d.year_min, trend: trendStr, sig, proj2050, location: placeName,
     }) || `Each dot is the 90th percentile of the national mean daily-maximum temperature across all stations in a ±30-day window around this date, for every year since ${d.year_min}. The Theil-Sen trend is ${trendStr} °C/decade (${sig}). At this rate, by 2050 the trend projects to ${proj2050} °C. The shaded band is the 95% confidence interval on the slope.`;
     document.getElementById("today-trend-card").appendChild(explain3);
 

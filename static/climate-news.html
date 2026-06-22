@@ -1,0 +1,326 @@
+<!DOCTYPE html>
+<html lang="mk">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Климатски вести — climate.mk</title>
+  <link rel="alternate" type="application/rss+xml" title="Климатски вести — climate.mk" href="/rss/climate_news.xml">
+  <link rel="icon" type="image/x-icon" href="favicon.ico">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+    :root {
+      --paper:     #F5F2EC;
+      --paper-2:   #EFEBE2;
+      --card:      #FFFFFF;
+      --ink:       #0E0E0C;
+      --ink-soft:  #6B655B;
+      --ink-faint: #ABA59A;
+      --rule:      rgba(14,14,12,0.08);
+      --rule-2:    rgba(14,14,12,0.14);
+      --accent:    #C25A2C;
+      --radius:    14px;
+      --max-w:     720px;
+    }
+
+    html { scroll-padding-top: 80px; }
+
+    body {
+      font-family: 'Space Grotesk', system-ui, sans-serif;
+      background: var(--paper);
+      color: var(--ink);
+      font-size: 15px;
+      line-height: 1.6;
+    }
+
+    /* ── Topbar ── */
+    .topbar {
+      position: sticky; top: 0; z-index: 100;
+      background: var(--paper);
+      border-bottom: 1px solid var(--rule);
+      padding: 14px 40px;
+      display: flex; align-items: center; gap: 20px;
+    }
+    .topbar a.home { display: flex; align-items: center; gap: 10px; text-decoration: none; color: var(--ink-soft); font-family: 'JetBrains Mono', monospace; font-size: 11px; letter-spacing: 0.1em; text-transform: uppercase; }
+    .topbar a.home:hover { color: var(--accent); }
+    .topbar-sep { color: var(--ink-faint); }
+    .topbar-title { font-weight: 600; font-size: 15px; color: var(--ink); }
+    .topbar-rss { margin-top: 0; }
+    #share-widget { position: relative; flex-shrink: 0; margin-left: auto; }
+    #share-toggle {
+      width: 32px; height: 32px; border-radius: 50%;
+      border: 1px solid var(--rule); background: var(--card);
+      color: var(--ink-soft); cursor: pointer;
+      display: flex; align-items: center; justify-content: center;
+      transition: color 0.15s, background 0.15s;
+    }
+    #share-toggle:hover { color: var(--ink); background: var(--paper-2); }
+    #share-popover {
+      position: absolute; top: calc(100% + 8px); right: 0;
+      background: var(--card); border: 1px solid var(--rule);
+      border-radius: 8px; box-shadow: 0 4px 18px rgba(0,0,0,0.11);
+      padding: 5px; min-width: 155px;
+      display: flex; flex-direction: column; gap: 1px;
+    }
+    #share-popover[hidden] { display: none; }
+    #share-popover a, #share-popover button {
+      display: flex; align-items: center; gap: 9px;
+      padding: 7px 10px; border-radius: 5px;
+      font-family: 'Space Grotesk', sans-serif; font-size: 13px;
+      color: var(--ink-soft); text-decoration: none;
+      background: none; border: none; cursor: pointer; width: 100%; text-align: left;
+      transition: background 0.12s, color 0.12s;
+    }
+    #share-popover a:hover, #share-popover button:hover { background: var(--paper); color: var(--ink); }
+    #share-popover svg { flex-shrink: 0; color: var(--ink-faint); }
+
+    /* ── Layout ── */
+    .page { max-width: 1100px; margin: 0 auto; padding: 40px 40px 80px; display: flex; gap: 40px; align-items: flex-start; flex-wrap: wrap; }
+    .col-news { flex: 1 1 480px; min-width: 0; max-width: var(--max-w); }
+    .col-x { flex: 0 1 360px; min-width: 280px; }
+
+    h1 { font-size: 30px; font-weight: 700; letter-spacing: -0.02em; margin-bottom: 6px; }
+    .section-sub { color: var(--ink-soft); font-size: 14px; margin-bottom: 28px; }
+    h2 { font-size: 15px; font-weight: 600; text-transform: uppercase; letter-spacing: 0.06em; color: var(--ink-soft); margin-bottom: 16px; font-family: 'JetBrains Mono', monospace; }
+
+    /* ── News cards ── */
+    .news-list { display: flex; flex-direction: column; gap: 14px; }
+    .news-card {
+      background: var(--card);
+      border: 1px solid var(--rule);
+      border-radius: var(--radius);
+      padding: 14px;
+      display: flex;
+      gap: 14px;
+      align-items: flex-start;
+      text-decoration: none;
+      color: var(--ink);
+      transition: border-color 0.15s ease;
+    }
+    .news-card:hover { border-color: var(--accent); }
+    .news-card .news-thumb { width: 96px; height: 72px; flex-shrink: 0; border-radius: 8px; object-fit: cover; background: var(--paper-2); }
+    .news-card .news-thumb-fallback { object-fit: contain; padding: 20px; }
+    .news-card .news-body { flex: 1; min-width: 0; }
+    .news-card .news-title { font-weight: 600; font-size: 15px; margin-bottom: 8px; line-height: 1.4; }
+    .news-meta { display: flex; gap: 10px; align-items: center; font-family: 'JetBrains Mono', monospace; font-size: 11px; color: var(--ink-faint); letter-spacing: 0.02em; }
+    .news-meta .news-source { color: var(--accent); }
+    .news-origin-tag {
+      font-size: 9px; text-transform: uppercase; letter-spacing: 0.04em;
+      padding: 2px 6px; border-radius: 4px;
+      background: var(--paper-2); color: var(--ink-faint);
+    }
+
+    .state-msg { color: var(--ink-soft); font-size: 14px; padding: 20px 0; }
+
+    /* ── X column ── */
+    .x-panel {
+      background: var(--card);
+      border: 1px solid var(--rule);
+      border-radius: var(--radius);
+      padding: 16px;
+      position: sticky;
+      top: 80px;
+    }
+    .x-fallback-link {
+      display: inline-flex; align-items: center; gap: 8px;
+      margin-top: 12px;
+      color: var(--accent); text-decoration: none; font-weight: 600; font-size: 14px;
+    }
+    .x-fallback-link:hover { text-decoration: underline; }
+
+    .footer { border-top: 1px solid var(--rule); padding: 20px 40px; font-family: 'JetBrains Mono', monospace; font-size: 10px; color: var(--ink-faint); text-align: center; letter-spacing: 0.06em; }
+
+    @media (max-width: 780px) {
+      .topbar { padding: 12px 16px; }
+      .page { padding: 24px 16px 60px; flex-direction: column; }
+      .col-x { flex-basis: auto; width: 100%; }
+      .x-panel { position: static; }
+      h1 { font-size: 24px; }
+    }
+  </style>
+</head>
+<body>
+
+<header class="topbar">
+  <a href="/" class="home">← climate.mk</a>
+  <span class="topbar-sep">·</span>
+  <span class="topbar-title">Климатски вести</span>
+  <a class="x-fallback-link topbar-rss" href="/rss/climate_news.xml" target="_blank" rel="noopener"><img src="images/feed-icon-28x28.png" alt="" width="16" height="16">RSS извоз →</a>
+  <div id="share-widget">
+    <button id="share-toggle" aria-label="Сподели ја страницата">
+      <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><circle cx="18" cy="5" r="3"/><circle cx="6" cy="12" r="3"/><circle cx="18" cy="19" r="3"/><line x1="8.59" y1="13.51" x2="15.42" y2="17.49"/><line x1="15.41" y1="6.51" x2="8.59" y2="10.49"/></svg>
+    </button>
+    <div id="share-popover" hidden>
+      <button id="share-copy">
+        <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M10 13a5 5 0 0 0 7.54.54l3-3a5 5 0 0 0-7.07-7.07l-1.72 1.71"/><path d="M14 11a5 5 0 0 0-7.54-.54l-3 3a5 5 0 0 0 7.07 7.07l1.71-1.71"/></svg>
+        <span id="share-copy-lbl">Копирај линк</span>
+      </button>
+      <a href="https://x.com/intent/tweet?url=https%3A%2F%2Fclimate.mk%2Fclimate-news.html&text=Климатски%20вести%20од%20климате.мк" target="_blank" rel="noopener">
+        <svg width="15" height="15" viewBox="0 0 24 24" fill="currentColor"><path d="M18.244 2.25h3.308l-7.227 8.26 8.502 11.24H16.17l-4.714-6.231-5.401 6.231H2.744l7.73-8.835L1.254 2.25H8.08l4.713 6.231zm-1.161 17.52h1.833L7.084 4.126H5.117z"/></svg>
+        <span>X / Twitter</span>
+      </a>
+      <a href="https://www.facebook.com/sharer/sharer.php?u=https%3A%2F%2Fclimate.mk%2Fclimate-news.html" target="_blank" rel="noopener">
+        <svg width="15" height="15" viewBox="0 0 24 24" fill="currentColor"><path d="M24 12.073c0-6.627-5.373-12-12-12s-12 5.373-12 12c0 5.99 4.388 10.954 10.125 11.854v-8.385H7.078v-3.47h3.047V9.43c0-3.007 1.792-4.669 4.533-4.669 1.312 0 2.686.235 2.686.235v2.953H15.83c-1.491 0-1.956.925-1.956 1.874v2.25h3.328l-.532 3.47h-2.796v8.385C19.612 23.027 24 18.062 24 12.073z"/></svg>
+        <span>Facebook</span>
+      </a>
+      <a href="https://www.linkedin.com/sharing/share-offsite/?url=https%3A%2F%2Fclimate.mk%2Fclimate-news.html" target="_blank" rel="noopener">
+        <svg width="15" height="15" viewBox="0 0 24 24" fill="currentColor"><path d="M20.447 20.452h-3.554v-5.569c0-1.328-.027-3.037-1.852-3.037-1.853 0-2.136 1.445-2.136 2.939v5.667H9.351V9h3.414v1.561h.046c.477-.9 1.637-1.85 3.37-1.85 3.601 0 4.267 2.37 4.267 5.455v6.286zM5.337 7.433c-1.144 0-2.063-.926-2.063-2.065 0-1.138.92-2.063 2.063-2.063 1.14 0 2.064.925 2.064 2.063 0 1.139-.925 2.065-2.064 2.065zm1.782 13.019H3.555V9h3.564v11.452zM22.225 0H1.771C.792 0 0 .774 0 1.729v20.542C0 23.227.792 24 1.771 24h20.451C23.2 24 24 23.227 24 22.271V1.729C24 .774 23.2 0 22.222 0h.003z"/></svg>
+        <span>LinkedIn</span>
+      </a>
+      <a href="https://bsky.app/intent/compose?text=Климатски%20вести%20од%20климате.мк%20https%3A%2F%2Fclimate.mk%2Fclimate-news.html" target="_blank" rel="noopener">
+        <svg width="15" height="15" viewBox="0 0 24 24" fill="currentColor"><path d="M12 10.8c-1.087-2.114-4.046-6.053-6.798-7.995C2.566.944 1.561 1.266.902 1.565.139 1.908 0 3.08 0 3.768c0 .69.378 5.65.624 6.479.815 2.736 3.713 3.66 6.383 3.364.136-.02.275-.039.415-.056-.138.022-.276.04-.415.056-3.912.58-7.387 2.005-2.83 7.078 5.013 5.19 6.87-1.113 7.823-4.308.953 3.195 2.05 9.271 7.733 4.308 4.267-4.308 1.172-6.498-2.74-7.078a8.741 8.741 0 0 1-.415-.056c.14.017.279.036.415.056 2.67.297 5.568-.628 6.383-3.364.246-.828.624-5.79.624-6.478 0-.69-.139-1.861-.902-2.204-.659-.299-1.664-.62-4.3 1.24C16.046 4.748 13.087 8.687 12 10.8z"/></svg>
+        <span>Bluesky</span>
+      </a>
+    </div>
+  </div>
+</header>
+
+<div class="page">
+
+  <main class="col-news">
+    <h2>Вести за климатските промени од македонски медиуми</h2>
+    <p class="state-msg" id="news-state">Се вчитува…</p>
+    <div id="news-list" class="news-list"></div>
+  </main>
+
+  <aside class="col-x">
+    <h2>Climate.mk на Bluesky</h2>
+    <div class="x-panel" id="x-panel">
+      <!-- BlueskyTimeline Widget -->
+      <bst-widget data-handle="climate-mk.bsky.social" data-theme="light" data-width="420px" data-height="600px" data-lang="en" data-ui="1" data-pin="1" data-rp="0" data-thread="1" data-prof="1"></bst-widget>
+      <script src="https://blueskytimeline.com/v2/timeline.js" type="module" defer></script>
+      <!-- /BlueskyTimeline Widget -->
+    </div>
+    <a class="x-fallback-link" href="https://bsky.app/profile/climate-mk.bsky.social" target="_blank" rel="noopener">Погледнете ги нашите објави на Bluesky →</a>
+  </aside>
+
+</div>
+
+<footer class="footer">climate.mk — климатски вести од јавно достапни извори</footer>
+
+<script>
+  function fmtDate(iso) {
+    try {
+      const d = new Date(iso);
+      return d.toLocaleDateString('mk-MK', { year: 'numeric', month: 'short', day: 'numeric' });
+    } catch (e) {
+      return '';
+    }
+  }
+
+  function faviconUrl(link) {
+    try {
+      const domain = new URL(link).hostname;
+      return 'https://www.google.com/s2/favicons?domain=' + domain + '&sz=64';
+    } catch (e) {
+      return '';
+    }
+  }
+
+  function renderCard(item) {
+    const a = document.createElement('a');
+    a.className = 'news-card';
+    a.href = item.link;
+    a.target = '_blank';
+    a.rel = 'noopener';
+
+    const img = document.createElement('img');
+    img.className = 'news-thumb';
+    img.alt = '';
+    img.loading = 'lazy';
+    if (item.image) {
+      img.src = item.image;
+      img.onerror = function () { img.src = faviconUrl(item.link); img.classList.add('news-thumb-fallback'); img.onerror = function () { img.remove(); }; };
+    } else {
+      const favicon = faviconUrl(item.link);
+      if (favicon) {
+        img.src = favicon;
+        img.classList.add('news-thumb-fallback');
+        img.onerror = function () { img.remove(); };
+      }
+    }
+    if (img.src) a.appendChild(img);
+
+    const body = document.createElement('div');
+    body.className = 'news-body';
+
+    const title = document.createElement('div');
+    title.className = 'news-title';
+    title.textContent = item.title;
+
+    const meta = document.createElement('div');
+    meta.className = 'news-meta';
+    const source = document.createElement('span');
+    source.className = 'news-source';
+    source.textContent = item.source || '';
+    const date = document.createElement('span');
+    date.textContent = fmtDate(item.published);
+    meta.appendChild(source);
+    meta.appendChild(date);
+    const originLabels = { google: 'Google', bing: 'Bing' };
+    const tag = document.createElement('span');
+    tag.className = 'news-origin-tag';
+    tag.textContent = originLabels[item.origin] || 'RSS';
+    meta.appendChild(tag);
+
+    body.appendChild(title);
+    body.appendChild(meta);
+    a.appendChild(body);
+    return a;
+  }
+
+  function byNewestFirst(a, b) {
+    return new Date(b.published) - new Date(a.published);
+  }
+
+  fetch('/api/climate_news')
+    .then(function (resp) {
+      if (resp.status === 204) return [];
+      if (!resp.ok) throw new Error('bad response');
+      return resp.json();
+    })
+    .then(function (items) {
+      const state = document.getElementById('news-state');
+      if (!items || !items.length) {
+        state.textContent = 'Моментално нема достапни вести.';
+        return;
+      }
+      state.remove();
+
+      const list = document.getElementById('news-list');
+      items.slice().sort(byNewestFirst).forEach(function (item) {
+        list.appendChild(renderCard(item));
+      });
+    })
+    .catch(function () {
+      document.getElementById('news-state').textContent = 'Грешка при вчитување на вестите.';
+    });
+
+  // ── Share widget ──
+  document.addEventListener('click', function (e) {
+    const popover = document.getElementById('share-popover');
+    if (!popover) return;
+    if (e.target.closest('#share-toggle')) {
+      e.stopPropagation();
+      popover.hidden = !popover.hidden;
+      return;
+    }
+    if (e.target.closest('#share-copy')) {
+      navigator.clipboard.writeText(window.location.href).then(function () {
+        const lbl = document.getElementById('share-copy-lbl');
+        if (!lbl) return;
+        const orig = lbl.textContent;
+        lbl.textContent = 'Копирано!';
+        setTimeout(function () { lbl.textContent = orig; }, 1500);
+      });
+      return;
+    }
+    if (!e.target.closest('#share-popover')) popover.hidden = true;
+  });
+</script>
+
+</body>
+</html>

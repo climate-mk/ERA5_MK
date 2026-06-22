@@ -1,0 +1,9 @@
+WARNING: This is a development server. Do not use it in a production deployment. Use a production WSGI server instead.
+ * Running on all addresses (0.0.0.0)
+ * Running on http://127.0.0.1:5050
+ * Running on http://192.168.1.23:5050
+Press CTRL+C to quit
+127.0.0.1 - - [22/Jun/2026 17:34:19] "GET /future-timeline.html HTTP/1.1" 200 -
+127.0.0.1 - - [22/Jun/2026 17:34:19] "GET /future-timeline-mk.html HTTP/1.1" 200 -
+127.0.0.1 - - [22/Jun/2026 17:34:19] "GET /future-timeline-sq.html HTTP/1.1" 200 -
+127.0.0.1 - - [22/Jun/2026 17:34:19] "GET /climate-news.html HTTP/1.1" 200 -

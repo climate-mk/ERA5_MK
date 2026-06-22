@@ -1,0 +1,6 @@
+# Refresh the Macedonian climate-news archive every 6 hours.
+# Runs the standalone climate_news.py script (not mk_api.py — that would
+# re-load all station CSVs into memory for no reason). No service restart
+# needed: mk_api.py just reads whatever's in cache/<country>/climate_news_archive.json,
+# so visitors never trigger the ~10s live poll themselves.
+0 */6 * * * root cd /opt/mk_climate && COUNTRY=mk /opt/mk_climate/venv/bin/python climate_news.py >> /var/log/climate_news.log 2>&1

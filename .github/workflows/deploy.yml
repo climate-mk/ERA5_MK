@@ -59,13 +59,19 @@ jobs:
             systemctl is-active mk_climate
           "
 
-      - name: Install cron job
+      - name: Install cron jobs
         run: |
           ssh root@46.224.208.142 "
             cp /opt/mk_climate/cron/mk_collect /etc/cron.d/mk_climate &&
             chmod 644 /etc/cron.d/mk_climate &&
+            cp /opt/mk_climate/cron/climate_news /etc/cron.d/mk_climate_news &&
+            chmod 644 /etc/cron.d/mk_climate_news &&
+            cp /opt/mk_climate/cron/climate_news_serpapi /etc/cron.d/mk_climate_news_serpapi &&
+            chmod 644 /etc/cron.d/mk_climate_news_serpapi &&
             echo 'Cron installed:' &&
-            cat /etc/cron.d/mk_climate
+            cat /etc/cron.d/mk_climate &&
+            cat /etc/cron.d/mk_climate_news &&
+            cat /etc/cron.d/mk_climate_news_serpapi
           "
 
       - name: Health check
@@ -93,4 +99,24 @@ jobs:
                 echo \"  warmed [\$status]: \$name\"
               fi
             done
+          "
+
+      - name: Warm per-location today/trend caches
+        run: |
+          echo "Warming today_status + annual_trend caches (national + every station)..."
+          ssh root@46.224.208.142 "
+            status=\$(curl -s -o /dev/null -w '%{http_code}' http://localhost:5050/api/today_status)
+            if [ \"\$status\" = '204' ]; then
+              echo '  skipped (today_section disabled)'
+            else
+              curl -s -o /dev/null http://localhost:5050/api/today_status
+              curl -s -o /dev/null http://localhost:5050/api/annual_trend
+              echo '  warmed: national'
+              locations=\$(curl -s http://localhost:5050/api/meta | python3 -c 'import sys,json,urllib.parse; [print(urllib.parse.quote(l)) for l in json.load(sys.stdin)[\"locations\"]]')
+              for loc in \$locations; do
+                curl -s -o /dev/null \"http://localhost:5050/api/today_status?loc=\$loc\"
+                curl -s -o /dev/null \"http://localhost:5050/api/annual_trend?loc=\$loc\"
+                echo \"  warmed: \$loc\"
+              done
+            fi
           "

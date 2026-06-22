@@ -8,6 +8,8 @@ import os, glob, time, hashlib, json, threading, ipaddress, sqlite3, csv, io, da
 import numpy as np
 import pandas as pd
 import requests as http_requests
+
+from climate_news import compute_climate_news, build_rss_xml
 from flask import Flask, jsonify, request, send_from_directory, send_file, session, Response
 from flask_limiter import Limiter
 from flask_limiter.util import get_remote_address
@@ -334,20 +336,21 @@ def _today_local():
 
 _ANNUAL_TREND_CACHE = {}
 
-def compute_annual_trend(target_date=None):
+def compute_annual_trend(target_date=None, loc=None):
     if target_date is None:
         target_date = _today_local().date()
 
     month, day = target_date.month, target_date.day
     # Keyed by day-of-year (MM-DD) — the trend window is identical for any
     # year's May 28, so we don't re-compute when the year changes.
-    cache_key = f"{month:02d}-{day:02d}"
+    cache_loc = loc or "national"
+    cache_key = f"{month:02d}-{day:02d}|{cache_loc}"
 
     if cache_key in _ANNUAL_TREND_CACHE:
         return _ANNUAL_TREND_CACHE[cache_key]
 
     # FS cache: survives restarts; day-of-year files are permanent (no cleanup needed)
-    fs_path = os.path.join(_CACHE_DIR, f"annual_trend_v12_{cache_key}.json")
+    fs_path = os.path.join(_CACHE_DIR, f"annual_trend_v12_{month:02d}-{day:02d}_{cache_loc}.json")
     cached  = _fs_load(fs_path)
     if cached is not None:
         _ANNUAL_TREND_CACHE[cache_key] = cached
@@ -355,14 +358,17 @@ def compute_annual_trend(target_date=None):
 
     dlabel = f"{MONTH_NAMES[month - 1]} {day}"
 
-    # National daily MEAN temperature_max across all stations, ±30-day window.
+    # National daily MEAN temperature_max across all stations, ±30-day window
+    # (or a single station's own daily max when `loc` is given — no cross-station
+    # averaging needed since there's only one station's series).
     # Mean (not max) gives equal weight to all stations, removes single-station spikes.
     # Annual value = 90th percentile of those ~61 daily means per year.
     # Excludes years where fewer than 50 days are available in the window
     # (guards against the current year being incomplete at the window edges).
     WINDOW_HALF = 30   # ±days around today's date
 
-    window = window_filter(data, month, day, WINDOW_HALF)
+    loc_data = data[data["location"] == loc] if loc else data
+    window = window_filter(loc_data, month, day, WINDOW_HALF)
     daily_mean = (
         window.groupby(["_window_year", "date"])["temperature_max"]
         .mean()
@@ -429,6 +435,7 @@ def compute_annual_trend(target_date=None):
             "tau":     round(float(mk_r.Tau), 3),
             "n_years": int(len(x_arr)),
         },
+        "loc": loc,
     }
     _ANNUAL_TREND_CACHE[cache_key] = result
     _fs_save(fs_path, result)  # no cleanup — day-of-year files are permanent
@@ -441,7 +448,7 @@ _CACHE_DIR = os.path.join(os.path.dirname(__file__), "cache", CONFIG["code"])
 def _fs_load(path):
     """Load a JSON cache file; return None on any error."""
     try:
-        with open(path) as f:
+        with open(path, encoding="utf-8") as f:
             return json.load(f)
     except Exception:
         return None
@@ -450,8 +457,8 @@ def _fs_save(path, data, glob_pattern=None, keep_days=3, anchor_date=None):
     """Write data as JSON; optionally prune old sibling files by date suffix."""
     try:
         os.makedirs(os.path.dirname(path), exist_ok=True)
-        with open(path, "w") as f:
-            json.dump(data, f)
+        with open(path, "w", encoding="utf-8") as f:
+            json.dump(data, f, ensure_ascii=False)
         if glob_pattern and anchor_date:
             cutoff = (pd.Timestamp(anchor_date) - pd.Timedelta(days=keep_days)).date().isoformat()
             for p in glob.glob(glob_pattern):
@@ -489,13 +496,15 @@ def _load_en_locale() -> dict:
 
 _EN_LOCALE = _load_en_locale()
 
-def _categorize_today(pct, dlabel):
+def _categorize_today(pct, dlabel, country=None):
     """Return (key, name, color, description) for a given percentile.
     Text comes from en_default.json so no country name or year is hardcoded here.
     Variables interpolated: {d} day-label, {country}, {record_years}, {data_start_year}.
+    `country` defaults to CONFIG["name"] (national); pass a station's display name
+    when describing a single location instead of the whole country.
     """
     cats   = _EN_LOCALE.get("categories", {})
-    interp = dict(d=dlabel, country=CONFIG["name"],
+    interp = dict(d=dlabel, country=country or CONFIG["name"],
                   record_years=_RECORD_YEARS, data_start_year=_DATA_START_YEAR)
     for cutoff, key, color in _TODAY_CATEGORIES:
         if pct < cutoff:
@@ -509,37 +518,41 @@ def _categorize_today(pct, dlabel):
     desc = cat.get("desc", "").format_map(interp)
     return last[1], name, last[2], desc
 
-def _today_cache_path(date_str):
-    return os.path.join(_TODAY_CACHE_DIR, f"today_{date_str}.json")
+def _today_cache_path(date_str, loc):
+    return os.path.join(_TODAY_CACHE_DIR, f"today_{date_str}_{loc}.json")
 
-def _load_today_from_disk(date_str):
+def _load_today_from_disk(date_str, loc):
     """Return cached dict if today's file exists and is valid, else None."""
     import json as _json
-    path = _today_cache_path(date_str)
+    path = _today_cache_path(date_str, loc)
     try:
         with open(path) as f:
             return _json.load(f)
     except Exception:
         return None
 
-def _save_today_to_disk(date_str, result):
+def _save_today_to_disk(date_str, loc, result):
     """Persist a successful today_status result to disk."""
     import json as _json
     try:
         os.makedirs(_TODAY_CACHE_DIR, exist_ok=True)
-        with open(_today_cache_path(date_str), "w") as f:
+        with open(_today_cache_path(date_str, loc), "w") as f:
             _json.dump(result, f)
-        # Remove cache files older than 3 days (filename sort works: today_YYYY-MM-DD.json)
+        # Remove cache files older than 3 days.
+        # Filename shape: today_YYYY-MM-DD_<loc>.json — date is always the first
+        # segment after the "today_" prefix, so slice on a fixed-width date instead
+        # of assuming the date runs up to the extension.
         cutoff = (pd.Timestamp(date_str) - pd.Timedelta(days=3)).date().isoformat()
         for p in glob.glob(os.path.join(_TODAY_CACHE_DIR, "today_*.json")):
-            file_date = os.path.basename(p)[len("today_"):-len(".json")]
+            stem = os.path.basename(p)[len("today_"):-len(".json")]
+            file_date = stem[:10]  # "YYYY-MM-DD"
             if file_date < cutoff:
                 try: os.remove(p)
                 except Exception: pass
     except Exception:
         pass  # disk write failure is non-fatal
 
-def compute_today_status(target_date=None):
+def compute_today_status(target_date=None, loc=None):
     from concurrent.futures import ThreadPoolExecutor, as_completed
 
     today_ts   = _today_local()
@@ -553,20 +566,24 @@ def compute_today_status(target_date=None):
     if target_date > today_date:
         return {"available": False}
 
+    cache_loc = loc or "national"
     cache_key = target_date.isoformat()
 
     # 1. In-memory cache
-    if cache_key in _TODAY_CACHE:
-        return _TODAY_CACHE[cache_key]
+    mem_key = f"{cache_key}|{cache_loc}"
+    if mem_key in _TODAY_CACHE:
+        return _TODAY_CACHE[mem_key]
 
     # 2. Filesystem cache
-    cached = _load_today_from_disk(cache_key)
+    cached = _load_today_from_disk(cache_key, cache_loc)
     if cached is not None:
-        _TODAY_CACHE[cache_key] = cached
+        _TODAY_CACHE[mem_key] = cached
         return cached
 
     # Shared helper: parallel 20-station fetch from any Open-Meteo endpoint.
     # extra_params is merged into the per-station request (e.g. forecast_days or start/end_date).
+    # Returns {station_name: temp} so callers can pick a single station or take the
+    # national max — one batched fetch serves both cases.
     def _fetch_om(url, extra_params):
         def _one(lat, lon):
             try:
@@ -582,52 +599,56 @@ def compute_today_status(target_date=None):
                 return float(arr[0]) if arr and arr[0] is not None else None
             except Exception:
                 return None
-        temps = []
+        temps_by_station = {}
         with ThreadPoolExecutor(max_workers=20) as pool:
             futures = {pool.submit(_one, c["lat"], c["lon"]): n for n, c in LOC_COORDS.items()}
             for fut in as_completed(futures):
+                name = futures[fut]
                 v = fut.result()
                 if v is not None:
-                    temps.append(v)
-        return temps
+                    temps_by_station[name] = v
+        return temps_by_station
 
     # 3. Get today_temp via the right source
     if is_today:
         # Live forecast from Open-Meteo
-        temps = _fetch_om("https://api.open-meteo.com/v1/forecast", {"forecast_days": 1})
-        if not temps:
-            _TODAY_CACHE[cache_key] = {"available": False}
-            return _TODAY_CACHE[cache_key]
-        today_temp = max(temps)
+        temps_by_station = _fetch_om("https://api.open-meteo.com/v1/forecast", {"forecast_days": 1})
+        if not temps_by_station or (loc and loc not in temps_by_station):
+            _TODAY_CACHE[mem_key] = {"available": False}
+            return _TODAY_CACHE[mem_key]
+        today_temp = temps_by_station[loc] if loc else max(temps_by_station.values())
     elif target_date > _CSV_MAX_DATE:
         # Gap between CSV coverage and today — use Open-Meteo archive (ERA5-T near-real-time)
         ds = cache_key
-        temps = _fetch_om("https://archive-api.open-meteo.com/v1/archive",
+        temps_by_station = _fetch_om("https://archive-api.open-meteo.com/v1/archive",
                           {"start_date": ds, "end_date": ds})
-        if not temps:
-            _TODAY_CACHE[cache_key] = {"available": False}
-            return _TODAY_CACHE[cache_key]
-        today_temp = max(temps)
+        if not temps_by_station or (loc and loc not in temps_by_station):
+            _TODAY_CACHE[mem_key] = {"available": False}
+            return _TODAY_CACHE[mem_key]
+        today_temp = temps_by_station[loc] if loc else max(temps_by_station.values())
     else:
         # Within CSV coverage — read directly from ERA5 in-memory data
         day_rows = data[data["date"] == pd.Timestamp(target_date)]
+        if loc:
+            day_rows = day_rows[day_rows["location"] == loc]
         if day_rows.empty or day_rows["temperature_max"].isna().all():
             return {"available": False}
         today_temp = float(day_rows["temperature_max"].max())
 
     # 4. Historical distribution: ±7-day window across all years
     month, day = target_date.month, target_date.day
-    window = window_filter(data, month, day, 7)
+    loc_data = data[data["location"] == loc] if loc else data
+    window = window_filter(loc_data, month, day, 7)
     daily_max = window.groupby("date")["temperature_max"].max().dropna()
     samples = daily_max.to_numpy()
     if len(samples) < 50:
-        _TODAY_CACHE[cache_key] = {"available": False}
-        return _TODAY_CACHE[cache_key]
+        _TODAY_CACHE[mem_key] = {"available": False}
+        return _TODAY_CACHE[mem_key]
 
     # 5. Percentile + category
     pct = float((samples < today_temp).mean() * 100)
     dlabel = f"{MONTH_NAMES[month - 1]} {day}"
-    cat_key, name, color, desc = _categorize_today(pct, dlabel)
+    cat_key, name, color, desc = _categorize_today(pct, dlabel, country=loc)
 
     # 6. KDE curve + percentile cutoffs
     cutoffs = {
@@ -658,16 +679,17 @@ def compute_today_status(target_date=None):
         "color":        color,
         "description":  desc,
         "n_samples":    int(len(samples)),
-        "year_min":     int(data["year"].min()),
-        "year_max":     int(data["year"].max()),
+        "year_min":     int(loc_data["year"].min()),
+        "year_max":     int(loc_data["year"].max()),
         "distribution": distribution,
         "cutoffs":      cutoffs,
         "day_label":    dlabel,
         "month_num":    month,
         "day_num":      day,
+        "loc":          loc,
     }
-    _TODAY_CACHE[cache_key] = result
-    _save_today_to_disk(cache_key, result)
+    _TODAY_CACHE[mem_key] = result
+    _save_today_to_disk(cache_key, cache_loc, result)
     return result
 
 # ── Chat analytics ────────────────────────────────────────────────────────────
@@ -912,13 +934,16 @@ def api_trends():
 def api_today_status():
     if not _feature_enabled("today_section"): return "", 204
     date_str = request.args.get("date")
+    loc = request.args.get("loc") or None
+    if loc and loc not in LOCATIONS:
+        return jsonify({"available": False}), 400
     target = None
     if date_str:
         try:
             target = pd.Timestamp(date_str).date()
         except Exception:
             return jsonify({"available": False}), 400
-    return jsonify(compute_today_status(target))
+    return jsonify(compute_today_status(target, loc))
 
 
 # ── Season heatmap ─────────────────────────────────────────────────────────────
@@ -1583,17 +1608,38 @@ def api_tropical_nights():
     return jsonify(compute_threshold_days("tmin", threshold, min_streak))
 
 
+@app.route("/api/climate_news")
+@limiter.limit("30 per minute")
+def api_climate_news():
+    if not _feature_enabled("climate_news"): return "", 204
+    # Bluesky posts are excluded here — they're already shown in the page's
+    # dedicated Bluesky widget, so including them in the news list would be
+    # redundant. The RSS feed below still includes them.
+    return jsonify(compute_climate_news(include_bluesky=False))
+
+
+@app.route("/rss/climate_news.xml")
+@limiter.limit("30 per minute")
+def rss_climate_news():
+    if not _feature_enabled("climate_news"): return "", 204
+    xml = build_rss_xml(compute_climate_news())
+    return Response(xml, mimetype="application/rss+xml")
+
+
 @app.route("/api/annual_trend")
 def api_annual_trend():
     if not _feature_enabled("today_section"): return "", 204
     date_str = request.args.get("date")
+    loc = request.args.get("loc") or None
+    if loc and loc not in LOCATIONS:
+        return jsonify({"available": False}), 400
     target = None
     if date_str:
         try:
             target = pd.Timestamp(date_str).date()
         except Exception:
             pass
-    return jsonify(compute_annual_trend(target))
+    return jsonify(compute_annual_trend(target, loc))
 
 
 @app.route("/api/token")
