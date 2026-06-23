@@ -24,6 +24,7 @@
       --accent:    #C25A2C;
       --radius:    14px;
       --max-w:     720px;
+      --max-w-wide: 980px;
     }
 
     html { scroll-padding-top: 80px; }
@@ -82,12 +83,23 @@
     .col-news { flex: 1 1 480px; min-width: 0; max-width: var(--max-w); }
     .col-x { flex: 0 1 360px; min-width: 280px; }
 
+    @media (min-width: 880px) {
+      .col-news { max-width: var(--max-w-wide); }
+    }
+    @media (min-width: 1340px) {
+      .page { max-width: 1400px; }
+    }
+
     h1 { font-size: 30px; font-weight: 700; letter-spacing: -0.02em; margin-bottom: 6px; }
     .section-sub { color: var(--ink-soft); font-size: 14px; margin-bottom: 28px; }
     h2 { font-size: 15px; font-weight: 600; text-transform: uppercase; letter-spacing: 0.06em; color: var(--ink-soft); margin-bottom: 16px; font-family: 'JetBrains Mono', monospace; }
 
     /* ── News cards ── */
     .news-list { display: flex; flex-direction: column; gap: 14px; }
+
+    @media (min-width: 880px) {
+      .news-list { display: grid; grid-template-columns: repeat(2, 1fr); gap: 14px; align-items: start; }
+    }
     .news-card {
       background: var(--card);
       border: 1px solid var(--rule);
@@ -190,11 +202,11 @@
     <h2>Climate.mk на Bluesky</h2>
     <div class="x-panel" id="x-panel">
       <!-- BlueskyTimeline Widget -->
-      <bst-widget data-handle="climate-mk.bsky.social" data-theme="light" data-width="420px" data-height="600px" data-lang="en" data-ui="1" data-pin="1" data-rp="0" data-thread="1" data-prof="1"></bst-widget>
+      <bst-widget data-handle="climate.mk" data-theme="light" data-width="420px" data-height="600px" data-lang="en" data-ui="1" data-pin="1" data-rp="0" data-thread="1" data-prof="1"></bst-widget>
       <script src="https://blueskytimeline.com/v2/timeline.js" type="module" defer></script>
       <!-- /BlueskyTimeline Widget -->
     </div>
-    <a class="x-fallback-link" href="https://bsky.app/profile/climate-mk.bsky.social" target="_blank" rel="noopener">Погледнете ги нашите објави на Bluesky →</a>
+    <a class="x-fallback-link" href="https://bsky.app/profile/climate.mk" target="_blank" rel="noopener">Погледнете ги нашите објави на Bluesky →</a>
   </aside>
 
 </div>

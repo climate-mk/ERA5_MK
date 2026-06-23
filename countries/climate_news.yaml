@@ -87,7 +87,7 @@ sources_en:
 
 # Our own Bluesky account — every post is included (no keyword filter), since
 # it's our own published content rather than a third-party source being mined.
-bluesky_handle: "climate-mk.bsky.social"
+bluesky_handle: "climate.mk"
 
 # SerpApi (serpapi.com) — Google News search results, used as an EXTRA source
 # alongside the direct RSS feeds above (not a replacement). Requires SERPAPI_KEY
