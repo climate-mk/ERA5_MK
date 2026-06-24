@@ -990,7 +990,12 @@ function _buildTodayFlag(catKey) {
 function _renderTodayGauge(r) {
   const order  = ["freezing", "cold", "nope", "hot", "hell"];
   const colors = ["#3a5a8a", "#6c8fb6", "#e7d9b8", "#c25a2c", "#962c1a"];
+  const bounds = [0, 10, 20, 80, 95, 101]; // percentile cutoffs matching _TODAY_CATEGORIES
   const idx = Math.max(0, order.indexOf(r.category_key));
+  const lo = bounds[idx], hi = bounds[idx + 1];
+  const pct = typeof r.percentile === "number" ? r.percentile : (lo + hi) / 2;
+  const frac = hi > lo ? Math.min(1, Math.max(0, (pct - lo) / (hi - lo))) : 0.5;
+  const dialPos = idx + frac;
 
   Highcharts.chart("today-gauge", {
     chart: { type: "gauge", backgroundColor: "transparent", margin: [0, 0, 0, 0] },
@@ -1011,7 +1016,7 @@ function _renderTodayGauge(r) {
       lineWidth: 0,
     },
     series: [{
-      data: [idx + 0.5],
+      data: [dialPos],
       dial: { radius: "62%", baseWidth: 4, baseLength: "0%", rearLength: "0%", backgroundColor: "var(--ink)" },
       pivot: { radius: 5, backgroundColor: "var(--ink)" },
       dataLabels: { enabled: false },
