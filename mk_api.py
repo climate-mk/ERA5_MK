@@ -692,6 +692,8 @@ def compute_today_status(target_date=None, loc=None):
     result = {
         "available":    True,
         "date":         cache_key,
+        "computed_at":  pd.Timestamp.now(tz=CONFIG["timezone"]).isoformat(),
+        "computed_at_tz": CONFIG["timezone"],
         "today_temp":   round(today_temp, 1),
         "percentile":   round(pct, 1),
         "category_key": cat_key,
@@ -1026,13 +1028,20 @@ def api_today_status_refresh():
         return Response("Forbidden", status=403)
 
     cache_key = _today_local().date().isoformat()
+    previous = _TODAY_CACHE.get(f"{cache_key}|national", {}).get("today_temp")
 
     _TODAY_RAW_CACHE.pop(cache_key, None)
     for mem_key in [k for k in list(_TODAY_CACHE) if k.startswith(f"{cache_key}|")]:
         _TODAY_CACHE.pop(mem_key, None)
 
     result = compute_today_status()  # national — refetches + reseeds the shared raw cache
-    return jsonify({"refreshed": result.get("available", False)})
+    return jsonify({
+        "refreshed":       result.get("available", False),
+        "computed_at":     result.get("computed_at"),
+        "computed_at_tz":  result.get("computed_at_tz"),
+        "previous_national_today_temp": previous,
+        "new_national_today_temp":      result.get("today_temp"),
+    })
 
 
 # ── Season heatmap ─────────────────────────────────────────────────────────────
