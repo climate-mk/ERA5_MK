@@ -995,6 +995,7 @@ function _renderTodayGauge(r) {
   Highcharts.chart("today-gauge", {
     chart: { type: "gauge", backgroundColor: "transparent", margin: [0, 0, 0, 0] },
     title: null, credits: { enabled: false }, tooltip: { enabled: false },
+    exporting: { enabled: false },
     pane: {
       startAngle: -90, endAngle: 90, center: ["50%", "92%"], size: "150%",
       background: null,
@@ -1037,16 +1038,18 @@ function _buildTodayCardInner(r) {
       <button id="today-next" class="today-nav-btn" aria-label="Next day" ${_todayOffset === 0 ? 'disabled' : ''}><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="9 18 15 12 9 6"/></svg></button>
       <select id="today-loc-select" class="today-loc-select" aria-label="${t('ui.today_location_label')}"></select>
     </div>
-    <div class="today-h-row today-h-row--notitle">
-      <div class="today-gauge-wrap">
-        <div id="today-gauge" class="today-gauge"></div>
-        <div id="today-gauge-temp" class="today-gauge-temp"></div>
+    <div class="today-main-row">
+      <div class="today-h-row today-h-row--notitle">
+        <div class="today-gauge-wrap">
+          <div id="today-gauge" class="today-gauge"></div>
+          <div id="today-gauge-temp" class="today-gauge-temp"></div>
+        </div>
       </div>
-    </div>
-    <div class="today-body">
-      <div class="today-flag-wrap">${_buildTodayFlag(r.category_key)}</div>
-      <div class="today-text">
-        <span class="today-cat">${_locale?.categories?.[r.category_key || r.category.toLowerCase()]?.name || r.category}</span><span class="today-sep-dot" style="background:${r.color}"></span><span class="today-desc">${(_locale?.categories?.[r.category_key || r.category.toLowerCase()]?.desc || r.description).replace('{country}', placeName).replace('{data_start_year}', String(r.year_min || '')).replace('{record_years}', String(r.year_max && r.year_min ? r.year_max - r.year_min + 1 : '')).replace('{d}', _fmtDay(r.month_num, r.day_num, r.day_label))}</span>
+      <div class="today-body">
+        <div class="today-flag-wrap">${_buildTodayFlag(r.category_key)}</div>
+        <div class="today-text">
+          <span class="today-cat">${_locale?.categories?.[r.category_key || r.category.toLowerCase()]?.name || r.category}</span><span class="today-sep-dot" style="background:${r.color}"></span><span class="today-desc">${(_locale?.categories?.[r.category_key || r.category.toLowerCase()]?.desc || r.description).replace('{country}', placeName).replace('{data_start_year}', String(r.year_min || '')).replace('{record_years}', String(r.year_max && r.year_min ? r.year_max - r.year_min + 1 : '')).replace('{d}', _fmtDay(r.month_num, r.day_num, r.day_label))}</span>
+        </div>
       </div>
     </div>
     <p class="today-explain">${t(explain1Key, {location: placeName})}</p>

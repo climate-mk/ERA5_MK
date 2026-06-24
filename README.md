@@ -87,6 +87,9 @@ ERA5_MK/
 | `GET /api/annual_trend` | — | Annual mean temperature trend (national) |
 | `GET /api/today_status` | `date`, `loc` | Today's (or a given date's) temperature vs historical distribution (KDE, percentile, category) |
 | `GET /api/today_status/last7` | `date`, `loc` | Category/percentile for each of the 7 days ending at `date` (or today), ascending |
+| `GET /api/today_status/refresh` | `key` | Cron-only: force-refetches today's national forecast (requires `TODAY_REFRESH_KEY`). Returns `computed_at` (Skopje time) plus `previous_national_today_temp`/`new_national_today_temp`, so a cron run can be confirmed from the response. `/api/today_status` itself also carries `computed_at`/`computed_at_tz` for the same check. |
+
+To check from a browser whether the cron actually ran on prod, browse to `https://climate.mk/api/today_status` and inspect `computed_at`/`computed_at_tz` in the JSON (no key needed). To manually trigger and see the before/after comparison, browse to `https://climate.mk/api/today_status/refresh?key=<TODAY_REFRESH_KEY>` (the real key is in the server's `.env`, never commit it here).
 | `GET /api/season_heatmap` | — | Seasonal temperature percentiles vs 1950–1980 baseline (all years) |
 | `GET /api/spei_heatmap` | — | Seasonal SPEI vs 1950–1980 baseline (all years) |
 | `GET /api/spei_station_seasonal` | — | Per-station SPEI-3 (seasonal) + SPEI-30 (monthly) series with Theil-Sen trend |
