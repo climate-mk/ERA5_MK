@@ -218,7 +218,125 @@ Highcharts.setOptions({
     shadow:          { color: "rgba(0,0,0,0.10)", offsetX: 0, offsetY: 2, opacity: 1, width: 8 },
   },
   credits: { enabled: false },
-  exporting: { enabled: false },
+  lang: { viewFullscreen: "View Fullscreen" },
+  exporting: {
+    enabled: true,
+    fallbackToExportServer: false,
+    // Charts use a transparent background on-page; JPEG/PDF can't encode
+    // transparency, so without this they'd export on a white background
+    // instead of the site's paper tone.
+    chartOptions: { chart: { backgroundColor: "#F5F2EC" } },
+    // Custom key (not the built-in "viewData") so Highcharts' automatic
+    // "View data table" <-> "Hide data table" label swap never kicks in —
+    // that lookup is keyed to the literal string "viewData", and our table
+    // only ever opens in our modal, so there's no inline state to "hide".
+    menuItemDefinitions: {
+      viewDataTableModal: {
+        text: "View data table",
+        onclick() { this.exporting?.viewData(); },
+      },
+    },
+    buttons: {
+      contextButton: {
+        menuItems: ["downloadPNG", "downloadJPEG", "downloadPDF", "downloadSVG", "separator", "downloadCSV", "viewDataTableModal", "separator", "viewFullscreen", "printChart"],
+      },
+    },
+  },
+});
+
+// Highcharts appends the export menu inside chart.container, which always
+// has overflow: hidden, and most charts also sit inside a .panel/.cal-panel
+// wrapper with its own overflow: hidden. Toggling overflow on every such
+// ancestor is fragile (there could be others), so instead reparent the menu
+// to <body> and reposition it in viewport coordinates — this escapes any
+// ancestor's overflow/stacking context entirely, regardless of which one
+// was clipping it. Highcharts recomputes the menu's offset (left or right,
+// top or bottom, depending on which edge it would otherwise overflow) on
+// every open, even when reusing a cached menu, so this has to re-fix the
+// position every time, not just on first creation.
+Highcharts.addEvent(Highcharts.Chart, "exportMenuShown", function () {
+  const menu = this.exporting?.contextMenuEl;
+  if (!menu) return;
+  const rect = this.container.getBoundingClientRect();
+  const s = menu.style;
+  const left   = s.left   !== "" ? rect.left + parseFloat(s.left) : null;
+  const right  = s.right  !== "" ? (window.innerWidth - rect.right) + parseFloat(s.right) : null;
+  const top    = s.top    !== "" ? rect.top + parseFloat(s.top) : null;
+  const bottom = s.bottom !== "" ? (window.innerHeight - rect.bottom) + parseFloat(s.bottom) : null;
+  if (menu.parentNode !== document.body) document.body.appendChild(menu);
+  s.position = "fixed";
+  s.left   = left   !== null ? left   + "px" : "";
+  s.right  = right  !== null ? right  + "px" : "";
+  s.top    = top    !== null ? top    + "px" : "";
+  s.bottom = bottom !== null ? bottom + "px" : "";
+  s.zIndex = "1200";
+});
+
+// Highcharts' "View data" inserts a table div right after the chart container.
+// Relocate that div into our modal instead of leaving it inline on the page.
+let _dataTableChart = null;
+Highcharts.addEvent(Highcharts.Chart, "afterViewData", function (e) {
+  _dataTableChart = this;
+  const container = document.getElementById("data-table-container");
+  container.innerHTML = "";
+  container.appendChild(e.element);
+  e.element.style.display = "block";
+  openDataTableModal();
+});
+
+function openDataTableModal() {
+  const modal = document.getElementById("data-table-modal");
+  modal.classList.add("open");
+  document.getElementById("data-table-container").scrollTop = 0;
+}
+function closeDataTableModal() {
+  document.getElementById("data-table-modal").classList.remove("open");
+  if (_dataTableChart && _dataTableChart.exporting) _dataTableChart.exporting.isDataTableVisible = false;
+  _dataTableChart = null;
+}
+
+// ── Equal-height map / regression panels ───────────────────────────────────────
+// These two panels share a CSS grid row with the default align-items: stretch,
+// and each Highcharts chart watches its own container with a ResizeObserver,
+// auto-reflowing on any size change. Letting the grid's live stretch drive
+// their height creates a feedback loop whenever one chart's container leaves
+// the page flow and returns (e.g. the native Fullscreen API on the map): the
+// row recomputes, the sibling reflows, and the two drift taller. Locking both
+// panels to an explicit, JS-computed height removes that coupling entirely —
+// neither panel reacts to the other's transient layout changes anymore.
+function syncPanelHeights() {
+  const mapPanel = document.getElementById("map-panel");
+  const regPanel = document.getElementById("reg-panel");
+  if (!mapPanel || !regPanel) return;
+  mapPanel.style.removeProperty("height");
+  regPanel.style.removeProperty("height");
+  if (window.innerWidth <= 900) return; // single-column layout — panels stack, no shared height needed
+  const h = Math.max(mapPanel.offsetHeight, regPanel.offsetHeight);
+  mapPanel.style.height = h + "px";
+  regPanel.style.height = h + "px";
+  Highcharts.charts.forEach((c) => c && c.reflow());
+}
+
+// Debounce: window resize fires repeatedly while dragging, so this delay
+// just avoids redundant recalculation mid-drag — it's not papering over a
+// race condition.
+let _panelHeightResizeTimer = null;
+window.addEventListener("resize", () => {
+  clearTimeout(_panelHeightResizeTimer);
+  _panelHeightResizeTimer = setTimeout(syncPanelHeights, 150);
+});
+
+// On exit, just reflow each chart's SVG to fit its already-locked panel
+// height — do NOT re-measure/re-lock here. The chart that was fullscreened
+// can still briefly report an inflated size at this point (Highcharts'
+// own internal restore isn't guaranteed to have run yet), and re-locking
+// from that reading would bake the inflated height into BOTH panels.
+["fullscreenchange", "webkitfullscreenchange", "MSFullscreenChange"].forEach((evt) => {
+  document.addEventListener(evt, () => {
+    const fsElement = document.fullscreenElement || document.webkitFullscreenElement || document.msFullscreenElement;
+    if (fsElement) return;
+    Highcharts.charts.forEach((c) => c && c.reflow());
+  });
 });
 
 // ── Charts ────────────────────────────────────────────────────────────────────
@@ -235,6 +353,9 @@ function initRegChart() {
     chart: { type: "scatter", zoomType: "x", marginTop: 40, backgroundColor: "transparent" },
     title:    { text: "Loading…" },
     subtitle: { text: "" },
+    // .chart-stats-box (top-right overlay) would otherwise sit under the
+    // default top-right burger button — push the button below it.
+    exporting: { buttons: { contextButton: { y: 36 } } },
     xAxis:  { title: { text: "Year" }, crosshair: true },
     yAxis:  { title: { text: "" } },
     legend: { enabled: true },
@@ -464,6 +585,7 @@ async function refreshMap() {
     console.error("Map error:", e);
   } finally {
     showLoading("map-loading", false);
+    syncPanelHeights();
   }
 }
 
@@ -780,8 +902,17 @@ async function renderHeroCards(data) {
 
 }
 
-let _todayOffset   = 0;
-let _todayViewDate = null; // null = today, 'YYYY-MM-DD' = browsed past date
+let _todayOffset     = 0;
+let _todayViewDate   = null; // null = today, 'YYYY-MM-DD' = browsed past date
+let _todayServerDate = null; // 'YYYY-MM-DD' for "today" as resolved by the server (its local timezone) — never derive "today" from the browser's clock, which may sit in a different timezone/UTC offset and round to the wrong calendar day.
+
+// Add `days` (may be negative) to a 'YYYY-MM-DD' string using UTC-anchored
+// arithmetic, so the result never shifts by the browser's local timezone offset.
+function _addDaysToDateStr(dateStr, days) {
+  const d = new Date(dateStr + 'T00:00:00Z');
+  d.setUTCDate(d.getUTCDate() + days);
+  return d.toISOString().slice(0, 10);
+}
 
 // ── Today flag SVG builder ────────────────────────────────────────────────────
 const _TF_SUN = "m-140 14v-28l280 28v-28zm126-84h28L0-15zM14 70h-28L0 15zM-140-70h42L12.86 7.72zm0 140h42L12.86-7.72zM140-70H98L-12.86 7.72zm0 140H98L-12.86-7.72z";
@@ -854,18 +985,63 @@ function _buildTodayFlag(catKey) {
   return svg;
 }
 
+// ── Small category gauge for the "today" temperature (Highcharts) ─────────────
+
+function _renderTodayGauge(r) {
+  const order  = ["freezing", "cold", "nope", "hot", "hell"];
+  const colors = ["#3a5a8a", "#6c8fb6", "#e7d9b8", "#c25a2c", "#962c1a"];
+  const idx = Math.max(0, order.indexOf(r.category_key));
+
+  Highcharts.chart("today-gauge", {
+    chart: { type: "gauge", backgroundColor: "transparent", margin: [0, 0, 0, 0] },
+    title: null, credits: { enabled: false }, tooltip: { enabled: false },
+    pane: {
+      startAngle: -90, endAngle: 90, center: ["50%", "92%"], size: "150%",
+      background: null,
+    },
+    yAxis: {
+      min: 0, max: order.length,
+      tickPositions: [],
+      minorTickInterval: null,
+      plotBands: order.map((key, i) => ({
+        from: i, to: i + 1, color: colors[i], thickness: 18,
+        outerRadius: "100%",
+      })),
+      lineWidth: 0,
+    },
+    series: [{
+      data: [idx + 0.5],
+      dial: { radius: "62%", baseWidth: 4, baseLength: "0%", rearLength: "0%", backgroundColor: "var(--ink)" },
+      pivot: { radius: 5, backgroundColor: "var(--ink)" },
+      dataLabels: { enabled: false },
+    }],
+  });
+
+  const labelEl = document.getElementById("today-gauge-temp");
+  if (labelEl) {
+    labelEl.textContent = `${r.today_temp.toFixed(1)}°C`;
+    labelEl.style.background = r.color;
+    labelEl.style.color = r.category_key === 'nope' ? 'var(--ink)' : '#fff';
+  }
+}
+
 // ── Render "Is it Hot in Macedonia Today?" ────────────────────────────────────
 
 function _buildTodayCardInner(r) {
   const placeName = r.loc ? locName(r.loc) : (t('ui.today_location_short') || _locale?.meta?.country_name || _metaConfig?.name || '');
   const explain1Key = r.loc ? 'today.explain1_location' : 'today.explain1';
   return `
-    <div class="today-h-row">
-      <div class="today-h-wrap">
-        <div class="today-h">${t('ui.title_today', {location: placeName})}</div>
-        <div class="today-subtitle">${t('ui.subtitle_today')}</div>
+    <div class="today-date-control">
+      <button id="today-prev" class="today-nav-btn" aria-label="Previous day"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="15 18 9 12 15 6"/></svg></button>
+      <div class="today-date-badge" id="today-date-badge" title="Click to pick a date">${_fmtDay(r.month_num, r.day_num, r.day_label)}</div>
+      <button id="today-next" class="today-nav-btn" aria-label="Next day" ${_todayOffset === 0 ? 'disabled' : ''}><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="9 18 15 12 9 6"/></svg></button>
+      <select id="today-loc-select" class="today-loc-select" aria-label="${t('ui.today_location_label')}"></select>
+    </div>
+    <div class="today-h-row today-h-row--notitle">
+      <div class="today-gauge-wrap">
+        <div id="today-gauge" class="today-gauge"></div>
+        <div id="today-gauge-temp" class="today-gauge-temp"></div>
       </div>
-      <div class="today-temp-badge" style="background:${r.color};color:${r.category_key === 'nope' ? 'var(--ink)' : '#fff'}">${r.today_temp.toFixed(1)}°C</div>
     </div>
     <div class="today-body">
       <div class="today-flag-wrap">${_buildTodayFlag(r.category_key)}</div>
@@ -874,6 +1050,10 @@ function _buildTodayCardInner(r) {
       </div>
     </div>
     <p class="today-explain">${t(explain1Key, {location: placeName})}</p>
+    <div class="today-last7-card" id="today-last7-card">
+      <div class="today-chart-title">${t('today.last7_title')}</div>
+      <div id="today-last7-chart"></div>
+    </div>
     ${t('today.climate_context') ? `<p class="today-context">${t('today.climate_context')}</p>` : ''}
     <div class="today-foot">
       ${_locale?.today?.foot
@@ -883,11 +1063,18 @@ function _buildTodayCardInner(r) {
 }
 
 function _updateTodayCard(r) {
-  const badge = document.getElementById('today-date-badge');
-  if (badge) badge.textContent = _fmtDay(r.month_num, r.day_num, r.day_label);
+  if (_todayOffset === 0 && r.date) _todayServerDate = r.date;
+
+  const headingTitle = document.querySelector('.today-heading-title');
+  if (headingTitle) {
+    const placeName = r.loc ? locName(r.loc) : (t('ui.today_location_short') || _locale?.meta?.country_name || _metaConfig?.name || '');
+    headingTitle.textContent = t('ui.title_today', {location: placeName});
+  }
 
   const card = document.getElementById('today-main-card');
   if (card) card.innerHTML = _buildTodayCardInner(r);
+  _renderTodayGauge(r);
+  renderTodayLast7Chart(r.loc);
 
   const distCard = document.getElementById('today-dist-card');
   if (distCard) {
@@ -906,6 +1093,77 @@ function _updateTodayCard(r) {
   const nextBtn = document.getElementById('today-next');
   if (prevBtn) prevBtn.disabled = false;
   if (nextBtn) nextBtn.disabled = _todayOffset === 0;
+
+  _bindTodayControls();
+}
+
+function _bindTodayControls() {
+  document.getElementById('today-prev').addEventListener('click', () => _navigateTodayTo(_todayOffset - 1));
+  document.getElementById('today-next').addEventListener('click', () => _navigateTodayTo(_todayOffset + 1));
+  _populateTodayLocSelect();
+  document.getElementById('today-loc-select').addEventListener('change', e => {
+    state.todayLoc = e.target.value || null;
+    _refreshTodayForLoc();
+  });
+  document.getElementById('today-date-badge').addEventListener('click', e => {
+    e.stopPropagation();
+    document.getElementById('today-doy-popup')?.remove();
+    const MONTHS = ["Jan","Feb","Mar","Apr","May","Jun","Jul","Aug","Sep","Oct","Nov","Dec"];
+    const refDate = new Date((_todayViewDate || _todayServerDate) + 'T00:00:00Z');
+    let curMonth = refDate.getUTCMonth();
+    let curDay   = refDate.getUTCDate();
+
+    const popup = document.createElement('div');
+    popup.id = 'today-doy-popup';
+    popup.className = 'doy-popup';
+
+    const mSel = document.createElement('select');
+    MONTHS.forEach((m, i) => {
+      const o = document.createElement('option');
+      o.value = i; o.textContent = m;
+      if (i === curMonth) o.selected = true;
+      mSel.appendChild(o);
+    });
+
+    const dSel = document.createElement('select');
+    function _fillDays() {
+      dSel.innerHTML = '';
+      const daysInMonth = new Date(2001, parseInt(mSel.value) + 1, 0).getDate();
+      for (let d = 1; d <= daysInMonth; d++) {
+        const o = document.createElement('option');
+        o.value = d; o.textContent = d;
+        if (d === curDay) o.selected = true;
+        dSel.appendChild(o);
+      }
+    }
+    _fillDays();
+    mSel.addEventListener('change', () => { curMonth = parseInt(mSel.value); _fillDays(); });
+    dSel.addEventListener('change', () => { curDay = parseInt(dSel.value); });
+
+    const setBtn = document.createElement('button');
+    setBtn.className = 'doy-popup-set';
+    setBtn.textContent = 'Set';
+    setBtn.addEventListener('click', () => {
+      popup.remove();
+      const chosen = new Date(2001, parseInt(mSel.value), parseInt(dSel.value));
+      const todayMidnight = new Date(_todayServerDate + 'T00:00:00Z');
+      const target = new Date(Date.UTC(todayMidnight.getUTCFullYear(), chosen.getMonth(), chosen.getDate()));
+      if (target > todayMidnight) target.setUTCFullYear(todayMidnight.getUTCFullYear() - 1);
+      const diffDays = Math.round((target - todayMidnight) / 86400000);
+      _navigateTodayTo(Math.min(0, diffDays));
+    });
+
+    popup.appendChild(mSel);
+    popup.appendChild(dSel);
+    popup.appendChild(setBtn);
+    document.body.appendChild(popup);
+    const rect = e.currentTarget.getBoundingClientRect();
+    popup.style.top  = (rect.bottom + 6) + 'px';
+    popup.style.left = rect.left + 'px';
+
+    const close = ev => { if (!popup.contains(ev.target)) { popup.remove(); document.removeEventListener('click', close); } };
+    setTimeout(() => document.addEventListener('click', close), 0);
+  });
 }
 
 async function _navigateTodayTo(newOffset) {
@@ -915,9 +1173,7 @@ async function _navigateTodayTo(newOffset) {
   if (prevBtn) prevBtn.disabled = true;
   if (nextBtn) nextBtn.disabled = true;
   try {
-    const d = new Date();
-    d.setDate(d.getDate() + newOffset);
-    const dateStr = d.toISOString().slice(0, 10);
+    const dateStr = _addDaysToDateStr(_todayServerDate, newOffset);
     const locParam = state.todayLoc ? `&loc=${encodeURIComponent(state.todayLoc)}` : "";
     const r = await fetch(`api/today_status?date=${dateStr}${locParam}`).then(res => res.json());
     if (!r.available) {
@@ -975,17 +1231,14 @@ async function renderTodayStatus() {
     const locParam = state.todayLoc ? `?loc=${encodeURIComponent(state.todayLoc)}` : "";
     const r = await fetch(`api/today_status${locParam}`).then(res => res.json());
     if (!r.available) return;
+    const placeName = r.loc ? locName(r.loc) : (t('ui.today_location_short') || _locale?.meta?.country_name || _metaConfig?.name || '');
     el.innerHTML = `
-      <div class="sec-heading today-sec-heading">
-        <div class="today-heading-row">
-          <div class="today-heading-left">
-            <span class="today-heading-title">${t('ui.heading_today')}</span>
-            <a href="climate-news.html" class="mk2036-timeline-btn">
-              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 11a9 9 0 0 1 9 9"/><path d="M4 4a16 16 0 0 1 16 16"/><circle cx="5" cy="19" r="1"/></svg>
-              <span>${t('ui.nav_climate_news')}</span>
-            </a>
-          </div>
-          <div id="share-widget">
+      <div class="today-utility-row">
+        <a href="climate-news.html" class="mk2036-timeline-btn">
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 11a9 9 0 0 1 9 9"/><path d="M4 4a16 16 0 0 1 16 16"/><circle cx="5" cy="19" r="1"/></svg>
+          <span>${t('ui.nav_climate_news')}</span>
+        </a>
+        <div id="share-widget">
           <button id="share-toggle" aria-label="Share this site">
             <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><circle cx="18" cy="5" r="3"/><circle cx="6" cy="12" r="3"/><circle cx="18" cy="19" r="3"/><line x1="8.59" y1="13.51" x2="15.42" y2="17.49"/><line x1="15.41" y1="6.51" x2="8.59" y2="10.49"/></svg>
           </button>
@@ -1012,12 +1265,11 @@ async function renderTodayStatus() {
             </a>
           </div>
         </div>
-        </div>
-        <div class="today-date-control">
-          <button id="today-prev" class="today-nav-btn" aria-label="Previous day"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="15 18 9 12 15 6"/></svg></button>
-          <div class="today-date-badge" id="today-date-badge" title="Click to pick a date">–</div>
-          <button id="today-next" class="today-nav-btn" aria-label="Next day" disabled><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="9 18 15 12 9 6"/></svg></button>
-          <select id="today-loc-select" class="today-loc-select" aria-label="${t('ui.today_location_label')}"></select>
+      </div>
+      <div class="sec-heading today-sec-heading">
+        <div class="today-heading-text">
+          <span class="today-heading-title">${t('ui.title_today', {location: placeName})}</span>
+          <span class="today-heading-subtitle">${t('ui.subtitle_today')}</span>
         </div>
       </div>
       <div class="today-grid">
@@ -1032,73 +1284,6 @@ async function renderTodayStatus() {
     _todayOffset   = 0;
     _todayViewDate = null;
     _updateTodayCard(r);
-    document.getElementById('today-prev').addEventListener('click', () => _navigateTodayTo(_todayOffset - 1));
-    document.getElementById('today-next').addEventListener('click', () => _navigateTodayTo(_todayOffset + 1));
-    _populateTodayLocSelect();
-    document.getElementById('today-loc-select').addEventListener('change', e => {
-      state.todayLoc = e.target.value || null;
-      _refreshTodayForLoc();
-    });
-    document.getElementById('today-date-badge').addEventListener('click', e => {
-      e.stopPropagation();
-      document.getElementById('today-doy-popup')?.remove();
-      const MONTHS = ["Jan","Feb","Mar","Apr","May","Jun","Jul","Aug","Sep","Oct","Nov","Dec"];
-      const refDate = _todayViewDate ? new Date(_todayViewDate + 'T12:00:00') : new Date();
-      let curMonth = refDate.getMonth();
-      let curDay   = refDate.getDate();
-
-      const popup = document.createElement('div');
-      popup.id = 'today-doy-popup';
-      popup.className = 'doy-popup';
-
-      const mSel = document.createElement('select');
-      MONTHS.forEach((m, i) => {
-        const o = document.createElement('option');
-        o.value = i; o.textContent = m;
-        if (i === curMonth) o.selected = true;
-        mSel.appendChild(o);
-      });
-
-      const dSel = document.createElement('select');
-      function _fillDays() {
-        dSel.innerHTML = '';
-        const daysInMonth = new Date(2001, parseInt(mSel.value) + 1, 0).getDate();
-        for (let d = 1; d <= daysInMonth; d++) {
-          const o = document.createElement('option');
-          o.value = d; o.textContent = d;
-          if (d === curDay) o.selected = true;
-          dSel.appendChild(o);
-        }
-      }
-      _fillDays();
-      mSel.addEventListener('change', () => { curMonth = parseInt(mSel.value); _fillDays(); });
-      dSel.addEventListener('change', () => { curDay = parseInt(dSel.value); });
-
-      const setBtn = document.createElement('button');
-      setBtn.className = 'doy-popup-set';
-      setBtn.textContent = 'Set';
-      setBtn.addEventListener('click', () => {
-        popup.remove();
-        const chosen = new Date(2001, parseInt(mSel.value), parseInt(dSel.value));
-        const now = new Date();
-        const todayMidnight = new Date(now.getFullYear(), now.getMonth(), now.getDate());
-        const target = new Date(todayMidnight.getFullYear(), chosen.getMonth(), chosen.getDate());
-        if (target > todayMidnight) target.setFullYear(todayMidnight.getFullYear() - 1);
-        const diffDays = Math.round((target - todayMidnight) / 86400000);
-        _navigateTodayTo(Math.min(0, diffDays));
-      });
-
-      popup.appendChild(mSel);
-      popup.appendChild(dSel);
-      popup.appendChild(setBtn);
-      document.body.appendChild(popup);
-      const rect = e.currentTarget.getBoundingClientRect();
-      popup.style.top  = (rect.bottom + 6) + 'px';
-      popup.style.left = rect.left + 'px';
-
-      const close = ev => { if (!popup.contains(ev.target)) { popup.remove(); document.removeEventListener('click', close); } };
-      setTimeout(() => document.addEventListener('click', close), 0);
-    });
   } catch {
     /* network error — section stays hidden */
   }
@@ -1110,9 +1295,10 @@ function renderTodayChart(r) {
     color: INK, fontSize: "10px", fontWeight: "600",
     fontFamily: "'JetBrains Mono', monospace", letterSpacing: "0.04em",
   };
-  const zoneLabelStyle = {
-    color: INK_SOFT, fontSize: "9px", fontWeight: "600",
+  const pctLabelStyle = {
+    color: INK, fontSize: "10px", fontWeight: "700",
     fontFamily: "'JetBrains Mono', monospace", letterSpacing: "0.04em",
+    textOutline: "3px var(--card)",
   };
   const distMin = r.distribution[0][0];
   const distMax = r.distribution[r.distribution.length - 1][0];
@@ -1142,24 +1328,16 @@ function renderTodayChart(r) {
       crosshair: { color: "rgba(14,14,12,0.15)", width: 1 },
       plotLines: [
         { value: r.today_temp, color: INK, width: 3, zIndex: 5,
-          label: { text: `${t('today.today_label')}: ${r.today_temp.toFixed(1)}°C`, rotation: -90, x: -4, y: 40, align: "right", style: { ...labelStyle, fontSize: "13px", textOutline: "3px var(--card)" } } },
-      ],
-      plotBands: [
-        { from: distMin, to: c.p10,
-          color: "transparent",
-          label: { text: `< ${c.p10.toFixed(1)}°C`, align: "center", verticalAlign: "top", y: 18, style: zoneLabelStyle } },
-        { from: c.p10, to: c.p20,
-          color: "transparent",
-          label: { text: `${c.p10.toFixed(1)}–${c.p20.toFixed(1)}°C`, align: "center", verticalAlign: "top", y: 18, style: zoneLabelStyle } },
-        { from: c.p20, to: c.p80,
-          color: "transparent",
-          label: { text: `${c.p20.toFixed(1)}–${c.p80.toFixed(1)}°C`, align: "center", verticalAlign: "top", y: 18, style: zoneLabelStyle } },
-        { from: c.p80, to: c.p95,
-          color: "transparent",
-          label: { text: `${c.p80.toFixed(1)}–${c.p95.toFixed(1)}°C`, align: "center", verticalAlign: "top", y: 18, style: zoneLabelStyle } },
-        { from: c.p95, to: distMax,
-          color: "transparent",
-          label: { text: `> ${c.p95.toFixed(1)}°C`, align: "center", verticalAlign: "top", y: 18, style: zoneLabelStyle } },
+          label: (() => {
+            const span = distMax - distMin;
+            const frac = span > 0 ? (r.today_temp - distMin) / span : 0.5;
+            const todayAlign = frac < 0.18 ? "left" : frac > 0.82 ? "right" : "center";
+            return { text: `${t('today.today_label')}: ${r.today_temp.toFixed(1)}°C`, rotation: 0, x: 0, y: -6, align: todayAlign, verticalAlign: "top", style: { ...labelStyle, fontSize: "12px", textOutline: "3px var(--card)" } };
+          })() },
+        ...["p10", "p20", "p80", "p95"].map(key => ({
+          value: c[key], color: "rgba(14,14,12,0.55)", width: 1.5, dashStyle: "Dash", zIndex: 4,
+          label: { text: key.toUpperCase(), rotation: -90, x: -4, y: 10, align: "right", verticalAlign: "top", style: pctLabelStyle },
+        })),
       ],
     },
     yAxis: {
@@ -1213,6 +1391,81 @@ function renderTodayChart(r) {
     ? t('today.foot2', {temp: r.today_temp.toFixed(1), pct: r.percentile.toFixed(0), median: r.cutoffs.p50.toFixed(1), samples: r.n_samples, year_min: r.year_min, year_max: r.year_max})
     : `Today: ${r.today_temp.toFixed(1)} °C · ${r.percentile.toFixed(0)}th percentile · median ${r.cutoffs.p50.toFixed(1)} °C · ${r.n_samples} observations · ${r.year_min}–${r.year_max}`;
   document.querySelector(".today-chart").appendChild(foot2);
+}
+
+// Coldest → hottest, matching _TODAY_CATEGORIES order/colours in mk_api.py.
+const _TODAY_CAT_ORDER  = ["freezing", "cold", "nope", "hot", "hell"];
+const _TODAY_CAT_COLORS = ["#3a5a8a", "#6c8fb6", "#e7d9b8", "#c25a2c", "#962c1a"];
+
+async function renderTodayLast7Chart(loc) {
+  const el = document.getElementById("today-last7-chart");
+  if (!el) return;
+  try {
+    const params = new URLSearchParams();
+    const dateStr = _todayViewDate || _todayServerDate;
+    if (dateStr) params.set('date', dateStr);
+    if (loc)     params.set('loc', loc);
+    const r = await fetch(`api/today_status/last7?${params}`).then(res => res.json());
+    if (!r.available || !r.days || !r.days.length) return;
+
+    const catLabels = _TODAY_CAT_ORDER.map(k => _locale?.categories?.[k]?.name || k);
+    const monoStyle = { fontFamily: "'JetBrains Mono', monospace", fontSize: "11px", fontWeight: "600" };
+
+    const points = r.days.map(d => {
+      const [, mm, dd] = d.date.split('-');
+      return {
+        label:   `${dd}.${mm}`,
+        y:       _TODAY_CAT_ORDER.indexOf(d.category_key),
+        color:   d.color,
+        temp:    d.today_temp,
+        pct:     d.percentile,
+        catName: _locale?.categories?.[d.category_key]?.name || d.category_key,
+      };
+    });
+
+    const plotBands = _TODAY_CAT_COLORS.map((color, i) => ({
+      from: i - 0.5, to: i + 0.5, color: color + "33",
+    }));
+
+    Highcharts.chart("today-last7-chart", {
+      chart: { type: "line", height: 190, margin: [8, 12, 40, 108], backgroundColor: "transparent", borderWidth: 0, animation: false },
+      title:   { text: null },
+      credits: { enabled: false },
+      legend:  { enabled: false },
+      tooltip: {
+        formatter() {
+          const p = this.point;
+          return `<b>${p.label}</b>: ${p.catName} · ${p.temp.toFixed(1)}°C (${p.pct.toFixed(0)}th pct)`;
+        },
+      },
+      xAxis: {
+        categories: points.map(p => p.label),
+        title: { text: null },
+        labels: { style: { color: INK, ...monoStyle } },
+        lineColor: "rgba(14,14,12,0.15)", tickColor: "rgba(14,14,12,0.15)", gridLineWidth: 0,
+      },
+      yAxis: {
+        categories: catLabels,
+        min: 0, max: catLabels.length - 1,
+        tickPositions: [0, 1, 2, 3, 4],
+        title: { text: null },
+        labels: {
+          style: { color: INK, fontFamily: "'JetBrains Mono', monospace", fontSize: "10px", fontWeight: "600", textOverflow: "none", whiteSpace: "nowrap" },
+          align: "right", x: -6, reserveSpace: true,
+        },
+        gridLineColor: "rgba(14,14,12,0.1)",
+        plotBands,
+      },
+      series: [{
+        name: "Category", type: "line",
+        data: points.map((p, i) => ({ x: i, y: p.y, color: p.color, temp: p.temp, pct: p.pct, catName: p.catName, label: p.label })),
+        color: INK, lineWidth: 1.5,
+        marker: { enabled: true, radius: 5, symbol: "circle", lineWidth: 1.5, lineColor: INK },
+      }],
+    });
+  } catch {
+    /* silently skip if endpoint unavailable */
+  }
 }
 
 async function renderTodayTrendChart(dateStr = null) {
@@ -1392,6 +1645,7 @@ async function refreshRegression() {
     console.error("Regression error:", e);
   } finally {
     showLoading("reg-loading", false);
+    syncPanelHeights();
   }
 }
 

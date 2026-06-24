@@ -1,0 +1,14 @@
+# Refresh today's live-forecast temperature (national + every station) three
+# times a day. The forecast for "today" only improves as Open-Meteo's model
+# updates through the day, and the in-process cache otherwise holds whatever
+# was fetched first (at startup) until midnight — so a morning estimate could
+# sit stale well after the day's actual max has occurred.
+#
+# 09:00 — morning baseline
+# 13:00 — midday update
+# 17:30 — near-final read (the day's max has very likely already happened)
+# Times are local (Europe/Skopje); TZ= makes cron itself handle DST.
+TZ=Europe/Skopje
+0 9 * * * root curl -s -o /dev/null "http://localhost:5050/api/today_status/refresh?key=$(grep -o 'TODAY_REFRESH_KEY=.*' /opt/mk_climate/.env | cut -d= -f2-)" >> /var/log/today_status_refresh.log 2>&1
+0 13 * * * root curl -s -o /dev/null "http://localhost:5050/api/today_status/refresh?key=$(grep -o 'TODAY_REFRESH_KEY=.*' /opt/mk_climate/.env | cut -d= -f2-)" >> /var/log/today_status_refresh.log 2>&1
+30 17 * * * root curl -s -o /dev/null "http://localhost:5050/api/today_status/refresh?key=$(grep -o 'TODAY_REFRESH_KEY=.*' /opt/mk_climate/.env | cut -d= -f2-)" >> /var/log/today_status_refresh.log 2>&1

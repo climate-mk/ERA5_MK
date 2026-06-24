@@ -233,6 +233,11 @@
           </div>
         </li>
       </ol>
+
+      <div class="callout">
+        <div class="callout-label">Exporting charts</div>
+        <p>Most charts (map, regression chart, calendar chart, Macedonia Today mini-charts, SPEI trend chart) have a small menu button in their top-right corner. Use it to download the chart as a PNG, JPEG, PDF, or SVG image, download the underlying data as a CSV file, view the data in a table, view the chart in full screen, or print it. The seasonal heat ranking and seasonal drought (SPEI) heatmaps do not have this menu.</p>
+      </div>
     </section>
 
     <!-- Macedonia Today -->
@@ -257,6 +262,9 @@
         <li><strong>Footer</strong> — today's peak temperature (°C), its historical percentile, the number of observations used, and the year range of the historical record.</li>
       </ul>
       <p>Today's value is the <em>highest</em> maximum temperature forecast across all 20 stations — a true country-wide peak. It is ranked against the ERA5-Land record using a ±7-day window around today's date, covering all years from 1950 to present.</p>
+
+      <h3>Last 7 days mini chart</h3>
+      <p>Below the methodology note, a small chart plots the category (Freezing through Hell) for each of the last 7 days, oldest to newest ending on the viewed date. Dates run along the bottom; the five categories are listed on the left, each with a coloured background band matching its temperature zone. Hover a point to see the exact date, category, temperature, and percentile. The chart shifts with date navigation — browsing to a past date shows the 7 days ending on that date.</p>
 
       <h3>Card 2 — Historical distribution chart</h3>
       <p>The centre card shows a <strong>kernel density estimate (KDE)</strong> of how often each peak temperature occurred on days like today across all years in the record. The x-axis is temperature; the y-axis is relative frequency.</p>
@@ -291,7 +299,7 @@
         <li><strong>Gap dates</strong> (last ~10 days before today) — actual measured data from the Open-Meteo archive API.</li>
         <li><strong>Older dates</strong> — pulled directly from the ERA5-Land CSV dataset already loaded in memory.</li>
       </ul>
-      <p>All three cards (Is it Hot, distribution chart, trend chart) update together for the selected date. The <strong>›</strong> (next) button is disabled when you are viewing today. If a date has no available data the navigation stays on the last valid date.</p>
+      <p>All three cards (Is it Hot, distribution chart, trend chart), including the last-7-days mini chart, update together for the selected date. The <strong>›</strong> (next) button is disabled when you are viewing today. If a date has no available data the navigation stays on the last valid date.</p>
     </section>
 
     <!-- Controls -->

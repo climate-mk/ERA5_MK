@@ -23,6 +23,10 @@
   <script src="js/vendor/map.js"></script>
   <script src="js/vendor/tiledwebmap.js"></script>
   <script src="js/vendor/accessibility.js"></script>
+  <script src="js/vendor/exporting.js"></script>
+  <script src="js/vendor/export-data.js"></script>
+  <script src="js/vendor/offline-exporting.js"></script>
+  <script src="js/vendor/full-screen.js"></script>
 </head>
 <body>
 <div id="app">
@@ -432,6 +436,16 @@
     </div>
   </div>
 
+  <!-- Chart data table modal -->
+  <div id="data-table-modal" class="welcome-modal" onclick="if(event.target.id==='data-table-modal') closeDataTableModal()">
+    <div class="welcome-content data-table-content">
+      <div class="data-table-head">
+        <button class="welcome-close" onclick="closeDataTableModal()" aria-label="Close">✕</button>
+      </div>
+      <div id="data-table-container" class="data-table-body"></div>
+    </div>
+  </div>
+
 </div>
 
   <!-- Mobile drawer backdrop -->
@@ -450,7 +464,7 @@
       <a href="#controls-bar">Charts</a>
       <a href="#about">About</a>
       <a href="user-manual.html">Manual</a>
-      <a href="climate-news.html">Климатски вести</a>
+      <a href="climate-news.html">Climate news (MK)</a>
       <a href="/api/data/download" id="nav-raw-data" download>Raw data</a>
     </nav>
 

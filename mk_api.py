@@ -44,6 +44,10 @@ _global_chat_counter = {"hour": -1, "hour_count": 0, "day": -1, "day_count": 0}
 # Analytics export key — set ANALYTICS_EXPORT_KEY in .env (and as a GitHub secret)
 _ANALYTICS_EXPORT_KEY = os.getenv("ANALYTICS_EXPORT_KEY", "")
 
+# Today-status refresh key — set TODAY_REFRESH_KEY in .env (and as a GitHub secret).
+# Lets cron re-pull today's live forecast a few times a day (see /api/today_status/refresh).
+_TODAY_REFRESH_KEY = os.getenv("TODAY_REFRESH_KEY", "")
+
 # ── Load data ──────────────────────────────────────────────────────────────────
 
 DATA_DIR = os.path.join("data", CONFIG["code"])
@@ -476,6 +480,12 @@ def _fs_save(path, data, glob_pattern=None, keep_days=3, anchor_date=None):
 _TODAY_CACHE     = {}
 _TODAY_CACHE_DIR = _CACHE_DIR
 
+# Raw {station: temp} fetches, keyed by date — shared across all locations so
+# switching the location filter for the same date doesn't re-hit Open-Meteo for
+# all 20 stations again (only the final per-location result is cached in
+# _TODAY_CACHE / on disk; this caches the underlying network call itself).
+_TODAY_RAW_CACHE = {}
+
 # Thresholds and colours only — text loaded from locale at runtime.
 _TODAY_CATEGORIES = [
     # (max_percentile_exclusive, key, colour)
@@ -574,11 +584,15 @@ def compute_today_status(target_date=None, loc=None):
     if mem_key in _TODAY_CACHE:
         return _TODAY_CACHE[mem_key]
 
-    # 2. Filesystem cache
-    cached = _load_today_from_disk(cache_key, cache_loc)
-    if cached is not None:
-        _TODAY_CACHE[mem_key] = cached
-        return cached
+    # 2. Filesystem cache — only for gap/past dates, which are immutable once
+    # collected. "Today" is never persisted here: its value is expected to
+    # change through the day, so a disk hit would just serve a stale forecast
+    # across restarts instead of refetching it.
+    if not is_today:
+        cached = _load_today_from_disk(cache_key, cache_loc)
+        if cached is not None:
+            _TODAY_CACHE[mem_key] = cached
+            return cached
 
     # Shared helper: parallel 20-station fetch from any Open-Meteo endpoint.
     # extra_params is merged into the per-station request (e.g. forecast_days or start/end_date).
@@ -610,25 +624,25 @@ def compute_today_status(target_date=None, loc=None):
         return temps_by_station
 
     # 3. Get today_temp via the right source
-    if is_today:
-        # Live forecast from Open-Meteo
-        url, extra = "https://api.open-meteo.com/v1/forecast", {"forecast_days": 1}
-        temps_by_station = _fetch_om(url, extra)
+    if is_today or target_date > _CSV_MAX_DATE:
+        if is_today:
+            url, extra = "https://api.open-meteo.com/v1/forecast", {"forecast_days": 1}
+        else:
+            # Gap between CSV coverage and today — use Open-Meteo archive (ERA5-T near-real-time)
+            ds = cache_key
+            url, extra = "https://archive-api.open-meteo.com/v1/archive", {"start_date": ds, "end_date": ds}
+
+        # Reuse the same day's 20-station fetch across every location filter —
+        # only the first request of the day actually calls Open-Meteo.
+        temps_by_station = _TODAY_RAW_CACHE.get(cache_key) or {}
         if loc and loc not in temps_by_station:
-            # One station's request can fail transiently even when the other 19
-            # succeed — retry once for just that station before giving up, rather
-            # than failing (and memoizing) the whole response over one bad request.
+            # Either nothing cached yet, or the cached fetch missed this one
+            # station transiently — (re)fetch and merge in the result.
             temps_by_station.update(_fetch_om(url, extra))
-        if not temps_by_station or (loc and loc not in temps_by_station):
-            return {"available": False}  # not cached — a later retry may succeed
-        today_temp = temps_by_station[loc] if loc else max(temps_by_station.values())
-    elif target_date > _CSV_MAX_DATE:
-        # Gap between CSV coverage and today — use Open-Meteo archive (ERA5-T near-real-time)
-        ds = cache_key
-        url, extra = "https://archive-api.open-meteo.com/v1/archive", {"start_date": ds, "end_date": ds}
-        temps_by_station = _fetch_om(url, extra)
-        if loc and loc not in temps_by_station:
-            temps_by_station.update(_fetch_om(url, extra))
+            _TODAY_RAW_CACHE[cache_key] = temps_by_station
+        elif not temps_by_station:
+            temps_by_station = _fetch_om(url, extra)
+            _TODAY_RAW_CACHE[cache_key] = temps_by_station
         if not temps_by_station or (loc and loc not in temps_by_station):
             return {"available": False}  # not cached — a later retry may succeed
         today_temp = temps_by_station[loc] if loc else max(temps_by_station.values())
@@ -695,8 +709,32 @@ def compute_today_status(target_date=None, loc=None):
         "loc":          loc,
     }
     _TODAY_CACHE[mem_key] = result
-    _save_today_to_disk(cache_key, cache_loc, result)
+    if not is_today:
+        _save_today_to_disk(cache_key, cache_loc, result)
     return result
+
+def compute_today_last7(end_date=None, loc=None):
+    """Category/percentile for each of the 7 days ending at end_date (inclusive),
+    ascending by date. Reuses compute_today_status per day, so each day rides the
+    same in-memory/disk cache rather than introducing a second cache layer.
+    """
+    if end_date is None:
+        end_date = _today_local().date()
+    days = []
+    for offset in range(6, -1, -1):
+        d = end_date - datetime.timedelta(days=offset)
+        r = compute_today_status(d, loc)
+        if not r.get("available"):
+            continue
+        days.append({
+            "date":         r["date"],
+            "day_label":    r["day_label"],
+            "today_temp":   r["today_temp"],
+            "percentile":   r["percentile"],
+            "category_key": r["category_key"],
+            "color":        r["color"],
+        })
+    return {"available": bool(days), "days": days}
 
 # ── Chat analytics ────────────────────────────────────────────────────────────
 #
@@ -950,6 +988,51 @@ def api_today_status():
         except Exception:
             return jsonify({"available": False}), 400
     return jsonify(compute_today_status(target, loc))
+
+
+@app.route("/api/today_status/last7")
+def api_today_status_last7():
+    if not _feature_enabled("today_section"): return "", 204
+    date_str = request.args.get("date")
+    loc = request.args.get("loc") or None
+    if loc and loc not in LOCATIONS:
+        return jsonify({"available": False}), 400
+    end_date = None
+    if date_str:
+        try:
+            end_date = pd.Timestamp(date_str).date()
+        except Exception:
+            return jsonify({"available": False}), 400
+    return jsonify(compute_today_last7(end_date, loc))
+
+
+@app.route("/api/today_status/refresh")
+def api_today_status_refresh():
+    """
+    Force a fresh Open-Meteo pull for today's live forecast. Clears today's
+    in-memory cache (national + any previously-cached location) and the shared
+    raw 20-station fetch, then refetches once (national). Every location's
+    next request is served from that same refetched data with no further
+    network call — only national needs an explicit refetch here. Intended for
+    cron — the live forecast for "today" only improves through the day
+    (morning estimate vs. the near-final afternoon read once the day's max has
+    likely occurred), so a single per-process-lifetime cache otherwise goes
+    stale until midnight.
+    Access: GET /api/today_status/refresh?key=<TODAY_REFRESH_KEY>
+    """
+    if not _feature_enabled("today_section"): return "", 204
+    key = request.args.get("key", "")
+    if not _TODAY_REFRESH_KEY or key != _TODAY_REFRESH_KEY:
+        return Response("Forbidden", status=403)
+
+    cache_key = _today_local().date().isoformat()
+
+    _TODAY_RAW_CACHE.pop(cache_key, None)
+    for mem_key in [k for k in list(_TODAY_CACHE) if k.startswith(f"{cache_key}|")]:
+        _TODAY_CACHE.pop(mem_key, None)
+
+    result = compute_today_status()  # national — refetches + reseeds the shared raw cache
+    return jsonify({"refreshed": result.get("available", False)})
 
 
 # ── Season heatmap ─────────────────────────────────────────────────────────────

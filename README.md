@@ -16,6 +16,7 @@ Interactive web dashboard for exploring long-term climate trends across 20 locat
 
 ### Today section
 - **"Is it hot in Macedonia today?"** — compares the current national daily maximum temperature against the ERA5-Land historical distribution for the same calendar day (±window), with KDE curve, percentile rank and a plain-language verdict
+- **Last 7 days mini chart** — small chart showing the temperature category (Freezing…Hell) for each of the last 7 days, dates ascending, with colour-banded category rows
 
 ### Seasonal heatmaps (new)
 - **Seasonal heat ranking** — one coloured cell per (year, season) from 1950 to present; percentile rank of each season's mean national daily-maximum temperature against the **1950–1980 baseline**; colour: blue = cold, orange/red = hot/extreme; animate, filter, stats, tooltip
@@ -29,6 +30,7 @@ Interactive web dashboard for exploring long-term climate trends across 20 locat
 - Extrapolation: estimates the year the trend line crosses the extreme drought (SPEI −1.5) or extremely wet (SPEI +1.5) threshold, guarded against zero-slope division
 
 ### Other features
+- Chart export menu — PNG/JPEG/PDF/SVG image and CSV downloads, data table view, full screen, print (Highcharts exporting modules, client-side only); not available on the seasonal heat ranking and SPEI heatmaps (custom HTML grids, not Highcharts)
 - Multi-language UI: English, Macedonian (МК), Albanian (SQ) via JSON locale files
 - Mobile-responsive with hamburger drawer, vertical season labels on heatmaps
 - Chat with **Ognen** — AI climate assistant (Azure Bot Framework / Direct Line)
@@ -83,7 +85,8 @@ ERA5_MK/
 | `GET /api/calendar` | `loc`, `var`, `window`, `corr`, `method` | 365-day trend array for the calendar chart |
 | `GET /api/trends` | `var`, `doy`, `window`, `method` | Trend slope per station for the map |
 | `GET /api/annual_trend` | — | Annual mean temperature trend (national) |
-| `GET /api/today_status` | — | Today's temperature vs historical distribution (KDE, percentile, category) |
+| `GET /api/today_status` | `date`, `loc` | Today's (or a given date's) temperature vs historical distribution (KDE, percentile, category) |
+| `GET /api/today_status/last7` | `date`, `loc` | Category/percentile for each of the 7 days ending at `date` (or today), ascending |
 | `GET /api/season_heatmap` | — | Seasonal temperature percentiles vs 1950–1980 baseline (all years) |
 | `GET /api/spei_heatmap` | — | Seasonal SPEI vs 1950–1980 baseline (all years) |
 | `GET /api/spei_station_seasonal` | — | Per-station SPEI-3 (seasonal) + SPEI-30 (monthly) series with Theil-Sen trend |

@@ -45,6 +45,7 @@ jobs:
           COUNTRY=mk
           DIRECT_LINE_SECRET=${{ secrets.DIRECT_LINE_SECRET }}
           ANALYTICS_EXPORT_KEY=${{ secrets.ANALYTICS_EXPORT_KEY }}
+          TODAY_REFRESH_KEY=${{ secrets.TODAY_REFRESH_KEY }}
           EOF
           chmod 600 /opt/mk_climate/.env"
 
@@ -68,10 +69,13 @@ jobs:
             chmod 644 /etc/cron.d/mk_climate_news &&
             cp /opt/mk_climate/cron/climate_news_serpapi /etc/cron.d/mk_climate_news_serpapi &&
             chmod 644 /etc/cron.d/mk_climate_news_serpapi &&
+            cp /opt/mk_climate/cron/today_status_refresh /etc/cron.d/mk_today_status_refresh &&
+            chmod 644 /etc/cron.d/mk_today_status_refresh &&
             echo 'Cron installed:' &&
             cat /etc/cron.d/mk_climate &&
             cat /etc/cron.d/mk_climate_news &&
-            cat /etc/cron.d/mk_climate_news_serpapi
+            cat /etc/cron.d/mk_climate_news_serpapi &&
+            cat /etc/cron.d/mk_today_status_refresh
           "
 
       - name: Health check
