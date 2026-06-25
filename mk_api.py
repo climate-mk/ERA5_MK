@@ -1713,7 +1713,12 @@ def api_climate_news():
     # Bluesky posts are excluded here — they're already shown in the page's
     # dedicated Bluesky widget, so including them in the news list would be
     # redundant. The RSS feed below still includes them.
-    return jsonify(compute_climate_news(include_bluesky=False))
+    resp = jsonify(compute_climate_news(include_bluesky=False))
+    # Short cache lifetime so browsers/CDN don't hold onto a stale response —
+    # the underlying archive only changes every 6h (RSS/Bing) or 1x/day
+    # (SerpApi) anyway, so this is purely about avoiding a hard-refresh need.
+    resp.headers["Cache-Control"] = "public, max-age=900"
+    return resp
 
 
 @app.route("/rss/climate_news.xml")
