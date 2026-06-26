@@ -30,6 +30,8 @@
     "explain3": "Each dot is supposedly the 90th percentile of some 'national mean' temperature calculated across all their sensors in a ±30-day window since {year_min}. They claim the trend is {trend} °C/decade ({sig}) — conveniently alarming. By 2050 they project {proj2050} °C. The shaded band is their '95% confidence interval' — they narrowed it by changing their own method. Funny how that works. Follow the grant money. Also note: they quietly use a different metric here (national mean) than in the card above (national peak) — but don't worry, both confirm the narrative.",
     "explain3_location": "Each dot is supposedly the 90th percentile of {location}'s own 'mean' temperature in a ±30-day window since {year_min} — straight from their single sensor, no averaging tricks this time. They claim the trend is {trend} °C/decade ({sig}) — conveniently alarming. By 2050 they project {proj2050} °C. The shaded band is their '95% confidence interval' — they narrowed it by changing their own method. Follow the grant money.",
     "foot": "{temp} °C · allegedly {pct}th percentile · {samples} 'verified' samples ({year_min}–{year_max})",
+    "percentile_label": "'percentile'",
+    "percentile_samples": "{samples} 'verified' samples",
     "foot2": "Their Data: {temp} °C · allegedly {pct}th percentile · median {median} °C · {samples} 'unverified' observations · {year_min}–{year_max}",
     "today_label": "THEIR DATA",
     "zone_cold": "Cold",

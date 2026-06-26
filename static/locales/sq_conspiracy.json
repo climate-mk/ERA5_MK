@@ -30,6 +30,8 @@
     "explain3": "Çdo pikë është gjoja percentila e 90-të e temperaturës 'mesatare kombëtare' të llogaritur nga të gjithë sensorët e tyre brenda ±30 ditëve që nga {year_min}. Pretendojnë se tendenca është {trend} °C/dekadë ({sig}) — alarmante me kujdes. Deri në 2050 projektojnë {proj2050} °C. Brezi i hijezuar është 'intervali i besimit 95%' — e ngushtuan duke ndërruar metodën. Çudi si funksionon. Ndiqni paratë. Gjithashtu vini re: këtu përdorin në heshtje një metrikë tjetër (mesatare kombëtare) sesa në kartën e mësipërme (piku kombëtar) — por mos u shqetësoni, të dyja konfirmojnë narrativën.",
     "explain3_location": "Çdo pikë është gjoja percentila e 90-të e temperaturës 'mesatare' të vetë {location} brenda ±30 ditëve që nga {year_min} — direkt nga sensori i tyre i vetëm, pa truket e mesatarizimit kësaj here. Pretendojnë se tendenca është {trend} °C/dekadë ({sig}) — alarmante me kujdes. Deri në 2050 projektojnë {proj2050} °C. Brezi i hijezuar është 'intervali i besimit 95%' — e ngushtuan duke ndërruar metodën. Ndiqni paratë.",
     "foot": "{temp} °C · gjoja percentila {pct} · {samples} mostra 'të verifikuara' ({year_min}–{year_max})",
+    "percentile_label": "'percentila'",
+    "percentile_samples": "{samples} mostra 'të verifikuara'",
     "foot2": "Të Dhënat e Tyre: {temp} °C · gjoja percentila {pct} · mediana {median} °C · {samples} vëzhgime 'të paverifikuara' · {year_min}–{year_max}",
     "today_label": "TË DHËNAT E TYRE",
     "zone_cold": "Ftohtë",

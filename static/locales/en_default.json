@@ -34,6 +34,8 @@
     "foot": "{temp} °C · {pct}th percentile · {samples} samples ({year_min}–{year_max})",
     "foot2": "Today: {temp} °C · {pct}th percentile · median {median} °C · {samples} observations · {year_min}–{year_max}",
     "today_label": "TODAY",
+    "percentile_label": "percentile",
+    "percentile_samples": "{samples} samples",
     "zone_cold": "Cold",
     "zone_cool": "Cool",
     "zone_normal": "Normal",

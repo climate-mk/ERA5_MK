@@ -1,0 +1,394 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta http-equiv="Cache-Control" content="no-store">
+  <title>Climate Dashboard</title>
+  <meta name="robots" content="noindex, nofollow">
+  <link rel="icon" type="image/x-icon" href="favicon.ico">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500;600&family=Playfair+Display&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="css/style.css">
+  <link rel="stylesheet" href="css/dashboard.css">
+  <!-- Highcharts (vendored locally — no CDN rate-limit dependency) -->
+  <script src="js/vendor/highcharts.js"></script>
+  <script src="js/vendor/highcharts-more.js"></script>
+  <script src="js/vendor/map.js"></script>
+  <script src="js/vendor/tiledwebmap.js"></script>
+  <script src="js/vendor/accessibility.js"></script>
+  <script src="js/vendor/exporting.js"></script>
+  <script src="js/vendor/export-data.js"></script>
+  <script src="js/vendor/offline-exporting.js"></script>
+  <script src="js/vendor/full-screen.js"></script>
+  <script>window.DASHBOARD_FORCE_EN = true;</script>
+</head>
+<body>
+<div id="app">
+
+  <header class="topbar">
+    <div class="brand">
+      <a href="#"><img class="brand-logo" src="images/logo.png" alt="climate.mk"></a>
+    </div>
+    <button class="chat-btn" onclick="openChat()" id="chat-toggle-btn">
+      <img class="chat-avatar" src="images/Ognen100.png" alt="Ognen">
+      <span class="chat-label">
+        <span class="chat-name" id="chat-name-text">Chat with Ognen</span>
+        <span class="chat-role">climate assistant</span>
+      </span>
+    </button>
+    <button class="hamburger-btn" id="hamburger-btn" aria-label="Open menu">
+      <span></span><span></span><span></span>
+    </button>
+  </header>
+
+  <!-- Control bar — verbatim copy of index.html's #controls-bar markup/ids, so
+       app.js's existing listeners (var-select, method-group, corr-toggle,
+       window-input, doy-slider, btn-prev/play/next, loc-* dropdown) keep
+       working unmodified, and so it visually matches index.html's bar
+       exactly (same style.css classes: .toolbar/.pill-group/.pill/etc). -->
+  <div class="toolbar" id="controls-bar">
+
+    <!-- Location -->
+    <div class="pill-group ctrl-pill--loc">
+      <span class="pg-k">Location</span>
+      <div class="loc-dropdown">
+        <button id="loc-btn" class="loc-dropdown-btn">
+          <span id="loc-display">Loading…</span>
+          <svg width="9" height="9" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M6 9l6 6 6-6"/></svg>
+        </button>
+        <div id="loc-menu" class="loc-dropdown-menu">
+          <div class="loc-menu-header">
+            <span>Select locations</span>
+            <button id="loc-close-btn" class="loc-close-btn" aria-label="Close">✕</button>
+          </div>
+          <div id="loc-list"></div>
+        </div>
+        <div id="loc-backdrop" class="loc-backdrop"></div>
+      </div>
+    </div>
+
+    <!-- Variable -->
+    <div class="pill-group">
+      <span class="pg-k">Variable</span>
+      <div class="pill pill-select"><select id="var-select"></select></div>
+    </div>
+
+    <!-- Method -->
+    <div class="pill-group">
+      <span class="pg-k">Method</span>
+      <div class="radio-group" id="method-group">
+        <label class="pill pill-radio">
+          <span class="check-box" id="check-theilsen"></span>
+          <input type="radio" name="method" value="theilsen" checked hidden>
+          <span>Theil-Sen + MK</span>
+        </label>
+        <label class="pill alt pill-radio">
+          <span class="check-box" id="check-ols" style="display:none"></span>
+          <input type="radio" name="method" value="ols" hidden>
+          <span>OLS</span>
+        </label>
+      </div>
+    </div>
+
+    <!-- Elevation correction (temp only) -->
+    <div class="pill-group" id="corr-section">
+      <span class="pg-k">Elevation corr.</span>
+      <label class="toggle">
+        <input type="checkbox" id="corr-toggle" hidden>
+        <div class="toggle-track"></div>
+      </label>
+    </div>
+
+    <!-- Window -->
+    <div class="pill-group">
+      <span class="pg-k">Window</span>
+      <div class="pill pill-num">±<input type="number" id="window-input" value="7" min="1" max="90"> days</div>
+    </div>
+
+    <!-- Day of year -->
+    <div class="day-control">
+      <span class="day-k">Day</span>
+      <div class="day-v" id="doy-badge" title="Click to pick a date">Apr 15</div>
+      <div class="scrub"><input type="range" id="doy-slider" min="1" max="365" value="105"></div>
+      <div class="playbar">
+        <button class="play-btn" id="btn-prev">◀</button>
+        <button class="play-btn primary" id="btn-play">▶</button>
+        <button class="play-btn" id="btn-next">▶</button>
+      </div>
+    </div>
+
+    <div class="spacer"></div>
+
+  </div>
+
+  <!-- Uniform grid — every chart/section is one .dash-card (or a layout
+       anchor for app.js/dashboard.js-generated multi-card rows). See
+       dashboard.css for the explicit row placement of the anchors below.
+       Row order: Map+Regression, Today (N cards), Hero (N cards),
+       Calendar (N cards), SPEI trend (N cards), Tropical days (N cards),
+       Tropical nights (N cards), Season heatmap, SPEI heatmap — N = number
+       of selected locations (1-3), built entirely by dashboard.js. -->
+  <div class="dash-grid">
+
+    <!-- Map -->
+    <div class="dash-card" id="dash-map-card">
+      <div class="dash-card-head">
+        <div class="dash-card-title">North Macedonia</div>
+        <div class="dash-card-sub" id="map-station-count">—</div>
+      </div>
+      <div class="dash-chart-wrap">
+        <div id="map-chart" class="dash-chart"></div>
+        <div class="loading-overlay" id="map-loading">
+          <div class="spinner"></div> Loading map…
+        </div>
+      </div>
+    </div>
+
+    <!-- Regression chart (spans 2 columns) -->
+    <div class="dash-card span-2" id="dash-reg-card">
+      <div class="dash-card-head">
+        <div class="dash-card-title" id="chart-title">—</div>
+        <div class="dash-card-sub" id="chart-sub">—</div>
+      </div>
+      <div class="dash-chart-wrap">
+        <div id="reg-chart" class="dash-chart"></div>
+        <div class="loading-overlay" id="reg-loading">
+          <div class="spinner"></div> Loading…
+        </div>
+      </div>
+    </div>
+
+    <!-- Today: one card per selected location, built by dashboard.js via
+         app.js's renderTodayCardInto(containerId, r, idPrefix) helper. -->
+    <div id="today-row"></div>
+
+    <!-- Hero: one card per selected location.
+         renderHeroCards() builds all of #hero's children via innerHTML. -->
+    <section id="hero"></section>
+
+    <!-- Calendar: one panel per selected location.
+         refreshCalendar() builds all of #cal-section's children via
+         innerHTML. -->
+    <div id="cal-section"></div>
+
+    <!-- SPEI trend (Summer): one card per selected location, each pinned to
+         its own location (no internal station-picker), built by
+         dashboard.js via app.js's renderSpeiTrendChart(instanceId, loc). -->
+    <div id="spei-trend-row"></div>
+
+    <!-- Tropical days: one card per selected location, same treatment via
+         renderTropicalChart("days", instanceId, loc). -->
+    <div id="tropical-days-row"></div>
+
+    <!-- Tropical nights: one card per selected location, same treatment via
+         renderTropicalChart("nights", instanceId, loc). -->
+    <div id="tropical-nights-row"></div>
+
+    <!-- Season heatmap — single national-aggregate card (the API has no
+         per-location concept, unlike SPEI trend/tropical days/nights), moved
+         to the bottom. .dash-card is on the <section> itself (not a
+         wrapper), so app.js's section.hidden=true/false correctly shows/
+         hides the whole card. #shm-sub is null-guarded in app.js (always
+         safe to include or omit) — included here for the subtitle. -->
+    <section id="season-heatmap-section" class="season-heatmap-section dash-card" hidden>
+      <div class="dash-card-head">
+        <div class="dash-card-title">Seasonal heat ranking</div>
+        <div class="dash-card-sub" id="shm-sub">—</div>
+      </div>
+      <div id="shm-controls" class="shm-controls"></div>
+      <div id="shm-chart-outer"></div>
+      <div id="shm-stats" class="shm-stats"></div>
+    </section>
+    <div id="shm-tip" class="shm-tip" hidden></div>
+
+    <!-- SPEI heatmap — single national-aggregate card, same treatment. -->
+    <section id="precip-heatmap-section" class="season-heatmap-section precip-heatmap-section dash-card" hidden>
+      <div class="dash-card-head">
+        <div class="dash-card-title">Seasonal drought index (SPEI)</div>
+        <div class="dash-card-sub" id="phm-sub">—</div>
+      </div>
+      <div id="phm-controls" class="shm-controls"></div>
+      <div id="phm-chart-outer"></div>
+      <div id="phm-stats" class="shm-stats"></div>
+    </section>
+    <div id="phm-tip" class="shm-tip" hidden></div>
+
+  </div><!-- /.dash-grid -->
+
+  <!-- Below: elements not shown on the dashboard, kept in the DOM (hidden via
+       dashboard.css) only because app.js writes into them unconditionally
+       with no null guard, confirmed in earlier sessions. -->
+  <section id="mk2036" class="mk2036-section">
+    <div class="mk2036-heading-row">
+      <div id="mk2036-heading" class="mk2036-heading"></div>
+      <a href="future-timeline.html" class="mk2036-timeline-btn">
+        <span id="mk2036-timeline-btn-label"></span>
+      </a>
+    </div>
+    <div class="mk2036-grid">
+      <div class="mk2036-card">
+        <div id="mk2036-r1-name" class="mk2036-region"></div>
+        <ul class="mk2036-impacts"><li id="mk2036-r1-i1"></li><li id="mk2036-r1-i2"></li><li id="mk2036-r1-i3"></li></ul>
+      </div>
+      <div class="mk2036-card">
+        <div id="mk2036-r2-name" class="mk2036-region"></div>
+        <ul class="mk2036-impacts"><li id="mk2036-r2-i1"></li><li id="mk2036-r2-i2"></li></ul>
+      </div>
+      <div class="mk2036-card">
+        <div id="mk2036-r3-name" class="mk2036-region"></div>
+        <ul class="mk2036-impacts"><li id="mk2036-r3-i1"></li><li id="mk2036-r3-i2"></li></ul>
+      </div>
+      <div class="mk2036-card">
+        <div id="mk2036-r4-name" class="mk2036-region"></div>
+        <ul class="mk2036-impacts"><li id="mk2036-r4-i1"></li><li id="mk2036-r4-i2"></li></ul>
+      </div>
+      <div class="mk2036-card">
+        <div id="mk2036-r5-name" class="mk2036-region"></div>
+        <ul class="mk2036-impacts"><li id="mk2036-r5-i1"></li><li id="mk2036-r5-i2"></li></ul>
+      </div>
+    </div>
+  </section>
+
+  <section class="top-cards-row">
+    <div id="quote-card" class="top-card quote-card" hidden></div>
+    <div id="effects-card" class="top-card action-card"></div>
+  </section>
+
+  <section id="about" class="about-section">
+    <div class="sec-heading" id="about-heading">About us</div>
+    <div class="about-body">
+      <div class="about-col">
+        <div class="about-title" id="about-col1-title">About climate.mk</div>
+        <p id="about-col1-text"></p>
+        <p id="about-col1-download"></p>
+      </div>
+      <div class="about-col">
+        <div class="about-title" id="about-col2-title">Why do we do this?</div>
+        <p id="about-col2-text1"></p>
+        <p id="about-col2-text2"></p>
+        <a id="about-col2-btn" href="what-can-we-do.html" class="about-action-btn">What can we do? →</a>
+      </div>
+      <div class="about-col">
+        <div class="about-title" id="about-col3-title">Methods used</div>
+        <p id="about-col3-text"></p>
+      </div>
+    </div>
+    <div class="contact-strip"></div>
+  </section>
+
+  <div id="chat-modal" class="chat-modal" onclick="if(event.target.id === 'chat-modal') { document.getElementById('chat-modal').classList.remove('open'); document.body.classList.remove('chat-modal-open'); }">
+    <div class="chat-modal-content">
+      <div class="chat-modal-header">
+        <div class="chat-title"><span id="chat-modal-title-text">Chat with Ognen, the Climate Assistant</span></div>
+        <button class="chat-close-btn" aria-label="Close chat" onclick="document.getElementById('chat-modal').classList.remove('open'); document.body.classList.remove('chat-modal-open')">✕</button>
+      </div>
+      <div id="webchat-container"></div>
+      <div id="chat-error" class="chat-error" hidden></div>
+      <div class="chat-credit">Developed and sponsored by <a href="https://42dynamics.com/" target="_blank" rel="noopener">42Dynamics</a></div>
+    </div>
+  </div>
+
+  <div id="welcome-modal" class="welcome-modal" onclick="if(event.target.id==='welcome-modal') closeWelcome()">
+    <div class="welcome-content">
+      <button class="welcome-close" onclick="closeWelcome()" aria-label="Close">✕</button>
+      <div class="welcome-logo"><img src="images/logo.png" alt="climate.mk"></div>
+      <div class="welcome-body">
+        <p class="welcome-greeting">Dear friend,</p>
+        <p></p>
+        <p></p>
+      </div>
+      <div class="welcome-lang-row"></div>
+    </div>
+  </div>
+
+  <div id="data-table-modal" class="welcome-modal" onclick="if(event.target.id==='data-table-modal') closeDataTableModal()">
+    <div class="welcome-content data-table-content">
+      <div class="data-table-head">
+        <button class="welcome-close" onclick="closeDataTableModal()" aria-label="Close">✕</button>
+      </div>
+      <div id="data-table-container" class="data-table-body"></div>
+    </div>
+  </div>
+
+</div>
+
+  <div id="mobile-backdrop" class="mobile-backdrop"></div>
+
+  <!-- Mobile drawer — verbatim copy of index.html's #mobile-drawer markup/ids
+       (nav links, Language/Content style/Display style selects, Remember-
+       settings toggle, Chat section), so the menu looks and behaves
+       identically on both pages. Navigating to/from /dashboard happens only
+       via the Display style select's "Dashboard (EN)" option — there is no
+       separate dashboard-only nav link. -->
+  <aside id="mobile-drawer" class="mobile-drawer" aria-label="Site menu">
+
+    <div class="mdr-head">
+      <img src="images/logo.png" alt="climate.mk" class="mdr-logo">
+      <button id="mdr-close" class="mdr-close" aria-label="Close menu">✕</button>
+    </div>
+
+    <nav class="mdr-nav">
+      <a href="/">Home</a>
+      <a href="/#controls-bar">Charts</a>
+      <a href="/#about">About</a>
+      <a href="user-manual.html">Manual</a>
+      <a href="climate-news.html">Climate news (MK)</a>
+      <a href="/api/data/download" id="nav-raw-data" download>Raw data</a>
+    </nav>
+
+    <!-- Language -->
+    <div class="mdr-section">
+      <div class="mdr-label">Language</div>
+      <select id="mdr-lang-select" class="mdr-select">
+        <!-- options built dynamically in init() from /api/meta languages array -->
+      </select>
+    </div>
+
+    <!-- Content style -->
+    <div class="mdr-section">
+      <div class="mdr-label">Content style</div>
+      <select id="mdr-content-select" class="mdr-select">
+        <option value="default">Standard</option>
+        <option value="conspiracy">🌡️ April Fools</option>
+      </select>
+    </div>
+
+    <!-- Display style / typography -->
+    <div class="mdr-section">
+      <div class="mdr-label">Display style</div>
+      <select id="mdr-style-select" class="mdr-select">
+        <option value="default">Default</option>
+        <option value="minimal">Minimal</option>
+        <option value="dashboard">Dashboard (EN)</option>
+      </select>
+    </div>
+
+    <!-- Remember settings -->
+    <div class="mdr-section">
+      <label class="mdr-toggle-row" for="mdr-save-prefs-toggle">
+        <span class="mdr-label" style="margin-bottom:0">Remember my settings</span>
+        <label class="toggle">
+          <input type="checkbox" id="mdr-save-prefs-toggle" hidden>
+          <div class="toggle-track"></div>
+        </label>
+      </label>
+      <div class="mdr-sublabel" id="mdr-save-prefs-hint">Locations, variable, method &amp; date are saved for 3 days.</div>
+    </div>
+
+    <!-- Chat -->
+    <div class="mdr-section" id="mdr-chat-section">
+      <button class="mdr-chat-btn" onclick="openChat(); closeMobileDrawer()">
+        <img src="images/Ognen100.png" id="mdr-chat-avatar" alt="Ognen" class="mdr-chat-avatar">
+        <span id="mdr-chat-btn-text">Chat with Ognen, the Climate Assistant</span>
+      </button>
+    </div>
+
+  </aside>
+
+<script src="https://cdn.botframework.com/botframework-webchat/latest/webchat.js"></script>
+<script src="js/app.js"></script>
+<script src="js/dashboard.js"></script>
+</body>
+</html>
