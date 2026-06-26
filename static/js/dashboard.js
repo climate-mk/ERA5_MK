@@ -206,6 +206,7 @@ document.addEventListener("click", (e) => {
       refreshRegression();
       refreshCalendar();
       _dashEnforceLocCount();
+      _origUpdateLocDisplay();
       _dashRenderLocationRows();
     });
     return;
