@@ -40,6 +40,7 @@ features:
   station_map:           true   # station map coloured by slope
   hero_cards:            true   # per-location summary verdict cards
   today_section:         true   # "Is it hot today?" + annual trend chart
+  warming_stripes:       true   # warming stripes strip next to the last-7-days chart
   season_heat_heatmap:   true   # seasonal heat ranking heatmap
   spei_heatmap:          true   # seasonal drought index (SPEI) heatmap
   drought_trend_chart:   true   # per-station SPEI trend chart (WIP)

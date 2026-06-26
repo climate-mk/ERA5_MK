@@ -738,6 +738,35 @@ def compute_today_last7(end_date=None, loc=None):
         })
     return {"available": bool(days), "days": days}
 
+_WARMING_STRIPES_CACHE = {}
+
+def compute_warming_stripes(loc=None):
+    """One annual mean temperature per year (national average across stations,
+    or a single station's own mean when loc is given), for the classic
+    'warming stripes' visualisation. Years with no data are dropped.
+    """
+    cache_key = loc or "national"
+    if cache_key in _WARMING_STRIPES_CACHE:
+        return _WARMING_STRIPES_CACHE[cache_key]
+
+    loc_data = data[data["location"] == loc] if loc else data
+    annual = (
+        loc_data.groupby("year")["temperature_mean_corr"]
+        .mean()
+        .dropna()
+    )
+    annual = annual[annual.index >= CONFIG["trend_start_year"]]
+    annual = annual[annual.index < _today_local().year]  # drop current, incomplete year
+
+    years = [{"year": int(y), "value": round(float(v), 2)} for y, v in annual.items()]
+    result = {
+        "available": bool(years),
+        "years":     years,
+        "loc":       loc,
+    }
+    _WARMING_STRIPES_CACHE[cache_key] = result
+    return result
+
 # ── Chat analytics ────────────────────────────────────────────────────────────
 #
 # Privacy design:
@@ -1010,6 +1039,15 @@ def api_today_status_last7():
         except Exception:
             return jsonify({"available": False}), 400
     return jsonify(compute_today_last7(end_date, loc))
+
+
+@app.route("/api/warming_stripes")
+def api_warming_stripes():
+    if not _feature_enabled("warming_stripes"): return "", 204
+    loc = request.args.get("loc") or None
+    if loc and loc not in LOCATIONS:
+        return jsonify({"available": False}), 400
+    return jsonify(compute_warming_stripes(loc))
 
 
 @app.route("/api/today_status/refresh")

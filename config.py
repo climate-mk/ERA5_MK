@@ -43,6 +43,7 @@ _FEATURE_DEFAULTS = {
     "station_map":           False,
     "hero_cards":            False,
     "today_section":         False,
+    "warming_stripes":       False,
     "season_heat_heatmap":   False,
     "spei_heatmap":          False,
     "drought_trend_chart":   False,

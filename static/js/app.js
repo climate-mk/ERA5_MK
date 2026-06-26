@@ -1072,10 +1072,17 @@ function _buildTodayCardInner(r, idPrefix = "today") {
         <span class="today-pct-samples">${t('today.percentile_samples', {samples: r.n_samples.toLocaleString()})}</span>
       </div>
     </div>
-    <p class="today-explain">${t(explain1Key, {location: placeName})}</p>
-    <div class="today-last7-card" id="${idPrefix}-last7-card">
-      <div class="today-chart-title">${t('today.last7_title')}</div>
-      <div id="${idPrefix}-last7-chart"></div>
+    <p class="today-explain">${t(explain1Key, {location: placeName})}${idPrefix === "today" && isEnabled("warming_stripes") ? t('today.explain1_stripes', {year_min: r.year_min}) : ''}</p>
+    <div class="today-last7-row">
+      <div class="today-last7-card" id="${idPrefix}-last7-card">
+        <div class="today-chart-title">${t('today.last7_title')}</div>
+        <div id="${idPrefix}-last7-chart"></div>
+      </div>
+      ${idPrefix === "today" && isEnabled("warming_stripes") ? `
+      <div class="today-stripes-card" id="${idPrefix}-stripes-card">
+        <div class="today-chart-title">${t('today.stripes_title', {year_min: r.year_min})}</div>
+        <div id="${idPrefix}-stripes-chart"></div>
+      </div>` : ''}
     </div>
     ${t('today.climate_context') ? `<p class="today-context">${t('today.climate_context')}</p>` : ''}
     <div class="today-foot">
@@ -1098,6 +1105,7 @@ function _updateTodayCard(r) {
   if (card) card.innerHTML = _buildTodayCardInner(r);
   _renderTodayGauge(r);
   renderTodayLast7Chart(r.loc);
+  if (isEnabled("warming_stripes")) renderWarmingStripesChart(r.loc);
 
   const distCard = document.getElementById('today-dist-card');
   if (distCard) {
@@ -1505,6 +1513,77 @@ async function renderTodayLast7Chart(loc, chartId = "today-last7-chart") {
   } catch {
     /* silently skip if endpoint unavailable */
   }
+}
+
+async function renderWarmingStripesChart(loc, chartId = "today-stripes-chart") {
+  const el = document.getElementById(chartId);
+  if (!el) return;
+  try {
+    const params = new URLSearchParams();
+    if (loc) params.set('loc', loc);
+    const r = await fetch(`api/warming_stripes?${params}`).then(res => res.json());
+    if (!r.available || !r.years || !r.years.length) return;
+
+    const titleEl = el.closest('.today-stripes-card')?.querySelector('.today-chart-title');
+    if (titleEl) titleEl.textContent = t('today.stripes_title', {year_min: r.years[0].year});
+
+    const values = r.years.map(y => y.value);
+    const vmin = Math.min(...values), vmax = Math.max(...values);
+
+    Highcharts.chart(chartId, {
+      chart: { type: "column", height: 190, margin: [8, 4, 32, 4], backgroundColor: "transparent", borderWidth: 0, animation: false },
+      title:   { text: null },
+      credits: { enabled: false },
+      legend:  { enabled: false },
+      tooltip: {
+        formatter() {
+          return `<b>${this.point.year}</b>: ${this.point.temp.toFixed(1)}°C`;
+        },
+      },
+      xAxis: {
+        categories: r.years.map(y => String(y.year)),
+        title: { text: null },
+        labels: {
+          style: { color: INK, fontFamily: "'JetBrains Mono', monospace", fontSize: "10px" },
+          step: Math.ceil(r.years.length / 8),
+        },
+        lineColor: "rgba(14,14,12,0.15)", tickColor: "rgba(14,14,12,0.15)", gridLineWidth: 0,
+      },
+      yAxis: { visible: false, min: 0, max: 1 },
+      plotOptions: {
+        column: { pointPadding: 0, groupPadding: 0, borderWidth: 0, borderRadius: 0 },
+      },
+      exporting: {
+        csv: { columnHeaderFormatter(item, key) { return key === "temp" ? "Temperature (°C)" : "Year"; } },
+      },
+      series: [{
+        name: "Annual mean temperature",
+        keys: ["year", "y", "temp"],
+        data: r.years.map(y => [y.year, 1, y.value]),
+        colors: r.years.map(y => _stripeColor(y.value, vmin, vmax)),
+        colorByPoint: true,
+      }],
+    });
+  } catch {
+    /* silently skip if endpoint unavailable */
+  }
+}
+
+// Interpolates cold→normal→hot across the value range, reusing the same
+// 3-stop palette as the today-status categories for visual consistency.
+function _stripeColor(value, vmin, vmax) {
+  const stops = [[0, 0x3a, 0x5a, 0x8a], [0.5, 0xe7, 0xd9, 0xb8], [1, 0x96, 0x2c, 0x1a]];
+  const t = vmax > vmin ? (value - vmin) / (vmax - vmin) : 0.5;
+  let lo = stops[0], hi = stops[stops.length - 1];
+  for (let i = 0; i < stops.length - 1; i++) {
+    if (t >= stops[i][0] && t <= stops[i + 1][0]) { lo = stops[i]; hi = stops[i + 1]; break; }
+  }
+  const span = hi[0] - lo[0] || 1;
+  const f = (t - lo[0]) / span;
+  const r = Math.round(lo[1] + (hi[1] - lo[1]) * f);
+  const g = Math.round(lo[2] + (hi[2] - lo[2]) * f);
+  const b = Math.round(lo[3] + (hi[3] - lo[3]) * f);
+  return `rgb(${r},${g},${b})`;
 }
 
 async function renderTodayTrendChart(dateStr = null) {
