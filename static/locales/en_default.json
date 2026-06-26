@@ -28,6 +28,8 @@
     "chart_title": "{location} daily max temperatures for the two weeks around {day_label} since {year_min}",
     "trend_title": "{location} peak temperatures around {day_label} · {year_min}–{year_max} · trend with projection to 2050",
     "last7_title": "Last 7 days",
+    "stripes_title": "Warming since {year_min}",
+    "explain1_stripes": " The bars below show each year's average temperature from {year_min} to today — from cold blue to hot red — so you can see at a glance how much warmer the climate has become.",
     "explain2": "The curve shows how often each peak temperature occurred on days like today across all years. Colours mark climatological zones — from cold blue through the typical beige band to extreme red — so you can see at a glance where today sits.",
     "explain3": "Each dot is the 90th percentile of the national mean daily-maximum temperature across all stations in a ±30-day window around this date, for every year since {year_min}. The Theil-Sen trend is {trend} °C/decade ({sig}). At this rate, by 2050 the trend projects to {proj2050} °C. The shaded band is the 95% confidence interval on the slope. Note: this chart uses the national mean across all stations; the 'Is it hot today?' card above uses the national peak (single hottest station) — both are valid, but they measure different things.",
     "explain3_location": "Each dot is the 90th percentile of {location}'s mean daily-maximum temperature in a ±30-day window around this date, for every year since {year_min}. The Theil-Sen trend is {trend} °C/decade ({sig}). At this rate, by 2050 the trend projects to {proj2050} °C. The shaded band is the 95% confidence interval on the slope.",

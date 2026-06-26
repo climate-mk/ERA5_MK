@@ -224,9 +224,13 @@ body {
 .tcl-item  { display: flex; align-items: center; gap: 5px; font-family: 'JetBrains Mono', monospace; font-size: 10px; letter-spacing: 0.06em; text-transform: uppercase; color: var(--ink-soft); }
 .tcl-sw    { width: 14px; height: 10px; border-radius: 2px; flex-shrink: 0; }
 .today-explain  { font-family: 'Space Grotesk', sans-serif; font-size: 13px; color: var(--ink-soft); line-height: 1.55; margin: 0; max-width: 900px; width: 100%; }
+.today-last7-row { display: flex; flex-wrap: wrap; gap: 16px; justify-content: center; width: 100%; max-width: 1160px; }
 .today-last7-card { max-width: 560px; width: 100%; padding: 4px 0 2px; }
 .today-last7-card .today-chart-title { font-size: 12px; margin-bottom: 2px; }
 #today-last7-chart { min-height: 170px; }
+.today-stripes-card { max-width: 560px; width: 100%; padding: 4px 0 2px; }
+.today-stripes-card .today-chart-title { font-size: 12px; margin-bottom: 2px; }
+#today-stripes-chart { min-height: 170px; }
 .panel-explain  { font-family: 'Space Grotesk', sans-serif; font-size: 13px; color: var(--ink-soft); line-height: 1.55; margin: 0; padding: 10px 20px 0; }
 .today-context  { font-family: 'Space Grotesk', sans-serif; font-size: 14px; color: var(--ink); line-height: 1.5; margin: 0; max-width: 900px; width: 100%; padding: 2px 0 2px 16px; border-left: 3px solid var(--accent); }
 
