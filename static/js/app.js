@@ -304,9 +304,9 @@ function closeDataTableModal() {
 // row recomputes, the sibling reflows, and the two drift taller. Locking both
 // panels to an explicit, JS-computed height removes that coupling entirely —
 // neither panel reacts to the other's transient layout changes anymore.
-function syncPanelHeights() {
-  const mapPanel = document.getElementById("map-panel");
-  const regPanel = document.getElementById("reg-panel");
+function syncPanelHeights(mapId = "map-panel", regId = "reg-panel") {
+  const mapPanel = document.getElementById(mapId);
+  const regPanel = document.getElementById(regId);
   if (!mapPanel || !regPanel) return;
   mapPanel.style.removeProperty("height");
   regPanel.style.removeProperty("height");
@@ -323,7 +323,10 @@ function syncPanelHeights() {
 let _panelHeightResizeTimer = null;
 window.addEventListener("resize", () => {
   clearTimeout(_panelHeightResizeTimer);
-  _panelHeightResizeTimer = setTimeout(syncPanelHeights, 150);
+  _panelHeightResizeTimer = setTimeout(() => {
+    syncPanelHeights();                          // index.html's #map-panel/#reg-panel
+    syncPanelHeights("dash-map-card", "dash-reg-card"); // dashboard's pair — no-ops on index.html
+  }, 150);
 });
 
 // On exit, just reflow each chart's SVG to fit its already-locked panel
@@ -586,6 +589,7 @@ async function refreshMap() {
   } finally {
     showLoading("map-loading", false);
     syncPanelHeights();
+    syncPanelHeights("dash-map-card", "dash-reg-card");
   }
 }
 
@@ -987,7 +991,7 @@ function _buildTodayFlag(catKey) {
 
 // ── Small category gauge for the "today" temperature (Highcharts) ─────────────
 
-function _renderTodayGauge(r) {
+function _renderTodayGauge(r, ids = { gauge: "today-gauge", temp: "today-gauge-temp" }) {
   const order  = ["freezing", "cold", "nope", "hot", "hell"];
   const colors = ["#3a5a8a", "#6c8fb6", "#e7d9b8", "#c25a2c", "#962c1a"];
   const bounds = [0, 10, 20, 80, 95, 101]; // percentile cutoffs matching _TODAY_CATEGORIES
@@ -997,7 +1001,7 @@ function _renderTodayGauge(r) {
   const frac = hi > lo ? Math.min(1, Math.max(0, (pct - lo) / (hi - lo))) : 0.5;
   const dialPos = idx + frac;
 
-  Highcharts.chart("today-gauge", {
+  Highcharts.chart(ids.gauge, {
     chart: { type: "gauge", backgroundColor: "transparent", margin: [0, 0, 0, 0] },
     title: null, credits: { enabled: false }, tooltip: { enabled: false },
     exporting: { enabled: false },
@@ -1023,7 +1027,7 @@ function _renderTodayGauge(r) {
     }],
   });
 
-  const labelEl = document.getElementById("today-gauge-temp");
+  const labelEl = document.getElementById(ids.temp);
   if (labelEl) {
     labelEl.textContent = `${r.today_temp.toFixed(1)}°C`;
     labelEl.style.background = r.color;
@@ -1033,34 +1037,45 @@ function _renderTodayGauge(r) {
 
 // ── Render "Is it Hot in Macedonia Today?" ────────────────────────────────────
 
-function _buildTodayCardInner(r) {
+function _buildTodayCardInner(r, idPrefix = "today") {
   const placeName = r.loc ? locName(r.loc) : (t('ui.today_location_short') || _locale?.meta?.country_name || _metaConfig?.name || '');
   const explain1Key = r.loc ? 'today.explain1_location' : 'today.explain1';
+  const navIds = idPrefix === "today"
+    ? { prev: "today-prev", badge: "today-date-badge", next: "today-next", loc: "today-loc-select" }
+    : { prev: `${idPrefix}-prev`, badge: `${idPrefix}-date-badge`, next: `${idPrefix}-next`, loc: `${idPrefix}-loc-select` };
   return `
     <div class="today-date-control">
-      <button id="today-prev" class="today-nav-btn" aria-label="Previous day"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="15 18 9 12 15 6"/></svg></button>
-      <div class="today-date-badge" id="today-date-badge" title="Click to pick a date">${_fmtDay(r.month_num, r.day_num, r.day_label)}</div>
-      <button id="today-next" class="today-nav-btn" aria-label="Next day" ${_todayOffset === 0 ? 'disabled' : ''}><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="9 18 15 12 9 6"/></svg></button>
-      <select id="today-loc-select" class="today-loc-select" aria-label="${t('ui.today_location_label')}"></select>
+      <button id="${navIds.prev}" class="today-nav-btn" aria-label="Previous day"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="15 18 9 12 15 6"/></svg></button>
+      <div class="today-date-badge" id="${navIds.badge}" title="Click to pick a date">${_fmtDay(r.month_num, r.day_num, r.day_label)}</div>
+      <button id="${navIds.next}" class="today-nav-btn" aria-label="Next day" ${_todayOffset === 0 ? 'disabled' : ''}><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="9 18 15 12 9 6"/></svg></button>
+      <select id="${navIds.loc}" class="today-loc-select" aria-label="${t('ui.today_location_label')}"></select>
     </div>
     <div class="today-main-row">
-      <div class="today-h-row today-h-row--notitle">
-        <div class="today-gauge-wrap">
-          <div id="today-gauge" class="today-gauge"></div>
-          <div id="today-gauge-temp" class="today-gauge-temp"></div>
+      <div class="today-gauge-wrap">
+        <div id="${idPrefix}-gauge" class="today-gauge"></div>
+        <div id="${idPrefix}-gauge-temp" class="today-gauge-temp"></div>
+      </div>
+      <div class="today-divider"></div>
+      <div class="today-body">
+        <div class="today-text">
+          <div class="today-cat-row">
+            <span class="today-flag-tag-icon">${_buildTodayFlag(r.category_key)}</span>
+            <span class="today-cat">${_locale?.categories?.[r.category_key || r.category.toLowerCase()]?.name || r.category}</span>
+          </div>
+          <span class="today-desc">${(_locale?.categories?.[r.category_key || r.category.toLowerCase()]?.desc || r.description).replace('{country}', placeName).replace('{data_start_year}', String(r.year_min || '')).replace('{record_years}', String(r.year_max && r.year_min ? r.year_max - r.year_min + 1 : '')).replace('{d}', _fmtDay(r.month_num, r.day_num, r.day_label))}</span>
         </div>
       </div>
-      <div class="today-body">
-        <div class="today-flag-wrap">${_buildTodayFlag(r.category_key)}</div>
-        <div class="today-text">
-          <span class="today-cat">${_locale?.categories?.[r.category_key || r.category.toLowerCase()]?.name || r.category}</span><span class="today-sep-dot" style="background:${r.color}"></span><span class="today-desc">${(_locale?.categories?.[r.category_key || r.category.toLowerCase()]?.desc || r.description).replace('{country}', placeName).replace('{data_start_year}', String(r.year_min || '')).replace('{record_years}', String(r.year_max && r.year_min ? r.year_max - r.year_min + 1 : '')).replace('{d}', _fmtDay(r.month_num, r.day_num, r.day_label))}</span>
-        </div>
+      <div class="today-divider"></div>
+      <div class="today-pct-wrap">
+        <span class="today-pct-num">${r.percentile.toFixed(0)}</span>
+        <span class="today-pct-label">${t('today.percentile_label')}</span>
+        <span class="today-pct-samples">${t('today.percentile_samples', {samples: r.n_samples.toLocaleString()})}</span>
       </div>
     </div>
     <p class="today-explain">${t(explain1Key, {location: placeName})}</p>
-    <div class="today-last7-card" id="today-last7-card">
+    <div class="today-last7-card" id="${idPrefix}-last7-card">
       <div class="today-chart-title">${t('today.last7_title')}</div>
-      <div id="today-last7-chart"></div>
+      <div id="${idPrefix}-last7-chart"></div>
     </div>
     ${t('today.climate_context') ? `<p class="today-context">${t('today.climate_context')}</p>` : ''}
     <div class="today-foot">
@@ -1103,6 +1118,22 @@ function _updateTodayCard(r) {
   if (nextBtn) nextBtn.disabled = _todayOffset === 0;
 
   _bindTodayControls();
+}
+
+// Render a single, self-contained "Today" card into containerId, with every
+// chart/element id namespaced under idPrefix so multiple instances can
+// coexist on one page without collision (the date-nav strip/location-select
+// _buildTodayCardInner() includes are left unbound here — the dashboard
+// drives date stepping externally via its own shared DOY control, and hides
+// that strip via CSS). Used by the dashboard to show one Today card per
+// selected location; index.html's own single-card path keeps using
+// _updateTodayCard() above, unaffected by this helper's existence.
+function renderTodayCardInto(containerId, r, idPrefix) {
+  const card = document.getElementById(containerId);
+  if (!card) return;
+  card.innerHTML = _buildTodayCardInner(r, idPrefix);
+  _renderTodayGauge(r, { gauge: `${idPrefix}-gauge`, temp: `${idPrefix}-gauge-temp` });
+  renderTodayLast7Chart(r.loc, `${idPrefix}-last7-chart`);
 }
 
 function _bindTodayControls() {
@@ -1405,8 +1436,8 @@ function renderTodayChart(r) {
 const _TODAY_CAT_ORDER  = ["freezing", "cold", "nope", "hot", "hell"];
 const _TODAY_CAT_COLORS = ["#3a5a8a", "#6c8fb6", "#e7d9b8", "#c25a2c", "#962c1a"];
 
-async function renderTodayLast7Chart(loc) {
-  const el = document.getElementById("today-last7-chart");
+async function renderTodayLast7Chart(loc, chartId = "today-last7-chart") {
+  const el = document.getElementById(chartId);
   if (!el) return;
   try {
     const params = new URLSearchParams();
@@ -1435,7 +1466,7 @@ async function renderTodayLast7Chart(loc) {
       from: i - 0.5, to: i + 0.5, color: color + "33",
     }));
 
-    Highcharts.chart("today-last7-chart", {
+    Highcharts.chart(chartId, {
       chart: { type: "line", height: 190, margin: [8, 12, 40, 108], backgroundColor: "transparent", borderWidth: 0, animation: false },
       title:   { text: null },
       credits: { enabled: false },
@@ -1654,6 +1685,7 @@ async function refreshRegression() {
   } finally {
     showLoading("reg-loading", false);
     syncPanelHeights();
+    syncPanelHeights("dash-map-card", "dash-reg-card");
   }
 }
 
@@ -2262,6 +2294,7 @@ function renderStaticLabels() {
 // Build the composite locale key from the two separate localStorage values.
 // Falls back to default_language from /api/meta (set before locale loads).
 function _localeKey() {
+  if (window.DASHBOARD_FORCE_EN) return 'en_default';
   const dflt = _metaConfig?.default_language || 'en';
   return (localStorage.getItem('mk_lang') || dflt) + '_' + (localStorage.getItem('mk_content') || 'default');
 }
@@ -2591,7 +2624,7 @@ async function renderSeasonHeatmap() {
     function buildTicks() {
       const tickEl = document.getElementById("shm-year-ticks");
       if (!tickEl) return;
-      const row = document.querySelector(".shm-row");
+      const row = document.querySelector("#shm-grid .shm-row");
       if (!row) return;
       tickEl.innerHTML = "";
       const n = allYears.length;
@@ -2621,7 +2654,7 @@ async function renderSeasonHeatmap() {
     }
 
     function reapply() {
-      document.querySelectorAll(".shm-cell:not(.shm-cell--empty)").forEach(c =>
+      document.querySelectorAll("#shm-grid .shm-cell:not(.shm-cell--empty)").forEach(c =>
         applyMode(c, c.dataset.season, c.dataset.cat, +c.dataset.year));
     }
 
@@ -2632,14 +2665,14 @@ async function renderSeasonHeatmap() {
     function startAnimate() {
       animRunning = true; animYear = d.year_min; revealedYears = new Set();
       document.getElementById("shm-anim-btn").textContent = "⏹ Stop";
-      document.querySelectorAll(".shm-cell:not(.shm-cell--empty)").forEach(c =>
+      document.querySelectorAll("#shm-grid .shm-cell:not(.shm-cell--empty)").forEach(c =>
         c.classList.add("shm-cell--dim"));
       updateStats(); step();
     }
     function step() {
       if (!animRunning) return;
       revealedYears.add(animYear);
-      document.querySelectorAll(`.shm-cell[data-year="${animYear}"]`).forEach(c =>
+      document.querySelectorAll(`#shm-grid .shm-cell[data-year="${animYear}"]`).forEach(c =>
         applyMode(c, c.dataset.season, c.dataset.cat, animYear));
       updateStats();
       if (animYear >= d.year_max) { stopAnimate(); return; }
@@ -2946,16 +2979,16 @@ async function renderPrecipHeatmap() {
   }
 }
 
-async function renderSpeiTrendChart() {
+async function renderSpeiTrendChart(instanceId = "spei-trend", fixedLoc = null) {
   if (!isEnabled("drought_trend_chart")) return;
-  const section = document.getElementById("spei-trend-section");
+  const section = document.getElementById(`${instanceId}-section`);
   if (!section) return;
 
   // show section immediately so chart div has dimensions when Highcharts renders
   section.hidden = false;
 
   // show loading state while computing (can take ~15s on first run)
-  const chartDiv = document.getElementById("spei-trend-chart");
+  const chartDiv = document.getElementById(`${instanceId}-chart`);
   if (chartDiv) chartDiv.innerHTML =
     `<div style="display:flex;align-items:center;justify-content:center;height:280px;color:var(--ink-soft);font-family:'JetBrains Mono',monospace;font-size:11px;gap:10px">
       <div class="spinner"></div> Computing drought index for all stations…
@@ -2969,26 +3002,27 @@ async function renderSpeiTrendChart() {
     const SEASONS = ["Annual", "Winter", "Spring", "Summer", "Autumn"];
     const MONTHS  = ["Jan","Feb","Mar","Apr","May","Jun","Jul","Aug","Sep","Oct","Nov","Dec"];
     const stations = Object.keys(d.stations).sort();
-    const _defLoc = _metaConfig?.default_location || "Skopje";
+    const _defLoc = fixedLoc || _metaConfig?.default_location || "Skopje";
     let currentStation = stations.includes(_defLoc) ? _defLoc : stations[0];
     let currentSeason  = "Summer";
     let chart          = null;
 
     // subtitle
-    document.getElementById("spei-trend-sub").textContent =
+    document.getElementById(`${instanceId}-sub`).textContent =
       `Seasonal (SPEI-3) and monthly (SPEI-30) water balance standardised vs ${d.baseline} baseline · ERA5-Land · data to ${d.era5_last}`;
 
     // controls
-    const ctrlEl = document.getElementById("spei-trend-controls");
+    const ctrlEl = document.getElementById(`${instanceId}-controls`);
 
     function buildControls() {
       ctrlEl.innerHTML =
-        // row 1: locations
+        // row 1: locations (omitted when pinned to a fixed location)
+        (fixedLoc ? "" :
         `<div class="spei-ctrl-row">` +
         stations.map(s =>
           `<button class="shm-btn spei-loc-btn${s===currentStation?' shm-btn--active':''}" data-spei-loc="${s}">${s.replace(/_/g," ")}</button>`
         ).join("") +
-        `</div>` +
+        `</div>`) +
         // row 2: seasons + months
         `<div class="spei-ctrl-row" style="margin-top:6px">` +
         SEASONS.map(s =>
@@ -3037,10 +3071,10 @@ async function renderSpeiTrendChart() {
       const n = years.length;
 
       // stats box
-      const slopeEl = document.getElementById("spei-trend-slope");
-      const titleEl = document.getElementById("spei-trend-title");
-      const obsEl   = document.getElementById("spei-trend-obs");
-      const explEl  = document.getElementById("spei-trend-explain");
+      const slopeEl = document.getElementById(`${instanceId}-slope`);
+      const titleEl = document.getElementById(`${instanceId}-title`);
+      const obsEl   = document.getElementById(`${instanceId}-obs`);
+      const explEl  = document.getElementById(`${instanceId}-explain`);
 
       const isMonth = MONTHS.includes(currentSeason);
       const scaleLabel = isMonth ? "SPEI-30" : "SPEI-3";
@@ -3161,7 +3195,7 @@ async function renderSpeiTrendChart() {
       };
 
       if (chart) { chart.destroy(); chart = null; }
-      chart = Highcharts.chart("spei-trend-chart", opts);
+      chart = Highcharts.chart(`${instanceId}-chart`, opts);
     }
 
   } catch(e) {
@@ -3213,28 +3247,29 @@ const TROP_CONFIGS = {
   },
 };
 
-async function renderTropicalChart(kind) {
+async function renderTropicalChart(kind, instanceId = TROP_CONFIGS[kind].prefix, fixedLoc = null) {
   const cfg = TROP_CONFIGS[kind];
   if (!isEnabled(cfg.featureFlag)) return;
-  const section = document.getElementById(`${cfg.prefix}-section`);
+  const idp = instanceId;
+  const section = document.getElementById(`${idp}-section`);
   if (!section) return;
   section.hidden = false;
 
-  const headingEl = document.getElementById(`${cfg.prefix}-heading`);
+  const headingEl = document.getElementById(`${idp}-heading`);
   if (headingEl) headingEl.innerHTML = `${t(cfg.headingKey)} <span class="wip-badge">${t("tropical.wip_badge")}</span>`;
 
-  const chartDiv = document.getElementById(`${cfg.prefix}-chart`);
-  const ctrlEl   = document.getElementById(`${cfg.prefix}-controls`);
-  const slopeEl  = document.getElementById(`${cfg.prefix}-slope`);
-  const lblEl    = document.getElementById(`${cfg.prefix}-slope-lbl`);
-  const titleEl  = document.getElementById(`${cfg.prefix}-title`);
-  const obsEl    = document.getElementById(`${cfg.prefix}-obs`);
-  const explEl   = document.getElementById(`${cfg.prefix}-explain`);
-  const subEl    = document.getElementById(`${cfg.prefix}-sub`);
+  const chartDiv = document.getElementById(`${idp}-chart`);
+  const ctrlEl   = document.getElementById(`${idp}-controls`);
+  const slopeEl  = document.getElementById(`${idp}-slope`);
+  const lblEl    = document.getElementById(`${idp}-slope-lbl`);
+  const titleEl  = document.getElementById(`${idp}-title`);
+  const obsEl    = document.getElementById(`${idp}-obs`);
+  const explEl   = document.getElementById(`${idp}-explain`);
+  const subEl    = document.getElementById(`${idp}-sub`);
 
   let threshold       = cfg.defaultThreshold;
   let streak          = 1;
-  let currentStation  = null;
+  let currentStation  = fixedLoc || null;
   let chart           = null;
 
   function showLoading() {
@@ -3258,7 +3293,7 @@ async function renderTropicalChart(kind) {
 
     const stations = Object.keys(d.stations).sort();
     if (!currentStation || !stations.includes(currentStation)) {
-      const _defLoc = _metaConfig?.default_location || stations[0];
+      const _defLoc = fixedLoc || _metaConfig?.default_location || stations[0];
       currentStation = stations.includes(_defLoc) ? _defLoc : stations[0];
     }
 
@@ -3267,16 +3302,18 @@ async function renderTropicalChart(kind) {
       t(cfg.subKey, { threshold, streak_clause: streakClause, era5_last: d.era5_last });
 
     ctrlEl.innerHTML =
+      // location-picker row (omitted when pinned to a fixed location)
+      (fixedLoc ? "" :
       `<div class="spei-ctrl-row">` +
       stations.map(s =>
         `<button class="shm-btn spei-loc-btn${s === currentStation ? " shm-btn--active" : ""}" data-loc="${s}">${s.replace(/_/g, " ")}</button>`
       ).join("") +
-      `</div>` +
+      `</div>`) +
       `<div class="spei-ctrl-row trop-param-row">` +
         `<label class="trop-param-lbl">${t("tropical.threshold_lbl")} ` +
-          `<input type="number" class="trop-param-input" id="${cfg.prefix}-threshold-input" value="${threshold}" step="0.5" min="${cfg.minT}" max="${cfg.maxT}"> °C</label>` +
+          `<input type="number" class="trop-param-input" id="${idp}-threshold-input" value="${threshold}" step="0.5" min="${cfg.minT}" max="${cfg.maxT}"> °C</label>` +
         `<label class="trop-param-lbl">${t(cfg.streakLblKey)} ` +
-          `<input type="number" class="trop-param-input" id="${cfg.prefix}-streak-input" value="${streak}" step="1" min="1" max="60"></label>` +
+          `<input type="number" class="trop-param-input" id="${idp}-streak-input" value="${streak}" step="1" min="1" max="60"></label>` +
       `</div>`;
 
     ctrlEl.querySelectorAll("[data-loc]").forEach(btn =>
@@ -3287,8 +3324,8 @@ async function renderTropicalChart(kind) {
         renderChart(d);
       }));
 
-    const thInput = document.getElementById(`${cfg.prefix}-threshold-input`);
-    const stInput = document.getElementById(`${cfg.prefix}-streak-input`);
+    const thInput = document.getElementById(`${idp}-threshold-input`);
+    const stInput = document.getElementById(`${idp}-streak-input`);
     const onParamChange = debounce(() => {
       threshold = Math.max(cfg.minT, Math.min(cfg.maxT, parseFloat(thInput.value) || cfg.defaultThreshold));
       streak    = Math.max(1, Math.min(60, parseInt(stInput.value, 10) || 1));
@@ -3488,7 +3525,7 @@ async function renderTropicalChart(kind) {
     };
 
     if (chart) { chart.destroy(); chart = null; }
-    chart = Highcharts.chart(`${cfg.prefix}-chart`, opts);
+    chart = Highcharts.chart(`${idp}-chart`, opts);
   }
 
   load();
@@ -3615,15 +3652,23 @@ document.addEventListener("keydown", e => {
     closeMobileDrawer();
 });
 
-// Style switcher (placeholder — applies data-theme, wires up real styles later)
+// Style switcher (placeholder — applies data-theme, wires up real styles later).
+// "Dashboard" is not a data-theme — it's a separate page (/dashboard) — so it's
+// handled as a navigation instead of a CSS-attribute toggle.
+const _onDashboardPage = window.DASHBOARD_FORCE_EN === true;
 const _savedTheme = localStorage.getItem("mk_theme");
-if (_savedTheme && _savedTheme !== "default") {
+if (_onDashboardPage) {
+  const _sel = document.getElementById("mdr-style-select");
+  if (_sel) _sel.value = "dashboard";
+} else if (_savedTheme && _savedTheme !== "default") {
   document.documentElement.setAttribute("data-theme", _savedTheme);
   const _sel = document.getElementById("mdr-style-select");
   if (_sel) _sel.value = _savedTheme;
 }
 document.getElementById("mdr-style-select").addEventListener("change", function() {
   const theme = this.value;
+  if (theme === "dashboard") { window.location.href = "/dashboard"; return; }
+  if (_onDashboardPage) { window.location.href = "/"; return; }
   document.documentElement.setAttribute("data-theme", theme === "default" ? "" : theme);
   localStorage.setItem("mk_theme", theme);
 });

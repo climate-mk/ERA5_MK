@@ -846,7 +846,7 @@ def set_cache_headers(response):
     - API JSON responses: already ephemeral, leave as-is
     """
     path = request.path
-    if path == "/" or path.endswith(".html"):
+    if path in ("/", "/dashboard") or path.endswith(".html"):
         response.headers["Cache-Control"] = "no-store"
     elif path.endswith((".js", ".css", ".json")):
         response.headers["Cache-Control"] = "no-cache"
@@ -859,6 +859,10 @@ def _feature_enabled(key: str) -> bool:
 @app.route("/")
 def index():
     return send_from_directory("static", "index.html")
+
+@app.route("/dashboard")
+def dashboard():
+    return send_from_directory("static", "dashboard.html")
 
 @app.route("/geo/<path:filename>")
 def serve_geo(filename):

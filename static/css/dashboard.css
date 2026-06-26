@@ -1,0 +1,347 @@
+/* Dashboard view — fresh, purpose-built 3-column grid. Loaded after style.css;
+   only affects dashboard.html, never index.html. Deliberately does NOT reuse
+   style.css's .panel/.loc-hero-card/.cal-panel/.today-card layout rules —
+   only its CSS custom properties (--paper/--rule/--radius/etc.) and the
+   control bar's existing .toolbar/.pill look. */
+
+/* ── Hide sections not wanted on this page ──────────────────────────────────── */
+/* These elements stay in the DOM (app.js writes into several of them
+   unconditionally with no null guard), they're just never shown here.
+   The hamburger button + mobile drawer/backdrop are NOT hidden — they're
+   the main menu, kept visible per the "thin header: logo + main menu only"
+   decision. */
+#mk2036,
+.top-cards-row,
+#about,
+#welcome-modal,
+#chat-toggle-btn {
+  display: none !important;
+}
+/* #chat-toggle-btn normally carries the .topbar's only `margin-left: auto`
+   (style.css:94), which is what pushes it + the hamburger button to the
+   far right on index.html — with chat hidden here, that auto-margin
+   carrier is gone, so the hamburger would otherwise sit right after the
+   logo. Moved the auto-margin onto the hamburger button itself so it still
+   lands at the far right, matching index.html's layout. */
+.hamburger-btn {
+  margin-left: auto;
+}
+
+/* ── Hide explanations / subtitles / extra titles ───────────────────────────── */
+/* Drop every explanatory paragraph and section-subtitle across all charts —
+   each card has only its short .dash-card-title (or panel-title where
+   app.js sets one), no descriptive prose. */
+.panel-explain,
+.sec-heading-sub,
+.sec-heading,
+.sec-heading--sub {
+  display: none !important;
+}
+
+/* ── Today: each per-location card (built by dashboard.js via app.js's
+   renderTodayCardInto helper) keeps only the gauge, temperature, category
+   name, and last-7-day chart — drop the flag SVG, description, explain/
+   context paragraphs, footer summary, and date-nav/location-picker strip
+   (location is fixed per-card; date stepping comes from the shared DOY
+   buttons, wired in js/dashboard.js). */
+.today-flag-tag-icon, .today-desc, .today-explain, .today-context, .today-foot,
+.today-date-control, .today-heading-subtitle, .today-pct-wrap, .today-divider,
+.today-utility-row, .today-sec-heading {
+  display: none !important;
+}
+/* .today-chart-title (kept visible) is the only label still shown inside a
+   Today card (the last-7-day chart's title) — already a short one-liner,
+   not explanatory prose. Style it to match .dash-card-title. */
+.today-chart-title {
+  font-family: 'Space Grotesk', sans-serif;
+  font-weight: 500;
+  font-size: 14px;
+  letter-spacing: -0.01em;
+  color: var(--ink);
+  margin-bottom: 8px;
+}
+
+/* ── Hero: keep only the location name + big stat number — drop the
+   impact-risk badge, the verdict sentence, and the significance/sample-
+   size/AR1 stats row. */
+.hero-badge-slot,
+.hero-right,
+.hero-context-block,
+.sig-row {
+  display: none !important;
+}
+
+/* ── Slim top bar ─────────────────────────────────────────────────────────── */
+.topbar { padding: 6px 16px; min-height: 0; }
+.topbar .brand-logo { height: 28px; }
+
+/* ── Control bar: matches index.html's look exactly — no overrides here.
+   .toolbar/.pill-group/.pill/.day-control/.day-v/.scrub all come straight
+   from style.css, unchanged. Just remove the page margin style.css gives
+   .toolbar (meant for index.html's full page width) and add a little of
+   our own spacing under the slim top bar. */
+.toolbar#controls-bar { margin: 10px 16px; }
+
+/* ── 3-column card grid ──────────────────────────────────────────────────── */
+.dash-grid {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 16px;
+  padding: 0 16px 16px;
+}
+@media (max-width: 900px) {
+  .dash-grid { grid-template-columns: 1fr; }
+  /* #dash-reg-card's .span-2 (grid-column: span 2, unconditional — needed
+     for the ≥1301px 2-column regression layout) has no 2nd column to span
+     into on this single-column track; explicitly forcing every direct
+     .dash-grid card (and #dash-map-card/#dash-reg-card specifically) to
+     grid-column: 1 / -1 here removes any ambiguity rather than relying on
+     the implicit clamp, which is what was producing a stuck-narrow card. */
+  .dash-grid > .dash-card,
+  .dash-grid > section,
+  #dash-map-card, #dash-reg-card {
+    grid-column: 1 / -1;
+    width: 100%;
+    min-width: 0;
+  }
+}
+@media (min-width: 901px) and (max-width: 1300px) {
+  .dash-grid { grid-template-columns: repeat(2, 1fr); }
+}
+
+/* ── Card chrome — fresh, not reused from style.css ─────────────────────── */
+.dash-card {
+  background: var(--paper);
+  border: 1px solid var(--rule);
+  border-radius: var(--radius);
+  padding: 14px;
+  display: flex;
+  flex-direction: column;
+  min-height: 260px;
+  overflow: hidden;
+}
+.dash-card.span-2 { grid-column: span 2; }
+
+/* Every card's title/subtitle strip: solid white band (var(--card), not the
+   card body's cream var(--paper)) so it reads as a clear header across
+   every chart — map, regression, today, hero, calendar, SPEI trend,
+   tropical days/nights, season/SPEI heatmap all share this one pattern.
+   Negative margin bleeds it to the card's own edges/top corners (radius
+   matches .dash-card's) without needing to touch every card's other
+   children's spacing — everything below it keeps using .dash-card's own
+   padding exactly as before. */
+.dash-card-head {
+  background: var(--card);
+  border-bottom: 1px solid var(--rule);
+  margin: -14px -14px 12px;
+  padding: 12px 14px 10px;
+  border-radius: var(--radius) var(--radius) 0 0;
+  flex-shrink: 0;
+}
+.dash-card-title {
+  font-family: 'Space Grotesk', sans-serif;
+  font-weight: 600;
+  font-size: 14px;
+  letter-spacing: -0.01em;
+  color: var(--ink);
+}
+.dash-card-sub {
+  font-family: 'JetBrains Mono', monospace;
+  font-size: 10.5px;
+  letter-spacing: 0.03em;
+  color: var(--ink-soft);
+  margin-top: 3px;
+}
+.dash-chart-wrap { position: relative; flex: 1; min-height: 0; }
+.dash-chart { width: 100%; height: 100%; min-height: 0; }
+
+/* Today cards: .dash-card-body wraps everything renderTodayCardInto()
+   overwrites on each render (gauge/temp/category/last-7 chart) — a sibling
+   of .dash-card-head, not its replacement target, so the head survives
+   every re-render. Needs to grow to fill the remaining card height itself. */
+.dash-card-body { flex: 1; display: flex; flex-direction: column; min-height: 0; }
+
+/* ── Per-location rows: #hero/#cal-section are each a single anchor app.js
+   fills via innerHTML (their direct children — .loc-hero-card / .cal-panel —
+   ARE the N cards); #today-row/#spei-trend-row/#tropical-days-row/
+   #tropical-nights-row are anchors dashboard.js fills directly with N
+   `.dash-card` divs. All seven share the same fixed 3-column track at every
+   breakpoint, spanning every column of the outer .dash-grid unconditionally
+   (not scoped to a media query, so this holds at every viewport width, not
+   just ≥1301px).
+   N<3 sizing (maintainer-specified): the grid track always stays 3 columns —
+   at N=2 the 2 cards keep their normal 1-column width with the 3rd column
+   left empty; at N=1 dashboard.js adds `.dash-row-solo` to that lone card,
+   which spans all 3 columns to fill the row. N=3 needs no special handling
+   (3 cards naturally fill 3 columns). */
+#hero, #cal-section,
+#today-row, #spei-trend-row, #tropical-days-row, #tropical-nights-row {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 16px;
+  grid-column: 1 / -1;
+}
+@media (max-width: 900px) {
+  #hero, #cal-section,
+  #today-row, #spei-trend-row, #tropical-days-row, #tropical-nights-row {
+    grid-template-columns: 1fr;
+  }
+}
+@media (min-width: 901px) and (max-width: 1300px) {
+  #hero, #cal-section,
+  #today-row, #spei-trend-row, #tropical-days-row, #tropical-nights-row {
+    grid-template-columns: repeat(2, 1fr);
+  }
+}
+.dash-row-solo { grid-column: 1 / -1; }
+
+/* Today: style.css gives .today-card/.today-chart background:transparent;
+   border:none (style.css:178,210) for a different (page-width-strip)
+   context. The new per-location Today card is just a plain .dash-card
+   (see dashboard.html) — no bespoke .today-card/.today-chart chrome
+   needed any more; the inner gauge/temp/category/last-7-chart markup
+   from _buildTodayCardInner() inherits .dash-card's padding directly. */
+
+/* Hero: renderHeroCards() does hero.className = "hero-cards-N" on every
+   render (app.js), overwriting any class placed on #hero itself — #hero is
+   therefore styled purely by id (above), never by an added class.
+   .loc-hero-card gets fresh card chrome (style.css styles it as a
+   border-right divider segment for a different parent shape — each card
+   here is fully independent with its own border on all 4 sides, so
+   border-right must NOT be suppressed the way the original index.html-
+   style "flush row of dividers" design did; an earlier session's `border-
+   right: none !important` here was a leftover from that, removed).
+   style.css reserves a large padding-right at several specificity/breakpoint
+   combinations for the hidden risk badge (150px base, 135px at the
+   #hero:is(.hero-cards-3,...) selector, 20px at that same selector inside
+   an ≤1200px media query, 14px at an ≤600px media query) — matching every
+   one of those exact selector shapes here, all !important, so this rule's
+   padding-right wins regardless of which one would otherwise apply at the
+   current viewport width. */
+#hero.hero-cards-1 .loc-hero-card,
+#hero.hero-cards-2 .loc-hero-card,
+#hero:is(.hero-cards-3, .hero-cards-4, .hero-cards-5, .hero-cards-6) .loc-hero-card,
+.loc-hero-card {
+  background: var(--paper);
+  border: 1px solid var(--rule) !important;
+  border-radius: var(--radius);
+  padding: 14px !important;
+  padding-right: 14px !important;
+  min-width: 0;
+  overflow: hidden;
+}
+/* Hero's own .eyebrow row (city name + day/variable label, set by app.js's
+   renderHeroCards — not restructured here, since that markup is shared
+   with index.html) becomes this card's title/subtitle head band, same
+   white-on-cream treatment as every other card on the page. Negative
+   margins trying to guess the parent's real padding (style.css reserves a
+   variable, hard-to-pin-down padding-right for the now-hidden risk badge
+   at several different breakpoints/specificities) kept landing wrong in
+   one direction or the other — sidestepped entirely with absolute
+   positioning pinned to the card's own edges (0/0/0, independent of
+   whatever the card's padding actually resolves to). .loc-hero-main (the
+   only sibling below it) gets the matching top offset instead of relying
+   on a margin-bottom on the (now out-of-flow) eyebrow itself. */
+.loc-hero-card { position: relative; }
+.loc-hero-card .eyebrow {
+  position: absolute;
+  top: 0; left: 0; right: 0;
+  background: var(--card);
+  border-bottom: 1px solid var(--rule);
+  margin: 0 !important;
+  padding: 12px 14px 10px;
+  border-radius: var(--radius) var(--radius) 0 0;
+}
+.loc-hero-card .eyebrow-city { font-size: 14px; }
+.loc-hero-card .loc-hero-main { margin-top: 52px; }
+
+/* Calendar: refreshCalendar() builds one <div class="cal-panel"> per
+   location directly into #cal-section (app.js:1660-1692) — fresh chrome,
+   overriding style.css's page-width-block styling for .cal-panel. */
+.cal-panel {
+  background: var(--paper) !important;
+  border: 1px solid var(--rule) !important;
+  border-radius: var(--radius) !important;
+  margin: 0 !important;
+  padding: 0;
+  min-width: 0;
+}
+.cal-panel-chart { height: 200px; }
+
+/* ── Remove the one remaining "page section" divider leftover from
+   style.css that isn't wanted — #hero's own border-bottom, written for
+   index.html's full-page block layout. (.panel-h's border-bottom is KEPT
+   below — on this page it's repurposed as every card's head/body divider,
+   same pattern as .dash-card-head, not removed.) */
+#hero {
+  border-bottom: none !important;
+}
+/* Calendar panel head: same white-band treatment as every other card's
+   .dash-card-head — #map-panel .panel-h already does this on index.html
+   (style.css:460); mirrored here for .cal-panel's head. */
+.cal-panel .panel-h {
+  background: var(--card);
+  border-radius: var(--radius) var(--radius) 0 0;
+}
+
+/* ── Explicit placement, 3-column breakpoint only ───────────────────────── */
+/* Row anchors already span every column unconditionally (rule above) — only
+   grid-row needs setting here, to lock the new row order: Map+Regression,
+   Today, Hero, Calendar, SPEI trend, Tropical days, Tropical nights.
+   #dash-map-card/#dash-reg-card need both column and row, since they sit
+   side-by-side in the same row. */
+@media (min-width: 1301px) {
+  #dash-map-card     { grid-column: 1; grid-row: 1; }
+  #dash-reg-card      { grid-column: 2 / span 2; grid-row: 1; }
+  #today-row          { grid-row: 2; }
+  #hero               { grid-row: 3; }
+  #cal-section        { grid-row: 4; }
+  #spei-trend-row     { grid-row: 5; }
+  #tropical-days-row  { grid-row: 6; }
+  #tropical-nights-row { grid-row: 7; }
+}
+/* Season heatmap and SPEI heatmap get no explicit position — plain
+   .dash-cards auto-flow after row 7, one per cell, in DOM order (moved to
+   the bottom of the markup, see dashboard.html). */
+
+/* Season heatmap / SPEI heatmap keep their .season-heatmap-section class
+   (for shm-controls/shm-stats colors etc. from style.css), but that class
+   also brings page-width padding + a border-top (style.css:529) meant for
+   a full-width block — overridden since .dash-card already supplies the
+   real card padding/border. (SPEI trend/tropical days/tropical nights no
+   longer use the old .spei-trend-section class at all — each per-location
+   card built by dashboard.js is a plain .dash-card, see below.) */
+.season-heatmap-section.dash-card {
+  padding: 14px;
+  border-top: none;
+}
+
+/* SPEI trend / tropical days / tropical nights per-location cards: built by
+   dashboard.js as plain .dash-card divs (see js/dashboard.js) — their inner
+   shm-controls/shm-stats markup still needs style.css's existing classes,
+   but no extra section-level chrome override is needed here since they
+   never carry the old full-width .spei-trend-section class to begin with. */
+
+/* ── syncPanelHeights() (app.js) now also runs against this page's own
+   #dash-map-card/#dash-reg-card pair (called with those ids from
+   refreshMap()/refreshRegression()/the window resize listener) — same
+   explicit-height-lock fix as index.html's #map-panel/#reg-panel, needed
+   for the same reason: .dash-grid's default align-items:stretch couples
+   these two cards' height, which would otherwise drift taller every time
+   the map or regression chart enters/exits native Highcharts fullscreen. */
+
+/* ── Highcharts hamburger/export menu: left fully native — no suppression
+   rule, no custom fullscreen-button script. app.js's global
+   Highcharts.setOptions() (shared with index.html) already enables it. ─── */
+
+/* ── Season/SPEI heatmap tooltip outside-click dismissal is handled in
+   js/dashboard.js, not here (behavioral, not styling). ─────────────────── */
+
+/* SPEI trend / tropical days / tropical nights cards are each pinned to one
+   selected location via app.js's fixedLoc param (see renderSpeiTrendChart/
+   renderTropicalChart) — when fixedLoc is set, app.js itself skips emitting
+   the station-picker button row entirely, so no CSS hide rule is needed
+   here any more (unlike the single-card era, where the picker existed but
+   was just hidden). Each card's other controls (SPEI trend's season/month
+   buttons, tropical's Threshold/Min. consecutive days inputs) stay fully
+   visible per-card, unchanged. */
