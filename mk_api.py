@@ -670,6 +670,23 @@ def compute_today_status(target_date=None, loc=None):
     dlabel = f"{MONTH_NAMES[month - 1]} {day}"
     cat_key, name, color, desc = _categorize_today(pct, dlabel, country=loc)
 
+    # 5b. Same-date rank: how today_temp compares to this exact calendar date
+    # (month+day, no ±window) across every prior year on record. Surfaced on
+    # the card only when today lands in the top/bottom 5 — a true "Nth hottest/
+    # coldest day on record", distinct from the ±7-day percentile above.
+    same_date = loc_data[(loc_data["date"].dt.month == month) & (loc_data["date"].dt.day == day)
+                          & (loc_data["date"] != pd.Timestamp(target_date))]
+    same_date_max = same_date.groupby("date")["temperature_max"].max().dropna()
+    rank_total = int(len(same_date_max)) + 1  # + the date being ranked
+    rank_hot = int((same_date_max > today_temp).sum()) + 1
+    rank_cold = int((same_date_max < today_temp).sum()) + 1
+    rank_info = None
+    if rank_total >= 10:
+        if rank_hot <= 5:
+            rank_info = {"rank": rank_hot, "total": rank_total, "direction": "hot"}
+        elif rank_cold <= 5:
+            rank_info = {"rank": rank_cold, "total": rank_total, "direction": "cold"}
+
     # 6. KDE curve + percentile cutoffs
     cutoffs = {
         "p5":  round(float(np.percentile(samples,  5)), 2),
@@ -701,6 +718,7 @@ def compute_today_status(target_date=None, loc=None):
         "color":        color,
         "description":  desc,
         "n_samples":    int(len(samples)),
+        "rank_info":    rank_info,
         "year_min":     int(loc_data["year"].min()),
         "year_max":     int(loc_data["year"].max()),
         "distribution": distribution,

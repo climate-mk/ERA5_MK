@@ -1061,6 +1061,7 @@ function _buildTodayCardInner(r, idPrefix = "today") {
           <div class="today-cat-row">
             <span class="today-flag-tag-icon">${_buildTodayFlag(r.category_key)}</span>
             <span class="today-cat">${_locale?.categories?.[r.category_key || r.category.toLowerCase()]?.name || r.category}</span>
+            ${r.rank_info ? `<span class="today-rank-badge today-rank-badge--${r.rank_info.direction}">${t(`today.rank_badge_${r.rank_info.direction}`, {rank: r.rank_info.rank, total: r.rank_info.total, d: _fmtDay(r.month_num, r.day_num, r.day_label)})}</span>` : ''}
           </div>
           <span class="today-desc">${(_locale?.categories?.[r.category_key || r.category.toLowerCase()]?.desc || r.description).replace('{country}', placeName).replace('{data_start_year}', String(r.year_min || '')).replace('{record_years}', String(r.year_max && r.year_min ? r.year_max - r.year_min + 1 : '')).replace('{d}', _fmtDay(r.month_num, r.day_num, r.day_label))}</span>
         </div>
