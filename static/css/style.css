@@ -199,9 +199,17 @@ body {
 .today-flag-tag-icon { width: 64px; height: 32px; border-radius: 3px; overflow: hidden; flex-shrink: 0; box-shadow: 0 2px 6px rgba(14,14,12,0.15); }
 .today-flag-tag-icon svg { width: 100%; height: 100%; display: block; }
 .today-cat         { font-family: 'Space Grotesk', sans-serif; font-weight: 600; font-size: 34px; letter-spacing: -0.02em; color: var(--ink); line-height: 1.15; }
-.today-rank-badge  { font-family: 'JetBrains Mono', monospace; font-size: 11px; font-weight: 600; letter-spacing: 0.04em; padding: 4px 10px; border-radius: 20px; white-space: nowrap; }
+.today-rank-badge  { font-family: 'JetBrains Mono', monospace; font-size: 11px; font-weight: 600; letter-spacing: 0.04em; padding: 4px 10px; border-radius: 20px; white-space: nowrap; cursor: pointer; outline: none; }
 .today-rank-badge--hot  { background: rgba(150,44,26,0.12); border: 1px solid rgba(150,44,26,0.35); color: #962c1a; }
 .today-rank-badge--cold { background: rgba(58,90,138,0.12); border: 1px solid rgba(58,90,138,0.35); color: #3a5a8a; }
+.today-rank-badge:hover { filter: brightness(0.95); }
+.rank-top5-popover { position: absolute; z-index: 1200; background: var(--card); border: 1px solid var(--rule); border-radius: var(--radius); box-shadow: 0 8px 24px rgba(14,14,12,0.18); padding: 10px 12px; min-width: 180px; }
+.rank-top5-title { font-family: 'JetBrains Mono', monospace; font-size: 10px; font-weight: 600; letter-spacing: 0.06em; text-transform: uppercase; color: var(--ink-soft); margin-bottom: 6px; }
+.rank-top5-table { width: 100%; border-collapse: collapse; font-family: 'Space Grotesk', sans-serif; font-size: 13px; }
+.rank-top5-table td { padding: 3px 6px; color: var(--ink); }
+.rank-top5-table .rank-top5-temp { text-align: right; font-family: 'JetBrains Mono', monospace; }
+.rank-top5-table .rank-top5-today { font-weight: 700; }
+.rank-top5-table .rank-top5-today td { color: var(--accent); }
 .today-desc        { font-family: 'Space Grotesk', sans-serif; font-size: 15px; color: var(--ink-soft); }
 .today-pct-wrap     { display: flex; flex-direction: column; align-items: center; gap: 2px; flex-shrink: 0; }
 .today-pct-num      { font-family: 'Space Grotesk', sans-serif; font-weight: 700; font-size: 40px; color: var(--accent); line-height: 1; }
