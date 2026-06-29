@@ -1061,7 +1061,7 @@ function _buildTodayCardInner(r, idPrefix = "today") {
           <div class="today-cat-row">
             <span class="today-flag-tag-icon">${_buildTodayFlag(r.category_key)}</span>
             <span class="today-cat">${_locale?.categories?.[r.category_key || r.category.toLowerCase()]?.name || r.category}</span>
-            ${r.rank_info ? `<span class="today-rank-badge today-rank-badge--${r.rank_info.direction}">${t(`today.rank_badge_${r.rank_info.direction}`, {rank: r.rank_info.rank, total: r.rank_info.total, d: _fmtDay(r.month_num, r.day_num, r.day_label)})}</span>` : ''}
+            ${r.rank_info ? `<button type="button" class="today-rank-badge today-rank-badge--${r.rank_info.direction}" data-rank-top5='${JSON.stringify(r.rank_info.top5).replace(/'/g, "&#39;")}' data-rank-direction="${r.rank_info.direction}">${t(`today.rank_badge_${r.rank_info.direction}`, {rank: r.rank_info.rank, total: r.rank_info.total, d: _fmtDay(r.month_num, r.day_num, r.day_label)})}</button>` : ''}
           </div>
           <span class="today-desc">${(_locale?.categories?.[r.category_key || r.category.toLowerCase()]?.desc || r.description).replace('{country}', placeName).replace('{data_start_year}', String(r.year_min || '')).replace('{record_years}', String(r.year_max && r.year_min ? r.year_max - r.year_min + 1 : '')).replace('{d}', _fmtDay(r.month_num, r.day_num, r.day_label))}</span>
         </div>
@@ -3821,6 +3821,58 @@ document.addEventListener('click', e => {
   }
   if (!e.target.closest('#share-popover')) popover.hidden = true;
 });
+
+// ── Rank badge popover (top-5 hottest/coldest dates) ──────────────────────────
+// One shared floating popover, repositioned next to whichever badge was
+// clicked — badges can repeat across the main Today card and per-location
+// dashboard cards, so a single fixed element is reused rather than per-card.
+function _closeRankPopover() {
+  const pop = document.getElementById('rank-top5-popover');
+  if (pop) pop.remove();
+}
+
+function _openRankPopover(badge) {
+  _closeRankPopover();
+  let top5 = [];
+  try { top5 = JSON.parse(badge.dataset.rankTop5 || '[]'); } catch { return; }
+  if (!top5.length) return;
+  const direction = badge.dataset.rankDirection;
+  const titleKey = direction === 'cold' ? 'today.rank_top5_title_cold' : 'today.rank_top5_title_hot';
+  const pop = document.createElement('div');
+  pop.id = 'rank-top5-popover';
+  pop.className = 'rank-top5-popover';
+  pop.innerHTML = `
+    <div class="rank-top5-title">${t(titleKey)}</div>
+    <table class="rank-top5-table"><tbody>
+      ${top5.map(row => `<tr class="${row.is_today ? 'rank-top5-today' : ''}">
+        <td class="rank-top5-year">${row.year}${row.is_today ? ` · ${t('today.rank_top5_today_tag')}` : ''}</td>
+        <td class="rank-top5-temp">${row.temp.toFixed(1)}°C</td>
+      </tr>`).join('')}
+    </tbody></table>`;
+  document.body.appendChild(pop);
+  const r = badge.getBoundingClientRect();
+  const popRect = pop.getBoundingClientRect();
+  let left = r.left + window.scrollX;
+  if (left + popRect.width > window.scrollX + document.documentElement.clientWidth - 8) {
+    left = window.scrollX + document.documentElement.clientWidth - popRect.width - 8;
+  }
+  pop.style.left = `${Math.max(8, left)}px`;
+  pop.style.top = `${r.bottom + window.scrollY + 6}px`;
+}
+
+document.addEventListener('click', e => {
+  const badge = e.target.closest('.today-rank-badge');
+  if (badge) {
+    e.stopPropagation();
+    const pop = document.getElementById('rank-top5-popover');
+    if (pop && pop.dataset.forBadge === badge.dataset.rankTop5) { _closeRankPopover(); return; }
+    _openRankPopover(badge);
+    document.getElementById('rank-top5-popover')?.setAttribute('data-for-badge', badge.dataset.rankTop5);
+    return;
+  }
+  if (!e.target.closest('#rank-top5-popover')) _closeRankPopover();
+});
+window.addEventListener('resize', _closeRankPopover);
 
 // ── Touch tooltip handler ─────────────────────────────────────────────────────
 // Hover-based tooltips don't work on touch. On touchstart, toggle .tip-active

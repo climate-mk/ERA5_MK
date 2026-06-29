@@ -682,10 +682,24 @@ def compute_today_status(target_date=None, loc=None):
     rank_cold = int((same_date_max < today_temp).sum()) + 1
     rank_info = None
     if rank_total >= 10:
+        direction = None
         if rank_hot <= 5:
-            rank_info = {"rank": rank_hot, "total": rank_total, "direction": "hot"}
+            direction = "hot"
         elif rank_cold <= 5:
-            rank_info = {"rank": rank_cold, "total": rank_total, "direction": "cold"}
+            direction = "cold"
+        if direction:
+            top5 = same_date_max.sort_values(ascending=(direction == "cold")).head(4)
+            top5_list = [{"year": int(d.year), "date": d.strftime("%Y-%m-%d"), "temp": round(float(v), 1)}
+                         for d, v in top5.items()]
+            top5_list.append({"year": int(target_date.year), "date": target_date.isoformat(),
+                               "temp": round(today_temp, 1), "is_today": True})
+            top5_list.sort(key=lambda x: x["temp"], reverse=(direction == "hot"))
+            rank_info = {
+                "rank": rank_hot if direction == "hot" else rank_cold,
+                "total": rank_total,
+                "direction": direction,
+                "top5": top5_list,
+            }
 
     # 6. KDE curve + percentile cutoffs
     cutoffs = {
