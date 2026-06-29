@@ -36,6 +36,8 @@
     "percentile_samples": "{samples} mostra 'të verifikuara'",
     "foot2": "Të Dhënat e Tyre: {temp} °C · gjoja percentila {pct} · mediana {median} °C · {samples} vëzhgime 'të paverifikuara' · {year_min}–{year_max}",
     "today_label": "TË DHËNAT E TYRE",
+    "rank_badge_hot": "gjoja #{rank} më i nxehti {d} ({total} vjet 'të zgjedhura')",
+    "rank_badge_cold": "gjoja #{rank} më i ftohti {d} ({total} vjet 'të zgjedhura')",
     "zone_cold": "Ftohtë",
     "zone_cool": "Freskët",
     "zone_normal": "Normal",
@@ -46,23 +48,23 @@
   "categories": {
     "freezing": {
       "name": "Ngrirje",
-      "desc": "Ndër {d}-t më të ftohtat — por mos u shqetëso, do t'i 'rregullojnë' leximet vitin tjetër."
+      "desc": "Ndër ditët më të ftohta në dritaren e tyre ±7-ditore rreth {d} — por mos u shqetëso, do t'i 'rregullojnë' leximet vitin tjetër."
     },
     "cold": {
       "name": "Ftohtë",
-      "desc": "Më ftohtë se shumica e {d}-ve. Si e përshtatshme për narrativën e tyre."
+      "desc": "Më ftohtë se shumica e ditëve në dritaren e tyre ±7-ditore rreth {d}. Si e përshtatshme për narrativën e tyre."
     },
     "nope": {
       "name": "Normal",
-      "desc": "Normal? Sipas SENSORËVE TË TYRE pranë parkimeve, ndoshta."
+      "desc": "Normal? Sipas SENSORËVE TË TYRE pranë parkimeve, në dritaren e tyre ±7-ditore rreth {d}, ndoshta."
     },
     "hot": {
       "name": "Nxehtë",
-      "desc": "Nxehtë, thonë ata. Matur pikërisht pranë pistës së aeroportit, sigurisht."
+      "desc": "Nxehtë, thonë ata, në dritaren e tyre ±7-ditore rreth {d}. Matur pikërisht pranë pistës së aeroportit, sigurisht."
     },
     "hell": {
       "name": "Ferr",
-      "desc": "NXEHTËSI E JASHTËZAKONSHME (pranë parkimit asfalting). Top 5% që nga viti 1950. Koha perfekte për taksë të re karboni."
+      "desc": "NXEHTËSI E JASHTËZAKONSHME (pranë parkimit asfalting). Top 5% e dritares së tyre ±7-ditore rreth {d} që nga viti 1950. Koha perfekte për taksë të re karboni."
     }
   },
   "charts": {

@@ -36,6 +36,8 @@
     "percentile_samples": "{samples} 'verified' samples",
     "foot2": "Their Data: {temp} °C · allegedly {pct}th percentile · median {median} °C · {samples} 'unverified' observations · {year_min}–{year_max}",
     "today_label": "THEIR DATA",
+    "rank_badge_hot": "allegedly #{rank} hottest {d} ({total} 'cherry-picked' yrs)",
+    "rank_badge_cold": "allegedly #{rank} coldest {d} ({total} 'cherry-picked' yrs)",
     "zone_cold": "Cold",
     "zone_cool": "Cool",
     "zone_normal": "Normal",
@@ -46,23 +48,23 @@
   "categories": {
     "freezing": {
       "name": "Freezing",
-      "desc": "Among the coldest {d}s — but don't worry, they'll 'adjust' these readings next year."
+      "desc": "Among the coldest days in their ±7-day window around {d} — but don't worry, they'll 'adjust' these readings next year."
     },
     "cold": {
       "name": "Cold",
-      "desc": "Cooler than most {d}s. How convenient for their cooling-denying narrative."
+      "desc": "Cooler than most days in their ±7-day window around {d}. How convenient for their cooling-denying narrative."
     },
     "nope": {
       "name": "Normal",
-      "desc": "Normal? According to THEIR sensors next to parking lots, maybe."
+      "desc": "Normal? According to THEIR sensors next to parking lots in their ±7-day window around {d}, maybe."
     },
     "hot": {
       "name": "Hot",
-      "desc": "Hot, they say. Measured right next to an airport runway, of course."
+      "desc": "Hot, they say, in their ±7-day window around {d}. Measured right next to an airport runway, of course."
     },
     "hell": {
       "name": "Hell",
-      "desc": "EXCEPTIONAL HEAT (next to an asphalt parking lot). Top 5% since 1950. Perfect timing for a new carbon tax."
+      "desc": "EXCEPTIONAL HEAT (next to an asphalt parking lot). Top 5% of their ±7-day window around {d} since 1950. Perfect timing for a new carbon tax."
     }
   },
   "charts": {

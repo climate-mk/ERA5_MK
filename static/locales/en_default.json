@@ -38,6 +38,8 @@
     "today_label": "TODAY",
     "percentile_label": "percentile",
     "percentile_samples": "{samples} samples",
+    "rank_badge_hot": "#{rank} hottest {d} on record ({total} yrs)",
+    "rank_badge_cold": "#{rank} coldest {d} on record ({total} yrs)",
     "zone_cold": "Cold",
     "zone_cool": "Cool",
     "zone_normal": "Normal",
@@ -48,23 +50,23 @@
   "categories": {
     "freezing": {
       "name": "Freezing",
-      "desc": "Among the coldest {d}s in our {record_years}-year record."
+      "desc": "Among the coldest days in the ±7-day window around {d} in our {record_years}-year record."
     },
     "cold": {
       "name": "Cold",
-      "desc": "Cooler than most {d}s we've measured."
+      "desc": "Cooler than most days in the ±7-day window around {d} we've measured."
     },
     "nope": {
       "name": "Normal",
-      "desc": "Right around what {d} usually feels like in {country}."
+      "desc": "Right around what the ±7-day window around {d} usually feels like in {country}."
     },
     "hot": {
       "name": "Hot",
-      "desc": "Among the hottest {d}s in our record."
+      "desc": "Among the hottest days in the ±7-day window around {d} in our record."
     },
     "hell": {
       "name": "Hell",
-      "desc": "Exceptional heat — top 5% of all {d}s since {data_start_year}."
+      "desc": "Exceptional heat — top 5% of all days in the ±7-day window around {d} since {data_start_year}."
     }
   },
   "charts": {

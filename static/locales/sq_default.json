@@ -38,6 +38,8 @@
     "percentile_samples": "{samples} mostra",
     "foot2": "Sot: {temp} °C · percentila {pct} · mediana {median} °C · {samples} vëzhgime · {year_min}–{year_max}",
     "today_label": "SOT",
+    "rank_badge_hot": "{d} #{rank} më i nxehti në histori ({total} vjet)",
+    "rank_badge_cold": "{d} #{rank} më i ftohti në histori ({total} vjet)",
     "zone_cold": "Ftohtë",
     "zone_cool": "Freskët",
     "zone_normal": "Normal",
@@ -48,23 +50,23 @@
   "categories": {
     "freezing": {
       "name": "Ngrirje",
-      "desc": "Ndër {d}-t më të ftohtat në rekord — {record_years} vjet të dhëna."
+      "desc": "Ndër ditët më të ftohta në dritaren ±7-ditore rreth {d} në rekord — {record_years} vjet të dhëna."
     },
     "cold": {
       "name": "Ftohtë",
-      "desc": "Më ftohtë se shumica e {d}-ve të matura."
+      "desc": "Më ftohtë se shumica e ditëve në dritaren ±7-ditore rreth {d} të matura."
     },
     "nope": {
       "name": "Normal",
-      "desc": "Rreth temperaturës tipike për {d} në {country}."
+      "desc": "Rreth temperaturës tipike për dritaren ±7-ditore rreth {d} në {country}."
     },
     "hot": {
       "name": "Nxehtë",
-      "desc": "Ndër {d}-t më të nxehtat në rekordet tona."
+      "desc": "Ndër ditët më të nxehta në dritaren ±7-ditore rreth {d} në rekordet tona."
     },
     "hell": {
       "name": "Ferr",
-      "desc": "Nxehtësi e jashtëzakonshme — top 5% e të gjithë {d}-ve që nga viti {data_start_year}."
+      "desc": "Nxehtësi e jashtëzakonshme — top 5% e të gjitha ditëve në dritaren ±7-ditore rreth {d} që nga viti {data_start_year}."
     }
   },
   "charts": {
