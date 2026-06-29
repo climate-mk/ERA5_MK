@@ -1061,7 +1061,7 @@ function _buildTodayCardInner(r, idPrefix = "today") {
           <div class="today-cat-row">
             <span class="today-flag-tag-icon">${_buildTodayFlag(r.category_key)}</span>
             <span class="today-cat">${_locale?.categories?.[r.category_key || r.category.toLowerCase()]?.name || r.category}</span>
-            ${r.rank_info ? `<button type="button" class="today-rank-badge today-rank-badge--${r.rank_info.direction}" data-rank-top5='${JSON.stringify(r.rank_info.top5).replace(/'/g, "&#39;")}' data-rank-direction="${r.rank_info.direction}">${t(`today.rank_badge_${r.rank_info.direction}`, {rank: r.rank_info.rank, total: r.rank_info.total, d: _fmtDay(r.month_num, r.day_num, r.day_label)})}</button>` : ''}
+            ${r.rank_info ? `<button type="button" class="today-rank-badge today-rank-badge--${r.rank_info.direction}" data-rank-top5='${JSON.stringify(r.rank_info.top5).replace(/'/g, "&#39;")}' data-rank-direction="${r.rank_info.direction}" data-rank-day="${String(r.day_num).padStart(2,'0')}.${String(r.month_num).padStart(2,'0')}">${t(`today.rank_badge_${r.rank_info.direction}`, {rank: r.rank_info.rank, total: r.rank_info.total, d: _fmtDay(r.month_num, r.day_num, r.day_label)})}</button>` : ''}
           </div>
           <span class="today-desc">${(_locale?.categories?.[r.category_key || r.category.toLowerCase()]?.desc || r.description).replace('{country}', placeName).replace('{data_start_year}', String(r.year_min || '')).replace('{record_years}', String(r.year_max && r.year_min ? r.year_max - r.year_min + 1 : '')).replace('{d}', _fmtDay(r.month_num, r.day_num, r.day_label))}</span>
         </div>
@@ -3842,7 +3842,7 @@ function _openRankPopover(badge) {
   pop.id = 'rank-top5-popover';
   pop.className = 'rank-top5-popover';
   pop.innerHTML = `
-    <div class="rank-top5-title">${t(titleKey)}</div>
+    <div class="rank-top5-title">${t(titleKey, {d: badge.dataset.rankDay})}</div>
     <table class="rank-top5-table"><tbody>
       ${top5.map(row => `<tr class="${row.is_today ? 'rank-top5-today' : ''}">
         <td class="rank-top5-year">${row.year}${row.is_today ? ` · ${t('today.rank_top5_today_tag')}` : ''}</td>
