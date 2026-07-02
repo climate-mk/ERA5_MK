@@ -1,0 +1,36 @@
+<!DOCTYPE html>
+<html lang="sl">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>{{ title }}</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;600;700&family=JetBrains+Mono:wght@400;600&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="/styles/main.css">
+  <meta name="description" content="{{ summary }}">
+</head>
+<body class="bg-[var(--color-paper)] text-[var(--color-ink)] font-sans">
+  <header class="border-b border-[var(--color-rule)] bg-[var(--color-paper-2)]">
+    <nav class="max-w-6xl mx-auto px-4 h-14 flex items-center gap-6">
+      <a href="/" class="font-bold text-lg tracking-tight text-[var(--color-ink)]">
+        Podnebnik · SI
+      </a>
+      <div class="flex gap-4 text-sm text-[var(--color-ink-soft)]">
+        <a href="/ali-je-vroce/" class="hover:text-[var(--color-ink)]">Je danes vroče?</a>
+        <a href="/about/" class="hover:text-[var(--color-ink)]">O projektu</a>
+      </div>
+    </nav>
+  </header>
+
+  <main>
+    {{ content }}
+  </main>
+
+  <footer class="mt-16 border-t border-[var(--color-rule)] px-4 py-8 text-sm text-[var(--color-ink-soft)]">
+    <div class="max-w-6xl mx-auto">
+      © 2025 · ERA5-Land podatki via Open-Meteo · Theil-Sen + Yue-Wang MK
+    </div>
+  </footer>
+</body>
+</html>

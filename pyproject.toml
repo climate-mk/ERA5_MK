@@ -1,0 +1,32 @@
+[project]
+name = "era5-slovenia"
+version = "0.1.0"
+requires-python = ">=3.11"
+description = "Slovenia Climate Explorer — data pipeline"
+
+[dependency-groups]
+build = [
+    "frictionless[csv]>=5.18",
+    "invoke>=2.2",
+    "sqlite-utils>=3.37",
+    "datasette>=0.65",
+    "colorama>=0.4.6",
+]
+precompute = [
+    "pandas>=2.2",
+    "numpy>=1.26",
+    "scipy>=1.13",
+    "pymannkendall>=1.4",
+]
+sidecar = [
+    "flask>=3.0",
+    "flask-cors>=4.0",
+    "requests>=2.32",
+    "pandas>=2.2",
+    "numpy>=1.26",
+    "scipy>=1.13",
+    "pyyaml>=6.0",
+]
+
+[tool.uv]
+default-groups = ["build", "precompute", "sidecar"]

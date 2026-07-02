@@ -1,0 +1,21 @@
+@import "tailwindcss";
+
+:root {
+  --gap:   16px;
+  --2gap:  32px;
+  --3gap:  48px;
+}
+
+/* Reuse existing design tokens from the Flask SPA */
+@theme {
+  --color-ink: #1a1a18;
+  --color-ink-soft: #5a5a52;
+  --color-accent: #c25a2c;
+  --color-paper: #f8f6f1;
+  --color-paper-2: #f0ede6;
+  --color-card: #ffffff;
+  --color-rule: rgba(0,0,0,0.10);
+
+  --font-sans: 'Space Grotesk', system-ui, sans-serif;
+  --font-mono: 'JetBrains Mono', 'Fira Mono', monospace;
+}

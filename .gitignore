@@ -43,6 +43,14 @@ _baseline/
 _after/
 _after_final/
 
+# ── Podnebnik stack (generated) ───────────────────────────────────────────────
+node_modules/
+dist/
+var/sqlite/
+data/era5-slovenia/data/
+.yarn/
+.pnp.*
+
 # ── Local runtime / scratch ────────────────────────────────────────────────────
 collect_log.txt
 dashboard.log

@@ -1,0 +1,26 @@
+{
+  "type": "module",
+  "private": true,
+  "scripts": {
+    "start": "npx @11ty/eleventy --serve --incremental --quiet",
+    "build": "npx @11ty/eleventy",
+    "typecheck": "tsc --noEmit",
+    "clean": "rm -rf dist"
+  },
+  "dependencies": {
+    "@tanstack/solid-query": "^5.99.2",
+    "highcharts": "^12.6.0",
+    "solid-js": "^1.9.12",
+    "tailwindcss": "^4.2.2"
+  },
+  "devDependencies": {
+    "@11ty/eleventy": "^3.1.5",
+    "@11ty/eleventy-plugin-vite": "^7.0.0",
+    "@tailwindcss/vite": "^4.2.2",
+    "@types/node": "^25.6.0",
+    "typescript": "^6.0.3",
+    "vite": "^8.0.9",
+    "vite-plugin-solid": "^2.11.12"
+  },
+  "packageManager": "yarn@4.9.4"
+}

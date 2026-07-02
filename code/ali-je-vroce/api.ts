@@ -1,0 +1,58 @@
+import type { TodayStatus, Last7, AnnualTrendRow, AnnualTrend, SiteMeta } from "../types/index.ts";
+
+const SIDECAR   = import.meta.env.VITE_SIDECAR_URL   ?? "http://localhost:5052";
+const DATASETTE = import.meta.env.VITE_DATASETTE_URL  ?? "http://localhost:8001";
+
+async function get<T>(url: string): Promise<T> {
+  const resp = await fetch(url);
+  if (!resp.ok) throw new Error(`${resp.status} ${url}`);
+  return resp.json() as Promise<T>;
+}
+
+export function fetchMeta(): Promise<SiteMeta> {
+  return get(`${SIDECAR}/api/live/meta`);
+}
+
+export function fetchTodayStatus(date: string, loc: string | null): Promise<TodayStatus> {
+  const params = new URLSearchParams({ date });
+  if (loc) params.set("loc", loc);
+  return get(`${SIDECAR}/api/live/today_status?${params}`);
+}
+
+export function fetchLast7(date: string, loc: string | null): Promise<Last7> {
+  const params = new URLSearchParams({ date });
+  if (loc) params.set("loc", loc);
+  return get(`${SIDECAR}/api/live/today_status/last7?${params}`);
+}
+
+export async function fetchAnnualTrend(month: number, day: number): Promise<AnnualTrend> {
+  const url = `${DATASETTE}/era5-slovenia/si_annual_trend.json`
+    + `?month=${month}&day=${day}&_shape=array&_size=1`;
+  const rows = await get<AnnualTrendRow[]>(url);
+  if (!rows.length) throw new Error("No annual trend row");
+  const r = rows[0]!;
+  return {
+    dayLabel:  r.day_label,
+    monthNum:  r.month,
+    dayNum:    r.day,
+    yearMin:   r.year_min,
+    yearMax:   r.year_max,
+    trend10:   r.trend10,
+    pVal:      r.p_val,
+    tau:       r.tau,
+    nYears:    r.n_years,
+    scatter:   JSON.parse(r.scatter_json) as Array<{ x: number; y: number }>,
+    histLine: {
+      x:     JSON.parse(r.hist_x_json) as number[],
+      y:     JSON.parse(r.hist_y_json) as number[],
+      upper: JSON.parse(r.hist_upper_json) as number[],
+      lower: JSON.parse(r.hist_lower_json) as number[],
+    },
+    projLine: {
+      x:     JSON.parse(r.proj_x_json) as number[],
+      y:     JSON.parse(r.proj_y_json) as number[],
+      upper: JSON.parse(r.proj_upper_json) as number[],
+      lower: JSON.parse(r.proj_lower_json) as number[],
+    },
+  };
+}
