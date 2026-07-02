@@ -489,13 +489,14 @@ def _load_en_locale() -> dict:
 
 _EN_LOCALE = _load_en_locale()
 
-def _categorize_today(pct, dlabel):
+def _categorize_today(pct, dlabel, country=None):
     """Return (key, name, color, description) for a given percentile.
     Text comes from en_default.json so no country name or year is hardcoded here.
     Variables interpolated: {d} day-label, {country}, {record_years}, {data_start_year}.
+    Pass `country` to override with a station display name instead of the national name.
     """
     cats   = _EN_LOCALE.get("categories", {})
-    interp = dict(d=dlabel, country=CONFIG["name"],
+    interp = dict(d=dlabel, country=country or CONFIG["name"],
                   record_years=_RECORD_YEARS, data_start_year=_DATA_START_YEAR,
                   year_min=_DATA_START_YEAR)  # alias: {year_min} == {data_start_year}
     for cutoff, key, color in _TODAY_CATEGORIES:
@@ -510,37 +511,42 @@ def _categorize_today(pct, dlabel):
     desc = cat.get("desc", "").format_map(interp)
     return last[1], name, last[2], desc
 
-def _today_cache_path(date_str):
-    return os.path.join(_TODAY_CACHE_DIR, f"today_{date_str}.json")
+_TODAY_RAW_CACHE = {}  # {date_str: {station_name: temp}} — shared across loc filters
 
-def _load_today_from_disk(date_str):
-    """Return cached dict if today's file exists and is valid, else None."""
+def _today_cache_path(date_str, loc_key="national"):
+    return os.path.join(_TODAY_CACHE_DIR, f"today_{date_str}_{loc_key}.json")
+
+def _load_today_from_disk(date_str, loc_key="national"):
+    """Return cached dict if file exists and is valid, else None."""
     import json as _json
-    path = _today_cache_path(date_str)
+    path = _today_cache_path(date_str, loc_key)
     try:
         with open(path) as f:
             return _json.load(f)
     except Exception:
         return None
 
-def _save_today_to_disk(date_str, result):
+def _save_today_to_disk(date_str, loc_key, result):
     """Persist a successful today_status result to disk."""
     import json as _json
     try:
         os.makedirs(_TODAY_CACHE_DIR, exist_ok=True)
-        with open(_today_cache_path(date_str), "w") as f:
+        with open(_today_cache_path(date_str, loc_key), "w") as f:
             _json.dump(result, f)
-        # Remove cache files older than 3 days (filename sort works: today_YYYY-MM-DD.json)
+        # Remove cache files older than 3 days.
+        # Filename shape: today_YYYY-MM-DD_<loc>.json — date is always the first
+        # segment after the "today_" prefix, so slice on a fixed-width date.
         cutoff = (pd.Timestamp(date_str) - pd.Timedelta(days=3)).date().isoformat()
         for p in glob.glob(os.path.join(_TODAY_CACHE_DIR, "today_*.json")):
-            file_date = os.path.basename(p)[len("today_"):-len(".json")]
+            stem = os.path.basename(p)[len("today_"):-len(".json")]
+            file_date = stem[:10]  # "YYYY-MM-DD"
             if file_date < cutoff:
                 try: os.remove(p)
                 except Exception: pass
     except Exception:
         pass  # disk write failure is non-fatal
 
-def compute_today_status(target_date=None):
+def compute_today_status(target_date=None, loc=None):
     from concurrent.futures import ThreadPoolExecutor, as_completed
 
     today_ts   = _today_local()
@@ -550,24 +556,25 @@ def compute_today_status(target_date=None):
         target_date = today_date
     is_today = (target_date == today_date)
 
-    # Reject future dates
     if target_date > today_date:
         return {"available": False}
 
-    cache_key = target_date.isoformat()
+    date_str = target_date.isoformat()
+    loc_key  = loc or "national"
+    mem_key  = f"{date_str}|{loc_key}"
 
-    # 1. In-memory cache
-    if cache_key in _TODAY_CACHE:
-        return _TODAY_CACHE[cache_key]
+    if mem_key in _TODAY_CACHE:
+        return _TODAY_CACHE[mem_key]
 
-    # 2. Filesystem cache
-    cached = _load_today_from_disk(cache_key)
-    if cached is not None:
-        _TODAY_CACHE[cache_key] = cached
-        return cached
+    # Filesystem cache — only for past/gap dates (not live "today").
+    if not is_today:
+        cached = _load_today_from_disk(date_str, loc_key)
+        if cached is not None:
+            _TODAY_CACHE[mem_key] = cached
+            return cached
 
-    # Shared helper: parallel 20-station fetch from any Open-Meteo endpoint.
-    # extra_params is merged into the per-station request (e.g. forecast_days or start/end_date).
+    # Returns {station_name: temp} keyed by station name.
+    # Reuse the same day's raw fetch across all location filters.
     def _fetch_om(url, extra_params):
         def _one(lat, lon):
             try:
@@ -583,54 +590,51 @@ def compute_today_status(target_date=None):
                 return float(arr[0]) if arr and arr[0] is not None else None
             except Exception:
                 return None
-        temps = []
+        result_dict = {}
         with ThreadPoolExecutor(max_workers=20) as pool:
             futures = {pool.submit(_one, c["lat"], c["lon"]): n for n, c in LOC_COORDS.items()}
             for fut in as_completed(futures):
                 v = fut.result()
+                name = futures[fut]
                 if v is not None:
-                    temps.append(v)
-        return temps
+                    result_dict[name] = v
+        return result_dict
 
-    # 3. Get today_temp via the right source
-    if is_today:
-        # Live forecast from Open-Meteo
-        temps = _fetch_om("https://api.open-meteo.com/v1/forecast", {"forecast_days": 1})
-        if not temps:
-            _TODAY_CACHE[cache_key] = {"available": False}
-            return _TODAY_CACHE[cache_key]
-        today_temp = max(temps)
-    elif target_date > _CSV_MAX_DATE:
-        # Gap between CSV coverage and today — use Open-Meteo archive (ERA5-T near-real-time)
-        ds = cache_key
-        temps = _fetch_om("https://archive-api.open-meteo.com/v1/archive",
-                          {"start_date": ds, "end_date": ds})
-        if not temps:
-            _TODAY_CACHE[cache_key] = {"available": False}
-            return _TODAY_CACHE[cache_key]
-        today_temp = max(temps)
+    if is_today or target_date > _CSV_MAX_DATE:
+        if is_today:
+            url, extra = "https://api.open-meteo.com/v1/forecast", {"forecast_days": 1}
+        else:
+            url, extra = "https://archive-api.open-meteo.com/v1/archive", {"start_date": date_str, "end_date": date_str}
+
+        temps_by_station = _TODAY_RAW_CACHE.get(date_str) or {}
+        if not temps_by_station or (loc and loc not in temps_by_station):
+            temps_by_station.update(_fetch_om(url, extra))
+            _TODAY_RAW_CACHE[date_str] = temps_by_station
+
+        if not temps_by_station or (loc and loc not in temps_by_station):
+            return {"available": False}
+        today_temp = temps_by_station[loc] if loc else max(temps_by_station.values())
     else:
-        # Within CSV coverage — read directly from ERA5 in-memory data
         day_rows = data[data["date"] == pd.Timestamp(target_date)]
+        if loc:
+            day_rows = day_rows[day_rows["location"] == loc]
         if day_rows.empty or day_rows["temperature_max"].isna().all():
             return {"available": False}
         today_temp = float(day_rows["temperature_max"].max())
 
-    # 4. Historical distribution: ±7-day window across all years
     month, day = target_date.month, target_date.day
-    window = window_filter(data, month, day, 7)
+    dlabel   = f"{MONTH_NAMES[month - 1]} {day}"
+    loc_data = data[data["location"] == loc] if loc else data
+    window   = window_filter(loc_data, month, day, 7)
     daily_max = window.groupby("date")["temperature_max"].max().dropna()
-    samples = daily_max.to_numpy()
+    samples   = daily_max.to_numpy()
     if len(samples) < 50:
-        _TODAY_CACHE[cache_key] = {"available": False}
-        return _TODAY_CACHE[cache_key]
+        _TODAY_CACHE[mem_key] = {"available": False}
+        return _TODAY_CACHE[mem_key]
 
-    # 5. Percentile + category
     pct = float((samples < today_temp).mean() * 100)
-    dlabel = f"{MONTH_NAMES[month - 1]} {day}"
-    cat_key, name, color, desc = _categorize_today(pct, dlabel)
+    cat_key, name, color, desc = _categorize_today(pct, dlabel, country=loc)
 
-    # 6. KDE curve + percentile cutoffs
     cutoffs = {
         "p5":  round(float(np.percentile(samples,  5)), 2),
         "p10": round(float(np.percentile(samples, 10)), 2),
@@ -649,9 +653,32 @@ def compute_today_status(target_date=None):
         density = np.zeros_like(x_grid)
     distribution = [[round(float(x), 3), round(float(d), 6)] for x, d in zip(x_grid, density)]
 
+    # Same-date rank: compare today_temp against each prior year's value for
+    # the exact calendar date. Surfaced only when today lands in the top/bottom 5.
+    rank_info = None
+    same_date = loc_data[(loc_data["date"].dt.month == month) & (loc_data["date"].dt.day == day)
+                          & (loc_data["date"] != pd.Timestamp(target_date))]
+    same_date_max = same_date.groupby("date")["temperature_max"].max().dropna()
+    if len(same_date_max) >= 10:
+        rank_total = int(len(same_date_max)) + 1
+        rank_hot   = int((same_date_max > today_temp).sum()) + 1
+        rank_cold  = int((same_date_max < today_temp).sum()) + 1
+        direction  = None
+        if rank_hot  <= 5: direction = "hot"
+        elif rank_cold <= 5: direction = "cold"
+        if direction:
+            top5 = same_date_max.sort_values(ascending=(direction == "cold")).head(4)
+            top5_list = [{"year": int(d.year), "date": d.strftime("%Y-%m-%d"), "temp": round(float(v), 1)}
+                         for d, v in top5.items()]
+            top5_list.append({"year": int(target_date.year), "date": target_date.isoformat(),
+                               "temp": round(today_temp, 1), "is_today": True})
+            top5_list.sort(key=lambda x: x["temp"], reverse=(direction == "hot"))
+            rank_info = {"rank": rank_hot if direction == "hot" else rank_cold,
+                         "total": rank_total, "direction": direction, "top5": top5_list}
+
     result = {
         "available":    True,
-        "date":         cache_key,
+        "date":         date_str,
         "today_temp":   round(today_temp, 1),
         "percentile":   round(pct, 1),
         "category_key": cat_key,
@@ -659,17 +686,43 @@ def compute_today_status(target_date=None):
         "color":        color,
         "description":  desc,
         "n_samples":    int(len(samples)),
-        "year_min":     int(data["year"].min()),
-        "year_max":     int(data["year"].max()),
+        "year_min":     int(loc_data["year"].min()),
+        "year_max":     int(loc_data["year"].max()),
         "distribution": distribution,
         "cutoffs":      cutoffs,
         "day_label":    dlabel,
         "month_num":    month,
         "day_num":      day,
+        "rank_info":    rank_info,
+        "loc":          loc,
     }
-    _TODAY_CACHE[cache_key] = result
-    _save_today_to_disk(cache_key, result)
+    _TODAY_CACHE[mem_key] = result
+    if not is_today:
+        _save_today_to_disk(date_str, loc_key, result)
     return result
+
+
+def compute_today_last7(end_date=None, loc=None):
+    """Category/percentile for each of the 7 days ending at end_date (inclusive),
+    ascending by date. Reuses compute_today_status per day so caching is shared.
+    """
+    if end_date is None:
+        end_date = _today_local().date()
+    days = []
+    for offset in range(6, -1, -1):
+        d = end_date - datetime.timedelta(days=offset)
+        r = compute_today_status(d, loc)
+        if not r.get("available"):
+            continue
+        days.append({
+            "date":         r["date"],
+            "day_label":    r["day_label"],
+            "today_temp":   r["today_temp"],
+            "percentile":   r["percentile"],
+            "category_key": r["category_key"],
+            "color":        r["color"],
+        })
+    return {"available": bool(days), "days": days}
 
 # ── Chat analytics ────────────────────────────────────────────────────────────
 #
@@ -953,13 +1006,32 @@ def api_trends():
 def api_today_status():
     if not _feature_enabled("today_section"): return "", 204
     date_str = request.args.get("date")
+    loc = request.args.get("loc") or None
+    if loc and loc not in LOCATIONS:
+        return jsonify({"available": False}), 400
     target = None
     if date_str:
         try:
             target = pd.Timestamp(date_str).date()
         except Exception:
             return jsonify({"available": False}), 400
-    return jsonify(compute_today_status(target))
+    return jsonify(compute_today_status(target, loc))
+
+
+@app.route("/api/today_status/last7")
+def api_today_status_last7():
+    if not _feature_enabled("today_section"): return "", 204
+    date_str = request.args.get("date")
+    loc = request.args.get("loc") or None
+    if loc and loc not in LOCATIONS:
+        return jsonify({"available": False}), 400
+    end_date = None
+    if date_str:
+        try:
+            end_date = pd.Timestamp(date_str).date()
+        except Exception:
+            return jsonify({"available": False}), 400
+    return jsonify(compute_today_last7(end_date, loc))
 
 
 # ── Season heatmap ─────────────────────────────────────────────────────────────

@@ -101,6 +101,7 @@ const state = {
   doy:        105,
   window:     7,
   playing:    false,
+  todayLoc:   null,   // null = national; else a station name
 };
 
 // ── Preferences (localStorage persistence) ───────────────────────────────────
@@ -783,8 +784,17 @@ async function renderHeroCards(data) {
 
 }
 
-let _todayOffset   = 0;
-let _todayViewDate = null; // null = today, 'YYYY-MM-DD' = browsed past date
+let _todayOffset     = 0;
+let _todayViewDate   = null; // null = today, 'YYYY-MM-DD' = browsed past date
+let _todayServerDate = null; // 'YYYY-MM-DD' for "today" as resolved by the server
+
+// Add `days` to a 'YYYY-MM-DD' string using UTC-anchored arithmetic so the
+// result is never shifted by the browser's local timezone offset.
+function _addDaysToDateStr(dateStr, days) {
+  const d = new Date(dateStr + 'T00:00:00Z');
+  d.setUTCDate(d.getUTCDate() + days);
+  return d.toISOString().slice(0, 10);
+}
 
 // ── Today flag SVG builder ────────────────────────────────────────────────────
 const _TF_SUN = "m-140 14v-28l280 28v-28zm126-84h28L0-15zM14 70h-28L0 15zM-140-70h42L12.86 7.72zm0 140h42L12.86-7.72zM140-70H98L-12.86 7.72zm0 140H98L-12.86-7.72z";
@@ -903,23 +913,128 @@ function _buildTodayFlag(catKey) {
 
 // ── Render "Is it Hot in Macedonia Today?" ────────────────────────────────────
 
+// ── Small category gauge for the "today" temperature (Highcharts) ─────────────
+
+function _renderTodayGauge(r, ids = { gauge: "today-gauge", temp: "today-gauge-temp" }) {
+  const order  = ["freezing", "cold", "nope", "hot", "hell"];
+  const colors = ["#3a5a8a", "#6c8fb6", "#e7d9b8", "#c25a2c", "#962c1a"];
+  const bounds = [0, 10, 20, 80, 95, 101];
+  const idx    = Math.max(0, order.indexOf(r.category_key));
+  const lo = bounds[idx], hi = bounds[idx + 1];
+  const pct  = typeof r.percentile === "number" ? r.percentile : (lo + hi) / 2;
+  const frac = hi > lo ? Math.min(1, Math.max(0, (pct - lo) / (hi - lo))) : 0.5;
+  const dialPos = idx + frac;
+
+  Highcharts.chart(ids.gauge, {
+    chart: { type: "gauge", backgroundColor: "transparent", margin: [0, 0, 0, 0] },
+    title: null, credits: { enabled: false }, tooltip: { enabled: false },
+    exporting: { enabled: false },
+    pane: { startAngle: -90, endAngle: 90, center: ["50%", "92%"], size: "150%", background: null },
+    yAxis: {
+      min: 0, max: order.length, tickPositions: [], minorTickInterval: null,
+      plotBands: order.map((key, i) => ({ from: i, to: i + 1, color: colors[i], thickness: 18, outerRadius: "100%" })),
+      lineWidth: 0,
+    },
+    series: [{
+      data: [dialPos],
+      dial: { radius: "62%", baseWidth: 4, baseLength: "0%", rearLength: "0%", backgroundColor: "var(--ink)" },
+      pivot: { radius: 5, backgroundColor: "var(--ink)" },
+      dataLabels: { enabled: false },
+    }],
+  });
+
+  const labelEl = document.getElementById(ids.temp);
+  if (labelEl) {
+    labelEl.textContent = `${r.today_temp.toFixed(1)}°C`;
+    labelEl.style.background = r.color;
+    labelEl.style.color = r.category_key === 'nope' ? 'var(--ink)' : '#fff';
+  }
+}
+
+async function renderTodayLast7Chart(loc, chartId = "today-last7-chart") {
+  const el = document.getElementById(chartId);
+  if (!el) return;
+  try {
+    const params = new URLSearchParams();
+    const dateStr = _todayViewDate || _todayServerDate;
+    if (dateStr) params.set('date', dateStr);
+    if (loc)     params.set('loc', loc);
+    const r = await fetch(`api/today_status/last7?${params}`).then(res => res.json());
+    if (!r.available || !r.days || !r.days.length) return;
+
+    const _TODAY_CAT_ORDER  = ["freezing", "cold", "nope", "hot", "hell"];
+    const _TODAY_CAT_COLORS = ["#3a5a8a", "#6c8fb6", "#e7d9b8", "#c25a2c", "#962c1a"];
+    const catLabels = _TODAY_CAT_ORDER.map(k => _locale?.categories?.[k]?.name || k);
+    const monoStyle = { fontFamily: "'JetBrains Mono', monospace", fontSize: "11px", fontWeight: "600" };
+
+    const points = r.days.map(d => {
+      const [, mm, dd] = d.date.split('-');
+      return { label: `${dd}.${mm}`, y: _TODAY_CAT_ORDER.indexOf(d.category_key),
+               color: d.color, temp: d.today_temp, pct: d.percentile,
+               catName: _locale?.categories?.[d.category_key]?.name || d.category_key };
+    });
+
+    Highcharts.chart(chartId, {
+      chart: { type: "line", height: 190, margin: [8, 12, 40, 108], backgroundColor: "transparent", borderWidth: 0, animation: false },
+      title: { text: null }, credits: { enabled: false }, legend: { enabled: false },
+      tooltip: { formatter() { const p = this.point; return `<b>${p.label}</b>: ${p.catName} · ${p.temp.toFixed(1)}°C (${p.pct.toFixed(0)}th pct)`; } },
+      xAxis: { categories: points.map(p => p.label), title: { text: null },
+               labels: { style: { color: INK, ...monoStyle } },
+               lineColor: "rgba(14,14,12,0.15)", tickColor: "rgba(14,14,12,0.15)", gridLineWidth: 0 },
+      yAxis: { categories: catLabels, min: 0, max: catLabels.length - 1,
+               tickPositions: [0, 1, 2, 3, 4], title: { text: null },
+               labels: { style: { color: INK, fontFamily: "'JetBrains Mono', monospace", fontSize: "10px", fontWeight: "600", textOverflow: "none", whiteSpace: "nowrap" }, align: "right", x: -6, reserveSpace: true },
+               gridLineColor: "rgba(14,14,12,0.1)",
+               plotBands: _TODAY_CAT_COLORS.map((color, i) => ({ from: i - 0.5, to: i + 0.5, color: color + "33" })) },
+      series: [{ name: "Category", type: "line",
+                 data: points.map((p, i) => ({ x: i, y: p.y, color: p.color, temp: p.temp, pct: p.pct, catName: p.catName, label: p.label })),
+                 color: INK, lineWidth: 1.5,
+                 marker: { enabled: true, radius: 5, symbol: "circle", lineWidth: 1.5, lineColor: INK } }],
+    });
+  } catch { /* silently skip if endpoint unavailable */ }
+}
+
 function _buildTodayCardInner(r) {
+  const placeName = r.loc ? locName(r.loc) : (t('ui.today_location_short') || _locale?.meta?.country_name || _metaConfig?.name || '');
+  const explain1Key = r.loc ? 'today.explain1_location' : 'today.explain1';
   return `
-    <div class="today-h-row">
-      <div class="today-h-wrap">
-        <div class="today-h">${t('ui.title_today')}</div>
-        <div class="today-subtitle">${t('ui.subtitle_today')}</div>
-      </div>
-      <div class="today-temp-badge" style="background:${r.color};color:${r.category_key === 'nope' ? 'var(--ink)' : '#fff'}">${r.today_temp.toFixed(1)}°C</div>
+    <div class="today-date-control">
+      <button id="today-prev" class="today-nav-btn" aria-label="Previous day"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="15 18 9 12 15 6"/></svg></button>
+      <div class="today-date-badge" id="today-date-badge" title="Click to pick a date">${_fmtDay(r.month_num, r.day_num, r.day_label)}</div>
+      <button id="today-next" class="today-nav-btn" aria-label="Next day" ${_todayOffset === 0 ? 'disabled' : ''}><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="9 18 15 12 9 6"/></svg></button>
+      <select id="today-loc-select" class="today-loc-select" aria-label="${t('ui.today_location_label')}"></select>
     </div>
-    <div class="today-body">
-      <div class="today-flag-wrap">${_buildTodayFlag(r.category_key)}</div>
-      <div class="today-text">
-        <span class="today-cat">${_locale?.categories?.[r.category_key || r.category.toLowerCase()]?.name || r.category}</span><span class="today-sep-dot" style="background:${r.color}"></span><span class="today-desc">${(_locale?.categories?.[r.category_key || r.category.toLowerCase()]?.desc || r.description).replace('{country}', _locale?.meta?.country_name || _metaConfig?.name || '').replace('{data_start_year}', String(r.year_min || '')).replace('{record_years}', String(r.year_max && r.year_min ? r.year_max - r.year_min + 1 : '')).replace('{d}', _fmtDay(r.month_num, r.day_num, r.day_label))}</span>
+    <div class="today-main-row">
+      <div class="today-gauge-wrap">
+        <div id="today-gauge" class="today-gauge"></div>
+        <div id="today-gauge-temp" class="today-gauge-temp"></div>
+      </div>
+      <div class="today-divider"></div>
+      <div class="today-body">
+        <div class="today-text">
+          <div class="today-cat-row">
+            <span class="today-flag-tag-icon">${_buildTodayFlag(r.category_key)}</span>
+            <span class="today-cat">${_locale?.categories?.[r.category_key || r.category.toLowerCase()]?.name || r.category}</span>
+            ${r.rank_info ? `<button type="button" class="today-rank-badge today-rank-badge--${r.rank_info.direction}" data-rank-top5='${JSON.stringify(r.rank_info.top5).replace(/'/g, "&#39;")}' data-rank-direction="${r.rank_info.direction}" data-rank-day="${String(r.day_num).padStart(2,'0')}.${String(r.month_num).padStart(2,'0')}">${t(`today.rank_badge_${r.rank_info.direction}`, {rank: r.rank_info.rank, total: r.rank_info.total, d: _fmtDay(r.month_num, r.day_num, r.day_label)})}</button>` : ''}
+          </div>
+          <span class="today-desc">${(_locale?.categories?.[r.category_key || r.category.toLowerCase()]?.desc || r.description).replace('{country}', placeName).replace('{data_start_year}', String(r.year_min || '')).replace('{year_min}', String(r.year_min || '')).replace('{record_years}', String(r.year_max && r.year_min ? r.year_max - r.year_min + 1 : '')).replace('{d}', _fmtDay(r.month_num, r.day_num, r.day_label))}</span>
+        </div>
+      </div>
+      <div class="today-divider"></div>
+      <div class="today-pct-wrap">
+        <span class="today-pct-num">${r.percentile.toFixed(0)}</span>
+        <span class="today-pct-label">${t('today.percentile_label')}</span>
+        <span class="today-pct-samples">${t('today.percentile_samples', {samples: r.n_samples.toLocaleString()})}</span>
       </div>
     </div>
-    <p class="today-explain">${t('today.explain1')}</p>
+    <p class="today-explain">${t(explain1Key, {location: placeName, year_min: r.year_min})}</p>
     ${t('today.climate_context') ? `<p class="today-context">${t('today.climate_context')}</p>` : ''}
+    <div class="today-last7-row">
+      <div class="today-last7-card" id="today-last7-card">
+        <div class="today-chart-title">${t('today.last7_title')}</div>
+        <div id="today-last7-chart"></div>
+      </div>
+    </div>
     <div class="today-foot">
       ${_locale?.today?.foot
         ? t('today.foot', {temp: r.today_temp.toFixed(1), pct: r.percentile.toFixed(0), samples: r.n_samples.toLocaleString(), year_min: r.year_min, year_max: r.year_max})
@@ -928,15 +1043,23 @@ function _buildTodayCardInner(r) {
 }
 
 function _updateTodayCard(r) {
-  const dateEl = document.querySelector('#today-status .sec-heading-date');
-  if (dateEl) dateEl.textContent = ` · ${_fmtDay(r.month_num, r.day_num, r.day_label)}`;
+  if (_todayOffset === 0 && r.date) _todayServerDate = r.date;
+
+  const headingTitle = document.querySelector('.today-heading-title');
+  if (headingTitle) {
+    const placeName = r.loc ? locName(r.loc) : (t('ui.today_location_short') || _locale?.meta?.country_name || _metaConfig?.name || '');
+    headingTitle.textContent = t('ui.title_today', {location: placeName});
+  }
 
   const card = document.getElementById('today-main-card');
   if (card) card.innerHTML = _buildTodayCardInner(r);
+  _renderTodayGauge(r);
+  renderTodayLast7Chart(r.loc);
 
   const distCard = document.getElementById('today-dist-card');
   if (distCard) {
-    distCard.innerHTML = `<div class="today-chart-title">${t('today.chart_title', {day_label: _fmtDay(r.month_num, r.day_num, r.day_label), year_min: r.year_min})}</div><div id="today-dist-chart"></div>`;
+    const placeName = r.loc ? locName(r.loc) : (t('ui.today_location_short') || _locale?.meta?.country_name || _metaConfig?.name || '');
+    distCard.innerHTML = `<div class="today-chart-title">${t('today.chart_title', {day_label: _fmtDay(r.month_num, r.day_num, r.day_label), year_min: r.year_min, location: placeName})}</div><div id="today-dist-chart"></div>`;
     renderTodayChart(r);
   }
 
@@ -946,10 +1069,7 @@ function _updateTodayCard(r) {
     renderTodayTrendChart(_todayViewDate);
   }
 
-  const prevBtn = document.getElementById('today-prev');
-  const nextBtn = document.getElementById('today-next');
-  if (prevBtn) prevBtn.disabled = false;
-  if (nextBtn) nextBtn.disabled = _todayOffset === 0;
+  _bindTodayControls();
 }
 
 async function _navigateTodayTo(newOffset) {
@@ -959,10 +1079,9 @@ async function _navigateTodayTo(newOffset) {
   if (prevBtn) prevBtn.disabled = true;
   if (nextBtn) nextBtn.disabled = true;
   try {
-    const d = new Date();
-    d.setDate(d.getDate() + newOffset);
-    const dateStr = d.toISOString().slice(0, 10);
-    const r = await fetch(`api/today_status?date=${dateStr}`).then(res => res.json());
+    const dateStr = _addDaysToDateStr(_todayServerDate, newOffset);
+    const locParam = state.todayLoc ? `&loc=${encodeURIComponent(state.todayLoc)}` : "";
+    const r = await fetch(`api/today_status?date=${dateStr}${locParam}`).then(res => res.json());
     if (!r.available) {
       if (prevBtn) prevBtn.disabled = false;
       if (nextBtn) nextBtn.disabled = _todayOffset === 0;
@@ -977,21 +1096,102 @@ async function _navigateTodayTo(newOffset) {
   }
 }
 
+function _populateTodayLocSelect() {
+  const sel = document.getElementById('today-loc-select');
+  if (!sel) return;
+  sel.innerHTML = '';
+  const natOpt = document.createElement('option');
+  natOpt.value = '';
+  natOpt.textContent = t('ui.today_location_short') || _locale?.meta?.country_name || _metaConfig?.name || 'Slovenia';
+  sel.appendChild(natOpt);
+  (state.locations || []).forEach(loc => {
+    const opt = document.createElement('option');
+    opt.value = loc;
+    opt.textContent = locName(loc);
+    sel.appendChild(opt);
+  });
+  sel.value = state.todayLoc || '';
+}
+
+async function _refreshTodayForLoc() {
+  const params = new URLSearchParams();
+  if (_todayViewDate)  params.set('date', _todayViewDate);
+  if (state.todayLoc)  params.set('loc', state.todayLoc);
+  try {
+    const r = await fetch(`api/today_status?${params}`).then(res => res.json());
+    if (!r.available) return;
+    _updateTodayCard(r);
+  } catch { /* keep prior view */ }
+}
+
+function _bindTodayControls() {
+  const prevBtn = document.getElementById('today-prev');
+  const nextBtn = document.getElementById('today-next');
+  if (prevBtn) { prevBtn.disabled = false; prevBtn.onclick = () => _navigateTodayTo(_todayOffset - 1); }
+  if (nextBtn) { nextBtn.disabled = _todayOffset === 0; nextBtn.onclick = () => _navigateTodayTo(_todayOffset + 1); }
+
+  _populateTodayLocSelect();
+  const locSel = document.getElementById('today-loc-select');
+  if (locSel) locSel.addEventListener('change', e => { state.todayLoc = e.target.value || null; _refreshTodayForLoc(); });
+
+  const dateBadge = document.getElementById('today-date-badge');
+  if (dateBadge) dateBadge.addEventListener('click', e => {
+    e.stopPropagation();
+    document.getElementById('today-doy-popup')?.remove();
+    const MONTHS = ["Jan","Feb","Mar","Apr","May","Jun","Jul","Aug","Sep","Oct","Nov","Dec"];
+    const refDate = new Date((_todayViewDate || _todayServerDate) + 'T00:00:00Z');
+    let curMonth = refDate.getUTCMonth();
+    let curDay   = refDate.getUTCDate();
+    const popup = document.createElement('div');
+    popup.id = 'today-doy-popup';
+    popup.className = 'doy-popup';
+    const mSel = document.createElement('select');
+    MONTHS.forEach((m, i) => { const o = document.createElement('option'); o.value = i; o.textContent = m; if (i === curMonth) o.selected = true; mSel.appendChild(o); });
+    const dSel = document.createElement('select');
+    function _fillDays() {
+      dSel.innerHTML = '';
+      const daysInMonth = new Date(2001, parseInt(mSel.value) + 1, 0).getDate();
+      for (let d = 1; d <= daysInMonth; d++) { const o = document.createElement('option'); o.value = d; o.textContent = d; if (d === curDay) o.selected = true; dSel.appendChild(o); }
+    }
+    _fillDays();
+    mSel.addEventListener('change', () => { curMonth = parseInt(mSel.value); _fillDays(); });
+    dSel.addEventListener('change', () => { curDay = parseInt(dSel.value); });
+    const setBtn = document.createElement('button');
+    setBtn.className = 'doy-popup-set';
+    setBtn.textContent = 'Set';
+    setBtn.addEventListener('click', () => {
+      popup.remove();
+      const chosen = new Date(2001, parseInt(mSel.value), parseInt(dSel.value));
+      const todayMidnight = new Date(_todayServerDate + 'T00:00:00Z');
+      const target = new Date(Date.UTC(todayMidnight.getUTCFullYear(), chosen.getMonth(), chosen.getDate()));
+      if (target > todayMidnight) target.setUTCFullYear(todayMidnight.getUTCFullYear() - 1);
+      const diffDays = Math.round((target - todayMidnight) / 86400000);
+      _navigateTodayTo(Math.min(0, diffDays));
+    });
+    popup.appendChild(mSel); popup.appendChild(dSel); popup.appendChild(setBtn);
+    document.body.appendChild(popup);
+    const rect = e.currentTarget.getBoundingClientRect();
+    popup.style.top  = (rect.bottom + 6) + 'px';
+    popup.style.left = rect.left + 'px';
+    const close = ev => { if (!popup.contains(ev.target)) { popup.remove(); document.removeEventListener('click', close); } };
+    setTimeout(() => document.addEventListener('click', close), 0);
+  });
+}
+
 async function renderTodayStatus() {
   if (!isEnabled("today_section")) return;
   const el = document.getElementById("today-status");
   if (!el) return;
   try {
-    const r = await fetch("api/today_status").then(res => res.json());
+    const locParam = state.todayLoc ? `?loc=${encodeURIComponent(state.todayLoc)}` : "";
+    const r = await fetch(`api/today_status${locParam}`).then(res => res.json());
     if (!r.available) return;
+    const placeName = r.loc ? locName(r.loc) : (t('ui.today_location_short') || _locale?.meta?.country_name || _metaConfig?.name || '');
     el.innerHTML = `
       <div class="sec-heading">
-        <div class="today-heading-left">
-          <span>${t('ui.heading_today')}<span class="sec-heading-date"></span></span>
-          <div class="today-nav">
-            <button id="today-prev" class="today-nav-btn" aria-label="Previous day"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="15 18 9 12 15 6"/></svg></button>
-            <button id="today-next" class="today-nav-btn" aria-label="Next day" disabled><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="9 18 15 12 9 6"/></svg></button>
-          </div>
+        <div class="today-heading-text">
+          <span class="today-heading-title">${t('ui.title_today', {location: placeName})}</span>
+          <span class="today-heading-subtitle">${t('ui.subtitle_today')}</span>
         </div>
         <div id="share-widget">
           <button id="share-toggle" aria-label="Share this site">
@@ -1033,8 +1233,6 @@ async function renderTodayStatus() {
     _todayOffset   = 0;
     _todayViewDate = null;
     _updateTodayCard(r);
-    document.getElementById('today-prev').addEventListener('click', () => _navigateTodayTo(_todayOffset - 1));
-    document.getElementById('today-next').addEventListener('click', () => _navigateTodayTo(_todayOffset + 1));
   } catch {
     /* network error — section stays hidden */
   }
@@ -3317,6 +3515,55 @@ window.addEventListener("resize", () => {
   regChart?.reflow();
   calCharts.forEach(c => c?.reflow());
 });
+
+// ── Rank badge popover (top-5 hottest/coldest dates) ──────────────────────────
+function _closeRankPopover() {
+  const pop = document.getElementById('rank-top5-popover');
+  if (pop) pop.remove();
+}
+
+function _openRankPopover(badge) {
+  _closeRankPopover();
+  let top5 = [];
+  try { top5 = JSON.parse(badge.dataset.rankTop5 || '[]'); } catch { return; }
+  if (!top5.length) return;
+  const direction = badge.dataset.rankDirection;
+  const titleKey = direction === 'cold' ? 'today.rank_top5_title_cold' : 'today.rank_top5_title_hot';
+  const pop = document.createElement('div');
+  pop.id = 'rank-top5-popover';
+  pop.className = 'rank-top5-popover';
+  pop.innerHTML = `
+    <div class="rank-top5-title">${t(titleKey, {d: badge.dataset.rankDay})}</div>
+    <table class="rank-top5-table"><tbody>
+      ${top5.map(row => `<tr class="${row.is_today ? 'rank-top5-today' : ''}">
+        <td class="rank-top5-year">${row.year}${row.is_today ? ` · ${t('today.rank_top5_today_tag')}` : ''}</td>
+        <td class="rank-top5-temp">${row.temp.toFixed(1)}°C</td>
+      </tr>`).join('')}
+    </tbody></table>`;
+  document.body.appendChild(pop);
+  const r = badge.getBoundingClientRect();
+  const popRect = pop.getBoundingClientRect();
+  let left = r.left + window.scrollX;
+  if (left + popRect.width > window.scrollX + document.documentElement.clientWidth - 8) {
+    left = window.scrollX + document.documentElement.clientWidth - popRect.width - 8;
+  }
+  pop.style.left = `${Math.max(8, left)}px`;
+  pop.style.top  = `${r.bottom + window.scrollY + 6}px`;
+}
+
+document.addEventListener('click', e => {
+  const badge = e.target.closest('.today-rank-badge');
+  if (badge) {
+    e.stopPropagation();
+    const pop = document.getElementById('rank-top5-popover');
+    if (pop && pop.dataset.forBadge === badge.dataset.rankTop5) { _closeRankPopover(); return; }
+    _openRankPopover(badge);
+    document.getElementById('rank-top5-popover')?.setAttribute('data-for-badge', badge.dataset.rankTop5);
+    return;
+  }
+  if (!e.target.closest('#rank-top5-popover')) _closeRankPopover();
+});
+window.addEventListener('resize', _closeRankPopover);
 
 // ── Share widget (event delegation — widget is injected by renderTodayStatus) ──
 document.addEventListener('click', e => {
