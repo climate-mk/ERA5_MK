@@ -3,9 +3,10 @@ import { fetchMeta, fetchTodayStatus, fetchLast7, fetchAnnualTrend } from "./api
 import { TodayCard } from "./components/TodayCard.tsx";
 import type { SiteMeta } from "../types/index.ts";
 
-// Lazy-load heavy chart components so the today card renders first
+// Lazy-load heavy components so the today card renders first
 const AnnualTrendChart  = lazy(() => import("./charts/AnnualTrendChart.tsx").then(m => ({ default: m.AnnualTrendChart })));
 const DistributionChart = lazy(() => import("./charts/DistributionChart.tsx").then(m => ({ default: m.DistributionChart })));
+const StationMap        = lazy(() => import("./components/StationMap.tsx").then(m => ({ default: m.StationMap })));
 
 function addDays(dateStr: string, n: number): string {
   const d = new Date(dateStr + "T12:00:00Z");
@@ -66,6 +67,7 @@ function Dashboard(props: { meta: SiteMeta }) {
         >→</button>
         <select
           class="ml-2 px-3 py-1.5 rounded-lg border border-[var(--color-rule)] bg-[var(--color-card)]"
+          value={loc() ?? ""}
           onChange={(e) => setLoc(e.currentTarget.value || null)}
         >
           <option value="">Slovenija (vse postaje)</option>
@@ -74,6 +76,11 @@ function Dashboard(props: { meta: SiteMeta }) {
           </For>
         </select>
       </div>
+
+      {/* ── Station map ───────────────────────────────────── */}
+      <Suspense fallback={<div class="h-[280px] rounded-xl bg-[var(--color-paper-2)] animate-pulse" />}>
+        <StationMap meta={props.meta} loc={loc()} onSelect={setLoc} />
+      </Suspense>
 
       {/* ── Card 1: Today + last-7 + distribution ────────── */}
       <Suspense fallback={<CardSkeleton h="h-64" />}>

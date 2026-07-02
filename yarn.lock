@@ -1183,6 +1183,22 @@ __metadata:
   languageName: node
   linkType: hard
 
+"@types/geojson@npm:*":
+  version: 7946.0.16
+  resolution: "@types/geojson@npm:7946.0.16"
+  checksum: 10c0/1ff24a288bd5860b766b073ead337d31d73bdc715e5b50a2cee5cb0af57a1ed02cc04ef295f5fa68dc40fe3e4f104dd31282b2b818a5ba3231bc1001ba084e3c
+  languageName: node
+  linkType: hard
+
+"@types/leaflet@npm:^1.9.21":
+  version: 1.9.21
+  resolution: "@types/leaflet@npm:1.9.21"
+  dependencies:
+    "@types/geojson": "npm:*"
+  checksum: 10c0/96a86bdeff7bf56104242e97536f39005a53dd857853aa0c5de127ce2c72f3f36638f2a5b8d23e2e825a2bfe32113be731ab26634a3143413b891299c29621ce
+  languageName: node
+  linkType: hard
+
 "@types/node@npm:^25.6.0":
   version: 25.9.4
   resolution: "@types/node@npm:25.9.4"
@@ -2090,6 +2106,13 @@ __metadata:
   languageName: node
   linkType: hard
 
+"leaflet@npm:^1.9.4":
+  version: 1.9.4
+  resolution: "leaflet@npm:1.9.4"
+  checksum: 10c0/f639441dbb7eb9ae3fcd29ffd7d3508f6c6106892441634b0232fafb9ffb1588b05a8244ec7085de2c98b5ed703894df246898477836cfd0ce5b96d4717b5ca1
+  languageName: node
+  linkType: hard
+
 "lightningcss-android-arm64@npm:1.32.0":
   version: 1.32.0
   resolution: "lightningcss-android-arm64@npm:1.32.0"
@@ -2766,8 +2789,10 @@ __metadata:
     "@11ty/eleventy-plugin-vite": "npm:^7.0.0"
     "@tailwindcss/vite": "npm:^4.2.2"
     "@tanstack/solid-query": "npm:^5.99.2"
+    "@types/leaflet": "npm:^1.9.21"
     "@types/node": "npm:^25.6.0"
     highcharts: "npm:^12.6.0"
+    leaflet: "npm:^1.9.4"
     solid-js: "npm:^1.9.12"
     tailwindcss: "npm:^4.2.2"
     typescript: "npm:^6.0.3"
