@@ -1,4 +1,4 @@
-import type { TodayStatus, Last7, AnnualTrendRow, AnnualTrend, SiteMeta } from "../types/index.ts";
+import type { TodayStatus, Last7, AnnualTrendRow, AnnualTrend, SiteMeta, SeasonHeatmapRow, RegressionResult, RegressionResponse } from "../types/index.ts";
 
 // In dev: empty string = same-origin proxy (see eleventy.config.mjs proxyConfig)
 // In prod: set VITE_SIDECAR_URL / VITE_DATASETTE_URL at build time
@@ -32,6 +32,27 @@ export async function fetchDailyWindow(station: string | null, month: number, da
   return get<import("../types/index.ts").DailyWindowRow[]>(
     `${DATASETTE}/era5-slovenia/si_daily_window.json?station=${encodeURIComponent(s)}&month=${month}&day=${day}&_shape=array&_size=1`
   );
+}
+
+export function fetchSeasonHeatmap(): Promise<SeasonHeatmapRow[]> {
+  return get<SeasonHeatmapRow[]>(
+    `${DATASETTE}/era5-slovenia/si_season_heatmap.json?_shape=array&_size=2000`
+  );
+}
+
+export interface RegressionParams {
+  locs:   string[];
+  var:    string;
+  doy:    number;
+  window: number;
+  corr:   "raw" | "corr";
+  method: "theilsen" | "ols";
+}
+
+export function fetchRegression(p: RegressionParams): Promise<RegressionResponse> {
+  const params = new URLSearchParams({ var: p.var, doy: String(p.doy), window: String(p.window), corr: p.corr, method: p.method });
+  p.locs.forEach(l => params.append("loc", l));
+  return get<RegressionResponse>(`${SIDECAR}/api/live/regression?${params}`);
 }
 
 export async function fetchAnnualTrend(month: number, day: number): Promise<AnnualTrend> {

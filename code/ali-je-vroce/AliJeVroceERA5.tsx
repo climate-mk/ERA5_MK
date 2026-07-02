@@ -1,12 +1,19 @@
-import { createSignal, createResource, Show, Suspense, For, lazy } from "solid-js";
-import { fetchMeta, fetchTodayStatus, fetchLast7, fetchAnnualTrend } from "./api.ts";
+import { createSignal, createResource, createMemo, Show, Suspense, For, lazy } from "solid-js";
+import { fetchMeta, fetchTodayStatus, fetchLast7, fetchSeasonHeatmap } from "./api.ts";
 import { TodayCard } from "./components/TodayCard.tsx";
+import { RegressionSection } from "./components/RegressionSection.tsx";
 import type { SiteMeta } from "../types/index.ts";
 
 // Lazy-load heavy components so the today card renders first
-const AnnualTrendChart  = lazy(() => import("./charts/AnnualTrendChart.tsx").then(m => ({ default: m.AnnualTrendChart })));
-const DistributionChart = lazy(() => import("./charts/DistributionChart.tsx").then(m => ({ default: m.DistributionChart })));
-const StationMap        = lazy(() => import("./components/StationMap.tsx").then(m => ({ default: m.StationMap })));
+const DistributionChart  = lazy(() => import("./charts/DistributionChart.tsx").then(m => ({ default: m.DistributionChart })));
+const StationMap         = lazy(() => import("./components/StationMap.tsx").then(m => ({ default: m.StationMap })));
+const SeasonHeatmapChart = lazy(() => import("./charts/SeasonHeatmap.tsx").then(m => ({ default: m.SeasonHeatmap })));
+
+function dateToDoy(dateStr: string): number {
+  const d = new Date(dateStr + "T12:00:00Z");
+  const start = new Date(Date.UTC(d.getUTCFullYear(), 0, 0));
+  return Math.floor((d.getTime() - start.getTime()) / 86_400_000);
+}
 
 function addDays(dateStr: string, n: number): string {
   const d = new Date(dateStr + "T12:00:00Z");
@@ -28,6 +35,8 @@ function Dashboard(props: { meta: SiteMeta }) {
   const [date, setDate] = createSignal(today);
   const [loc,  setLoc]  = createSignal<string | null>(null);
 
+  const defaultDoy = createMemo(() => dateToDoy(date()));
+
   const [todayData] = createResource(
     () => ({ date: date(), loc: loc() }),
     ({ date, loc }) => fetchTodayStatus(date, loc),
@@ -36,13 +45,7 @@ function Dashboard(props: { meta: SiteMeta }) {
     () => ({ date: date(), loc: loc() }),
     ({ date, loc }) => fetchLast7(date, loc),
   );
-  const [trendData] = createResource(
-    () => {
-      const d = new Date(date() + "T12:00:00Z");
-      return { month: d.getUTCMonth() + 1, day: d.getUTCDate() };
-    },
-    ({ month, day }) => fetchAnnualTrend(month, day),
-  );
+  const [heatmapData] = createResource(fetchSeasonHeatmap);
 
   return (
     <div class="max-w-4xl mx-auto px-4 py-8 space-y-8">
@@ -103,24 +106,21 @@ function Dashboard(props: { meta: SiteMeta }) {
         </Show>
       </Suspense>
 
-      {/* ── Card 2: Annual national trend ────────────────── */}
-      <Suspense fallback={<CardSkeleton h="h-72" />}>
-        <Show when={trendData()} keyed>
-          {(t) => (
-            <div class="annual-trend-card bg-[var(--color-card)] border border-[var(--color-rule)] rounded-2xl p-6 space-y-3">
-              <div class="flex flex-col sm:flex-row sm:items-baseline sm:justify-between gap-1">
-                <h2 class="font-bold text-lg">
-                  Letni trend · okolica {t.dayLabel}
-                </h2>
-                <div class="annual-trend-stats text-xs text-[var(--color-ink-soft)]" />
+      {/* ── Card 2: Regression section with toolbar ──────── */}
+      <RegressionSection meta={props.meta} defaultDoy={defaultDoy()} />
+
+      {/* ── Card 3: Season heatmap ────────────────────────── */}
+      <Suspense fallback={<CardSkeleton h="h-40" />}>
+        <Show when={(heatmapData()?.length ?? 0) > 0}>
+          <div class="bg-[var(--color-card)] border border-[var(--color-rule)] rounded-2xl p-6 space-y-3">
+            <div class="flex flex-col sm:flex-row sm:items-baseline sm:justify-between gap-1">
+              <h2 class="font-bold text-lg">Sezonski temperaturni pregled</h2>
+              <div class="text-xs text-[var(--color-ink-soft)]">
+                Nacionalni dnevni Tmax · percentil glede na 1950–1980
               </div>
-              <AnnualTrendChart data={t} chartId="annual-trend-chart" />
-              <p class="text-xs text-[var(--color-ink-soft)]">
-                90. percentil povprečne dnevne Tmax vseh postaj v ±30-dnevnem oknu ·
-                Theil-Sen + Yue-Wang TFPW MK · projekcija do 2050
-              </p>
             </div>
-          )}
+            <SeasonHeatmapChart data={heatmapData()!} />
+          </div>
         </Show>
       </Suspense>
     </div>

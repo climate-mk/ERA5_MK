@@ -53,6 +53,11 @@ def load_all() -> pd.DataFrame:
         data[c + "_corr"] = data[c] + data["elevation_diff_m"] * LAPSE_RATE
     return data
 
+# ── Leap-year helper ──────────────────────────────────────────────────────────
+
+def _is_leap(y: int) -> bool:
+    return (y % 4 == 0 and y % 100 != 0) or (y % 400 == 0)
+
 # ── Window filter (mirrors mk_api.py) ─────────────────────────────────────────
 
 def window_filter(loc_data: pd.DataFrame, month: int, day: int, half_window: int) -> pd.DataFrame:
@@ -231,7 +236,109 @@ def compute_annual_trends(data: pd.DataFrame) -> pd.DataFrame:
     print()
     return pd.DataFrame(rows)
 
-# ── 3. Copy raw station CSVs ───────────────────────────────────────────────────
+# ── 3. Season heatmap ─────────────────────────────────────────────────────────
+
+def compute_season_heatmap(data: pd.DataFrame) -> pd.DataFrame:
+    """National daily-max mean per (year, season), ranked vs 1950–1980 baseline."""
+    BASELINE_START = CONFIG["baseline"]["start"]
+    BASELINE_END   = CONFIG["baseline"]["end"]
+
+    daily_nat = (
+        data.groupby("date")["temperature_max"]
+        .max()
+        .reset_index(name="tmax")
+    )
+    daily_nat["year"]  = daily_nat["date"].dt.year
+    daily_nat["month"] = daily_nat["date"].dt.month
+
+    last_era5 = daily_nat["date"].max()
+    year_min  = int(daily_nat["year"].min())
+    year_max  = int(daily_nat["year"].max())
+
+    SEASONS = [
+        ("Winter", 0, None, 2,  lambda y: pd.Timestamp(y, 2, 29 if _is_leap(y) else 28)),
+        ("Spring", 1, 3,    5,  lambda y: pd.Timestamp(y, 5, 31)),
+        ("Summer", 2, 6,    8,  lambda y: pd.Timestamp(y, 8, 31)),
+        ("Autumn", 3, 9,    11, lambda y: pd.Timestamp(y, 11, 30)),
+    ]
+
+    records = []
+    for yr in range(year_min, year_max + 1):
+        for s_name, s_xi, s_start, s_end_m, end_fn in SEASONS:
+            season_end = end_fn(yr)
+            if season_end > last_era5:
+                continue
+            if s_name == "Winter":
+                chunk = daily_nat[
+                    ((daily_nat["year"] == yr - 1) & (daily_nat["month"] == 12)) |
+                    ((daily_nat["year"] == yr)     & (daily_nat["month"].isin([1, 2])))
+                ]
+            else:
+                chunk = daily_nat[
+                    (daily_nat["year"] == yr) &
+                    (daily_nat["month"] >= s_start) &
+                    (daily_nat["month"] <= s_end_m)
+                ]
+            if len(chunk) < 30:
+                continue
+            records.append({
+                "year":   yr,
+                "xi":     s_xi,
+                "season": s_name,
+                "avg":    round(float(chunk["tmax"].mean()), 2),
+                "n_days": len(chunk),
+            })
+
+    if not records:
+        return pd.DataFrame()
+
+    rec_df = pd.DataFrame(records)
+
+    def _pct_cat(pct):
+        if   pct < 10: return "cold"
+        elif pct < 20: return "cool"
+        elif pct < 80: return "normal"
+        elif pct < 95: return "hot"
+        else:          return "extreme"
+
+    def _pct_color(pct):
+        return {"cold":"#3a5a8a","cool":"#6c8fb6","normal":"#e7d9b8",
+                "hot":"#c25a2c","extreme":"#962c1a"}[_pct_cat(pct)]
+
+    out_rows = []
+    for xi in range(4):
+        sub = rec_df[rec_df["xi"] == xi].copy()
+        if sub.empty:
+            continue
+        all_avgs      = sub["avg"].values
+        total         = len(all_avgs)
+        baseline_sub  = sub[(sub["year"] >= BASELINE_START) & (sub["year"] <= BASELINE_END)]
+        baseline_avgs = baseline_sub["avg"].values
+        sorted_desc   = np.sort(all_avgs)[::-1]
+
+        for _, row in sub.iterrows():
+            if len(baseline_avgs) > 0:
+                pct = float((baseline_avgs < row["avg"]).mean() * 100)
+            else:
+                pct = float((all_avgs < row["avg"]).mean() * 100)
+            rank = int(np.searchsorted(-sorted_desc, -row["avg"])) + 1
+            cat  = _pct_cat(pct)
+            out_rows.append({
+                "x":          int(row["xi"]),
+                "y":          int(row["year"]),
+                "season":     row["season"],
+                "avg":        row["avg"],
+                "percentile": round(pct, 1),
+                "cat":        cat,
+                "rank":       rank,
+                "total":      total,
+                "color":      _pct_color(pct),
+                "n_days":     int(row["n_days"]),
+            })
+
+    return pd.DataFrame(out_rows)
+
+# ── 4. Copy raw station CSVs ───────────────────────────────────────────────────
 
 def copy_station_csvs() -> list[str]:
     copied = []
@@ -254,20 +361,26 @@ def main():
     print(f"  {len(data):,} rows, {data['location'].nunique()} stations, "
           f"{data['year'].min()}–{data['year'].max()}")
 
-    print("\n[1/3] Copying raw station CSVs…")
+    print("\n[1/4] Copying raw station CSVs…")
     copy_station_csvs()
 
-    print("\n[2/3] Computing daily window stats (±7 day, per station × day)…")
+    print("\n[2/4] Computing daily window stats (±7 day, per station × day)…")
     dw = compute_daily_window(data)
     out_dw = OUT_DIR / "si_daily_window.csv"
     dw.to_csv(out_dw, index=False)
     print(f"  wrote {len(dw):,} rows → {out_dw}")
 
-    print("\n[3/3] Computing national annual trend (per calendar day)…")
+    print("\n[3/4] Computing national annual trend (per calendar day)…")
     at = compute_annual_trends(data)
     out_at = OUT_DIR / "si_annual_trend.csv"
     at.to_csv(out_at, index=False)
     print(f"  wrote {len(at):,} rows → {out_at}")
+
+    print("\n[4/4] Computing season heatmap…")
+    sh = compute_season_heatmap(data)
+    out_sh = OUT_DIR / "si_season_heatmap.csv"
+    sh.to_csv(out_sh, index=False)
+    print(f"  wrote {len(sh):,} rows → {out_sh}")
 
     print("\nDone. Run: uv run invoke create-databases")
 

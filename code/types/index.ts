@@ -93,6 +93,52 @@ export interface SiteMeta {
   stations: Array<{ name: string; lat: number; lon: number; elevation: number }>;
 }
 
+/** Datasette si_season_heatmap row */
+export interface SeasonHeatmapRow {
+  x:          number;
+  y:          number;
+  season:     "Winter" | "Spring" | "Summer" | "Autumn";
+  avg:        number;
+  percentile: number;
+  cat:        "cold" | "cool" | "normal" | "hot" | "extreme";
+  rank:       number;
+  total:      number;
+  color:      string;
+  n_days:     number;
+}
+
+/** Sidecar /api/live/regression — single location result */
+export interface RegressionResult {
+  loc:      string;
+  year_min: number;
+  year_max: number;
+  color?:   string;
+  scatter:  Array<{ x: number; y: number; color: string; anomaly: number }>;
+  line: { x: number[]; y: number[]; upper: number[]; lower: number[] };
+  baseline: number;
+  stats: {
+    method:     string;
+    trend10:    number;
+    metric:     number;
+    metric_lbl: string;
+    p_val:      number;
+    direction:  string;
+    chg_str:    string;
+    fit_desc:   string;
+    sig_label:  string;
+    n_years:    number;
+    ar1:        number | null;
+  };
+}
+
+/** Sidecar /api/live/regression response */
+export interface RegressionResponse {
+  results:    RegressionResult[];
+  date_label: string;
+  ylabel:     string;
+  unit:       string;
+}
+
 /** Parsed annual trend with arrays decoded from JSON columns */
 export interface AnnualTrend {
   dayLabel:  string;

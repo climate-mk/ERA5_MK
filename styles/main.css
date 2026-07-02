@@ -3,6 +3,17 @@
 @source "../code/**/*.{ts,tsx}";
 @source "../pages/**/*.{html,md,njk,liquid}";
 
+/* Flag weather overlay animations */
+@keyframes tfSnowSparkle { 0%,100%{opacity:.35;transform:scale(.8)} 50%{opacity:1;transform:scale(1.4)} }
+@keyframes tfHotPulse    { 0%,100%{opacity:.84} 50%{opacity:1} }
+@keyframes tfHellFlicker { 0%{opacity:.72} 10%{opacity:1} 22%{opacity:.80} 35%{opacity:1} 48%{opacity:.75} 60%{opacity:.98} 75%{opacity:.82} 88%{opacity:1} 100%{opacity:.78} }
+
+.tf-snowflake {
+  animation: tfSnowSparkle var(--dur, 2s) ease-in-out var(--delay, 0s) infinite;
+  transform-box: fill-box;
+  transform-origin: center;
+}
+
 :root {
   --gap:   16px;
   --2gap:  32px;
