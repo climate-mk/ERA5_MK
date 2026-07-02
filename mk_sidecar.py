@@ -62,8 +62,9 @@ def _get_cutoffs(station: str | None, month: int, day: int) -> dict | None:
                     (station, month, day),
                 ).fetchone()
             else:
-                # National aggregate: average the cutoffs across all stations
-                row = conn.execute(
+                # National aggregate: average cutoffs across all stations;
+                # pick distribution_json from the station closest to median p50
+                agg = conn.execute(
                     """SELECT
                          AVG(p5) AS p5, AVG(p10) AS p10, AVG(p20) AS p20,
                          AVG(p50) AS p50, AVG(p80) AS p80, AVG(p95) AS p95,
@@ -72,6 +73,16 @@ def _get_cutoffs(station: str | None, month: int, day: int) -> dict | None:
                        FROM si_daily_window WHERE month=? AND day=?""",
                     (month, day),
                 ).fetchone()
+                if agg is None:
+                    return None
+                median_p50 = dict(agg).get("p50") or 0
+                rep = conn.execute(
+                    """SELECT distribution_json FROM si_daily_window
+                       WHERE month=? AND day=?
+                       ORDER BY ABS(p50 - ?) LIMIT 1""",
+                    (month, day, median_p50),
+                ).fetchone()
+                row = {**dict(agg), "distribution_json": (rep[0] if rep else None)}
             if row is None:
                 return None
             return dict(row)

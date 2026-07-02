@@ -26,6 +26,6 @@
       "/*": ["./*"]
     }
   },
-  "include": ["code/**/*.ts", "code/**/*.tsx"],
+  "include": ["code/**/*.ts", "code/**/*.tsx", "code/vite-env.d.ts"],
   "exclude": ["node_modules", "dist"]
 }

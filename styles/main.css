@@ -1,5 +1,8 @@
 @import "tailwindcss";
 
+@source "../code/**/*.{ts,tsx}";
+@source "../pages/**/*.{html,md,njk,liquid}";
+
 :root {
   --gap:   16px;
   --2gap:  32px;

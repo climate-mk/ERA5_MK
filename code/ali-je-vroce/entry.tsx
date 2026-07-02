@@ -1,6 +1,6 @@
 import { render } from "solid-js/web";
 import { QueryClientProvider, QueryClient } from "@tanstack/solid-query";
-import { AliJeVroce } from "./AliJeVroce.tsx";
+import { AliJeVroceERA5 } from "./AliJeVroceERA5.tsx";
 
 const queryClient = new QueryClient({
   defaultOptions: {
@@ -13,7 +13,7 @@ if (root) {
   render(
     () => (
       <QueryClientProvider client={queryClient}>
-        <AliJeVroce />
+        <AliJeVroceERA5 />
       </QueryClientProvider>
     ),
     root

@@ -1,7 +1,9 @@
 import type { TodayStatus, Last7, AnnualTrendRow, AnnualTrend, SiteMeta } from "../types/index.ts";
 
-const SIDECAR   = import.meta.env.VITE_SIDECAR_URL   ?? "http://localhost:5052";
-const DATASETTE = import.meta.env.VITE_DATASETTE_URL  ?? "http://localhost:8001";
+// In dev: empty string = same-origin proxy (see eleventy.config.mjs proxyConfig)
+// In prod: set VITE_SIDECAR_URL / VITE_DATASETTE_URL at build time
+const SIDECAR   = (import.meta.env.VITE_SIDECAR_URL   as string | undefined) ?? "";
+const DATASETTE = (import.meta.env.VITE_DATASETTE_URL  as string | undefined) ?? "/datasette";
 
 async function get<T>(url: string): Promise<T> {
   const resp = await fetch(url);
@@ -23,6 +25,13 @@ export function fetchLast7(date: string, loc: string | null): Promise<Last7> {
   const params = new URLSearchParams({ date });
   if (loc) params.set("loc", loc);
   return get(`${SIDECAR}/api/live/today_status/last7?${params}`);
+}
+
+export async function fetchDailyWindow(station: string | null, month: number, day: number) {
+  const s = station ?? "Ljubljana";
+  return get<import("../types/index.ts").DailyWindowRow[]>(
+    `${DATASETTE}/era5-slovenia/si_daily_window.json?station=${encodeURIComponent(s)}&month=${month}&day=${day}&_shape=array&_size=1`
+  );
 }
 
 export async function fetchAnnualTrend(month: number, day: number): Promise<AnnualTrend> {
