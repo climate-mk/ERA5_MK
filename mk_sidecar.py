@@ -7,7 +7,7 @@ Run:
 Serves on http://127.0.0.1:5052
 """
 
-import datetime, json, os, sqlite3, warnings, glob
+import datetime, json, os, sqlite3, threading, warnings, glob
 from concurrent.futures import ThreadPoolExecutor, as_completed
 from pathlib import Path
 
@@ -841,6 +841,46 @@ def api_variables():
         "locations": _LOCATIONS,
     })
 
+
+def _prewarm() -> None:
+    """Pre-warm in-memory caches on startup (runs in a background daemon thread).
+
+    Mirrors the _prewarm() in mk_api.py. Runs after a short delay so Flask has
+    finished binding before heavy SQLite reads start.
+    """
+    import time
+    time.sleep(5)
+
+    today = datetime.date.today()
+    # National cutoffs for today ± 1 day (covers different timezones and midnight edge)
+    for delta in (-1, 0, 1):
+        d = today + datetime.timedelta(days=delta)
+        try:
+            _compute_national_cutoffs(d.month, d.day)
+        except Exception:
+            pass
+
+    # Pre-fetch today's live Open-Meteo data and compute today_status
+    try:
+        _today_status(today.isoformat(), None)
+    except Exception:
+        pass
+
+    # Pre-warm the last-7-days range (prefetch archive + compute cutoffs)
+    try:
+        date_strings = [
+            (today - datetime.timedelta(days=i)).isoformat()
+            for i in range(6, -1, -1)
+        ]
+        _prefetch_range(date_strings)
+        for ds in date_strings:
+            dt = datetime.date.fromisoformat(ds)
+            _compute_national_cutoffs(dt.month, dt.day)
+    except Exception:
+        pass
+
+
+threading.Thread(target=_prewarm, daemon=True).start()
 
 if __name__ == "__main__":
     print(f"Sidecar listening on http://127.0.0.1:{PORT}")

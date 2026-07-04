@@ -67,6 +67,35 @@ def rebuild_db():
         cwd=BASE)
 
 
+def warm_caches(api_port: int = 5053, sidecar_port: int = 5052) -> None:
+    """Hit slow endpoints so they're in-memory before the first user arrives."""
+    import time, urllib.request, urllib.error
+    time.sleep(12)  # wait for services to fully bind after restart
+    today = __import__("datetime").date.today().isoformat()
+
+    endpoints = [
+        (sidecar_port, f"/api/live/today_status?date={today}"),
+        (sidecar_port, f"/api/live/today_status/last7?date={today}"),
+        (api_port,     "/api/season_heatmap"),
+        (api_port,     "/api/spei_heatmap"),
+        (api_port,     "/api/spei_station_seasonal"),
+        (api_port,     "/api/tropical_days"),
+        (api_port,     "/api/tropical_nights"),
+    ]
+    for port, path in endpoints:
+        url = f"http://127.0.0.1:{port}{path}"
+        try:
+            with urllib.request.urlopen(url, timeout=90) as r:
+                print(f"  warmed [{r.status}]: {path}")
+        except urllib.error.HTTPError as e:
+            if e.code == 204:
+                print(f"  skipped (disabled): {path}")
+            else:
+                print(f"  warn [{e.code}]: {path}", file=sys.stderr)
+        except Exception as e:
+            print(f"  warn: {path} — {e}", file=sys.stderr)
+
+
 def main():
     import datetime
     print(f"\n=== Podnebnik refresh — {datetime.datetime.now():%Y-%m-%d %H:%M} ===\n")
@@ -86,6 +115,8 @@ def main():
         print("\nRestarting services…")
         run(["systemctl", "restart",
              "podnebnik_datasette", "podnebnik_api", "podnebnik_sidecar"])
+        print("\nWarming caches…")
+        warm_caches()
 
     print("\nDone.\n")
 

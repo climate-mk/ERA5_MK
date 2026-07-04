@@ -90,6 +90,22 @@ jobs:
             print(\"Datasette OK —\", d.get(\"title\",\"era5-slovenia\"))' || true
           "
 
+      - name: Warm caches
+        run: |
+          TODAY=$(date +%Y-%m-%d)
+          ssh root@46.224.208.142 "
+            echo 'Warming sidecar (today_status + last7)…'
+            curl -sf --max-time 90 'http://localhost:5052/api/live/today_status?date=${TODAY}' > /dev/null && echo '  today_status OK'
+            curl -sf --max-time 90 'http://localhost:5052/api/live/today_status/last7?date=${TODAY}' > /dev/null && echo '  last7 OK'
+            echo 'Warming Flask slow endpoints…'
+            for name in season_heatmap spei_heatmap tropical_days tropical_nights; do
+              code=\$(curl -s -o /dev/null -w '%{http_code}' --max-time 90 http://localhost:5053/api/\$name)
+              echo \"  \$name: \$code\"
+            done
+            code=\$(curl -s -o /dev/null -w '%{http_code}' --max-time 90 http://localhost:5053/api/spei_station_seasonal)
+            if [ \"\$code\" = \"204\" ]; then echo '  spei_station_seasonal: skipped (disabled)'; else echo \"  spei_station_seasonal: \$code\"; fi
+          "
+
       - name: Install cron job
         run: |
           ssh root@46.224.208.142 "
