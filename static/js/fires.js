@@ -128,17 +128,17 @@ function buildMap() {
     ? L.markerClusterGroup({
         maxClusterRadius: 40, spiderfyOnMaxZoom: true,
         showCoverageOnHover: false, chunkedLoading: true,
-        // Cluster colour = average FRP of its detections (same fire-intensity ramp
-        // and meaning as individual dots); cluster SIZE = detection count. Two
+        // Cluster colour = the STRONGEST (max FRP) detection in it, same fire-
+        // intensity ramp as individual dots; cluster SIZE = detection count. Two
         // distinct, honestly-labelled channels — colour never means "count".
         iconCreateFunction(cluster) {
           const n = cluster.getChildCount();
           const frps = cluster.getAllChildMarkers()
             .map(m => m._frp).filter(v => v != null);
-          const avgFrp = frps.length ? frps.reduce((a, b) => a + b, 0) / frps.length : null;
+          const maxFrp = frps.length ? Math.max(...frps) : null;
           const size = n < 10 ? 32 : n < 50 ? 38 : n < 200 ? 44 : 50;
           return L.divIcon({
-            html: `<div style="background:${frpColor(avgFrp)};width:${size}px;height:${size}px;border-radius:50%;` +
+            html: `<div style="background:${frpColor(maxFrp)};width:${size}px;height:${size}px;border-radius:50%;` +
                   `display:flex;align-items:center;justify-content:center;color:#fff;font-weight:600;` +
                   `font-family:'Space Grotesk',sans-serif;font-size:${size > 40 ? 13 : 12}px;` +
                   `border:2px solid rgba(255,255,255,0.85);box-shadow:0 1px 4px rgba(0,0,0,0.3)">${n}</div>`,
