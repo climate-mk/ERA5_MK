@@ -132,6 +132,18 @@ jobs:
             done
           "
 
+      - name: Warm fire overlay-tile cache
+        run: |
+          echo "Warming the WMS overlay-tile cache (fire danger, Sentinel-3, burnt-area, GHSL, WDPA)..."
+          ssh root@46.224.208.142 "
+            status=\$(curl -s -o /dev/null -w '%{http_code}' -X POST \"http://localhost:5050/api/fires/tiles/warm?key=\$(grep -o 'TODAY_REFRESH_KEY=.*' /opt/mk_climate/.env | cut -d= -f2-)\")
+            if [ \"\$status\" = '204' ]; then
+              echo '  skipped (fires disabled)'
+            else
+              echo \"  tile warm [\$status]\"
+            fi
+          "
+
       - name: Warm per-location today/trend caches
         run: |
           echo "Warming today_status + annual_trend caches (national + every station)..."

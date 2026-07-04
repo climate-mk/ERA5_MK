@@ -93,6 +93,8 @@
     .fire-legend i { display: inline-block; width: 11px; height: 11px; border-radius: 50%; }
     /* Distance scale bar — match the map's design language */
     .leaflet-control-scale-line { font-family: 'JetBrains Mono', monospace; font-size: 10px; color: var(--ink-soft); background: rgba(255,255,255,0.8); border: 1px solid var(--rule-2); border-top: none; padding: 1px 5px; }
+    /* Keep the attribution readable/compact so it doesn't sprawl into the scale bar */
+    .leaflet-control-attribution { font-size: 9px; }
 
     /* Leaflet layer-control rows: label + tap/hover info affordance + description */
     .leaflet-control-layers-overlays label,
@@ -166,6 +168,9 @@
       .fire-legend .legend-title { margin-bottom: 3px; }
       .fire-legend .legend-swatches { gap: 2px; }
       .fire-legend i { width: 9px; height: 9px; }
+      /* Lift the scale bar above the (bottom-right) attribution, which can wrap to
+         two rows on very narrow screens — clear both lines. */
+      .leaflet-bottom.leaflet-left .leaflet-control-scale { margin-bottom: 34px; }
     }
   </style>
 </head>

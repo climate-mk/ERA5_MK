@@ -4,7 +4,7 @@ Run:  source venv/bin/activate && python3 mk_api.py
 Open: http://127.0.0.1:5050
 """
 
-import os, glob, time, hashlib, json, threading, ipaddress, sqlite3, csv, io, datetime
+import os, glob, time, hashlib, json, threading, ipaddress, sqlite3, csv, io, datetime, shutil
 import numpy as np
 import pandas as pd
 import requests as http_requests
@@ -548,6 +548,26 @@ def _fs_save(path, data, glob_pattern=None, keep_days=3, anchor_date=None):
     except Exception:
         pass  # disk failure is non-fatal
 
+def _fs_load_bytes(path, max_age_s=None):
+    """Load raw bytes from a cache file; None on any error or if older than
+    max_age_s (mtime-based TTL). Binary sibling of _fs_load, for cached tiles."""
+    try:
+        if max_age_s is not None and (time.time() - os.path.getmtime(path)) > max_age_s:
+            return None
+        with open(path, "rb") as f:
+            return f.read()
+    except Exception:
+        return None
+
+def _fs_save_bytes(path, data):
+    """Write raw bytes to a cache file (creating dirs). Non-fatal on failure."""
+    try:
+        os.makedirs(os.path.dirname(path), exist_ok=True)
+        with open(path, "wb") as f:
+            f.write(data)
+    except Exception:
+        pass
+
 # ── Today status ("Is it Hot in Macedonia Today?") ─────────────────────────────
 
 _TODAY_CACHE     = {}
@@ -1046,23 +1066,26 @@ def _fires_meta():
                    + (["SENTINEL3"] if fc.get("sentinel3") else []),
         "sensor_start": _fires_sensor_start_dates(),
     }
+    # WMS overlays are served through our own tile proxy (/api/fires/tiles/<key>),
+    # which caches upstream Copernicus/JRC tiles — see api_fires_tile. The frontend
+    # still passes the layer name as the WMS `layers=` param.
     if _feature_enabled("fires_danger"):
-        meta["danger"] = {"wms": fc.get("effis_wms"),
+        meta["danger"] = {"wms": "/api/fires/tiles/danger",
                           "layer": fc.get("effis_danger_layer")}
     if _feature_enabled("fires_map") and fc.get("sentinel3"):
         # Sentinel-3 hotspots shown as a WMS overlay (reliable fallback to WFS points).
-        meta["s3_wms"] = {"wms": fc.get("effis_wms"),
+        meta["s3_wms"] = {"wms": "/api/fires/tiles/s3",
                           "layer": fc.get("effis_s3_layer")}
     if _feature_enabled("fires_satellite"):
         meta["satellite_tiles"] = fc.get("satellite_tiles")
     if _feature_enabled("fires_settlement"):
-        meta["settlement"] = {"wms": fc.get("ghsl_wms"),
+        meta["settlement"] = {"wms": "/api/fires/tiles/settlement",
                               "builtup_layer": fc.get("ghsl_builtup_layer")}
     if _feature_enabled("fires_burnt_area"):
-        meta["burnt_area"] = {"wms": fc.get("effis_ba_wms") or fc.get("effis_wms"),
+        meta["burnt_area"] = {"wms": "/api/fires/tiles/burnt_area",
                               "layer": fc.get("effis_ba_layer")}
     if _feature_enabled("fires_protected_areas"):
-        meta["protected_areas"] = {"wms": fc.get("effis_pa_wms") or fc.get("effis_wms"),
+        meta["protected_areas"] = {"wms": "/api/fires/tiles/protected_areas",
                                    "layer": fc.get("effis_pa_layer")}
     return meta
 
@@ -2324,6 +2347,219 @@ def api_fires_danger_meta():
         "bbox":  FIRES_CFG.get("bbox"),
     })
 
+# ── WMS tile proxy + cache ─────────────────────────────────────────────────────
+# The map overlays are third-party WMS layers (Copernicus EFFIS/GWIS, JRC GHSL).
+# Instead of every visitor's browser hitting those public servers directly for
+# every tile, we proxy through here: fetch once from upstream, cache the PNG bytes
+# on disk, and serve cached bytes to everyone after. Cuts external load, hides
+# outages/rate-limiting/geo-blocking, and speeds the page. The hourly fire cron
+# warms the common (MK-bbox) tiles ahead of visitors (see /api/fires/tiles/warm).
+
+_TILE_CACHE_DIR = os.path.join(_FIRES_CACHE_DIR, "tiles")
+
+# layer_key -> (config key for the WMS base url, config key for the layer name,
+#               feature flag, cache time-to-live in seconds — None = long-lived)
+_FIRES_TILE_LAYERS = {
+    "danger":          ("effis_wms",    "effis_danger_layer", "fires_danger",          36 * 3600),
+    "s3":              ("effis_wms",    "effis_s3_layer",     "fires_map",             15 * 60),
+    "burnt_area":      ("effis_ba_wms", "effis_ba_layer",     "fires_burnt_area",      36 * 3600),
+    "protected_areas": ("effis_pa_wms", "effis_pa_layer",     "fires_protected_areas", 60 * 86400),
+    "settlement":      ("ghsl_wms",     "ghsl_builtup_layer", "fires_settlement",      60 * 86400),
+}
+
+# WMS params Leaflet sends that we forward upstream (everything geometry/format).
+_TILE_FORWARD_PARAMS = ("bbox", "width", "height", "crs", "srs", "styles",
+                        "format", "transparent", "version", "layers", "time")
+
+# 1×1 transparent PNG, returned on upstream failure so the map shows a blank tile
+# (not a broken-image icon) and we don't cache the failure.
+_BLANK_TILE = bytes.fromhex(
+    "89504e470d0a1a0a0000000d494844520000000100000001080600000"
+    "01f15c4890000000d49444154789c6360000002000100" "05fe02fea7"
+    "35814f0000000049454e44ae426082")
+
+def _tile_upstream(layer_key):
+    """Resolve (wms_url, expected_layer, ttl) for a layer_key, honouring flags.
+    Returns None if unknown or its feature is disabled."""
+    spec = _FIRES_TILE_LAYERS.get(layer_key)
+    if not spec:
+        return None
+    url_key, layer_key_cfg, flag, ttl = spec
+    if not _feature_enabled(flag):
+        return None
+    url = FIRES_CFG.get(url_key) or FIRES_CFG.get("effis_wms")
+    layer = FIRES_CFG.get(layer_key_cfg)
+    if not (url and layer):
+        return None
+    return url, layer, ttl
+
+def _tile_cache_path(layer_key, args):
+    """Cache path for a tile request. Time-dimensioned layers bucket by their
+    `time` value (so a new day/window is a fresh fetch); static layers use one
+    bucket. The tile itself is keyed by a hash of the geometry params."""
+    bucket = (args.get("time") or "_static").replace("/", "_").replace(":", "")
+    key = "&".join(f"{k}={args[k]}" for k in sorted(args) if k in _TILE_FORWARD_PARAMS)
+    h = hashlib.md5(key.encode()).hexdigest()
+    return os.path.join(_TILE_CACHE_DIR, layer_key, bucket, f"{h}.png")
+
+# How many time-buckets (≈ days/windows) to keep per layer; older ones are pruned
+# so the tile cache can't grow without bound. `_static` folders are never pruned
+# (single folder, naturally bounded). Runs on the hourly warm.
+_TILE_BUCKETS_KEEP = 3
+
+def _prune_tile_buckets(layer_key, keep=_TILE_BUCKETS_KEEP):
+    """Delete all but the `keep` most-recent time-bucket folders for a layer.
+    Bucket names are date/range strings that sort chronologically, so a reverse
+    sort keeps the newest. The static bucket is always kept."""
+    layer_dir = os.path.join(_TILE_CACHE_DIR, layer_key)
+    try:
+        buckets = [d for d in os.listdir(layer_dir)
+                   if os.path.isdir(os.path.join(layer_dir, d)) and d != "_static"]
+    except Exception:
+        return
+    for stale in sorted(buckets, reverse=True)[keep:]:
+        try:
+            shutil.rmtree(os.path.join(layer_dir, stale))
+        except Exception:
+            pass
+
+def _fetch_tile(layer_key, args, save=True):
+    """Return PNG bytes for a tile — from cache if present/fresh, else fetched from
+    upstream and cached. Returns the blank tile on upstream failure (uncached)."""
+    up = _tile_upstream(layer_key)
+    if not up:
+        return None
+    url, expected_layer, ttl = up
+    # Only ever request the layer this key is bound to (no open-proxy / SSRF).
+    params = {k: args[k] for k in _TILE_FORWARD_PARAMS if k in args}
+    params["layers"] = expected_layer
+    params.setdefault("service", "WMS")
+    params.setdefault("request", "GetMap")
+
+    path = _tile_cache_path(layer_key, args)
+    cached = _fs_load_bytes(path, max_age_s=ttl)
+    if cached is not None:
+        return cached
+    try:
+        r = http_requests.get(url, params=params, timeout=12)
+        r.raise_for_status()
+        if r.content[:4] != b"\x89PNG":   # WMS error → don't cache, show blank
+            return _BLANK_TILE
+        if save:
+            _fs_save_bytes(path, r.content)
+        return r.content
+    except Exception:
+        return _BLANK_TILE
+
+@app.route("/api/fires/tiles/<layer_key>")
+def api_fires_tile(layer_key):
+    """Proxy + cache a single WMS overlay tile. Leaflet appends the WMS query
+    params; we forward them upstream, cache the PNG, and serve cached bytes."""
+    if _tile_upstream(layer_key) is None:
+        return "", 404
+    png = _fetch_tile(layer_key, request.args)
+    if png is None:
+        return "", 404
+    resp = Response(png, mimetype="image/png")
+    resp.headers["Cache-Control"] = "public, max-age=900"   # let browsers cache too
+    return resp
+
+def _bbox_tiles(bbox, zoom):
+    """Yield (x, y) XYY tile indices covering a lon/lat bbox at a zoom level."""
+    import math
+    w, s, e, n = bbox
+    def xy(lon, lat):
+        lat = max(min(lat, 85.05), -85.05)
+        nt = 2 ** zoom
+        x = int((lon + 180.0) / 360.0 * nt)
+        la = math.radians(lat)
+        y = int((1.0 - math.asinh(math.tan(la)) / math.pi) / 2.0 * nt)
+        return x, y
+    x0, y1 = xy(w, s)     # south-west
+    x1, y0 = xy(e, n)     # north-east
+    for x in range(min(x0, x1), max(x0, x1) + 1):
+        for y in range(min(y0, y1), max(y0, y1) + 1):
+            yield x, y
+
+def _tile_wms_params(bbox_3857, layer, time_val):
+    """Build the WMS GetMap params for a single 256px tile (EPSG:3857)."""
+    p = {"bbox": ",".join(f"{v:.4f}" for v in bbox_3857),
+         "width": "256", "height": "256", "crs": "EPSG:3857",
+         "styles": "", "format": "image/png", "transparent": "true",
+         "version": "1.3.0", "layers": layer}
+    if time_val:
+        p["time"] = time_val
+    return p
+
+def _warm_tile_layer(layer_key, zooms=(7, 8, 9)):
+    """Pre-fetch and cache the MK-bbox tiles for one layer at common zooms, so
+    visitors are served from cache instead of hitting Copernicus live."""
+    import math
+    up = _tile_upstream(layer_key)
+    if not up:
+        return 0
+    _url, layer, _ttl = up
+    bbox = FIRES_CFG.get("bbox")
+    if not bbox:
+        return 0
+    time_val = _tile_warm_time(layer_key)
+    R = 6378137.0
+    def merc(lon, lat):
+        return (R * math.radians(lon),
+                R * math.log(math.tan(math.pi / 4 + math.radians(lat) / 2)))
+    warmed = 0
+    for z in zooms:
+        nt = 2 ** z
+        for x, y in _bbox_tiles(bbox, z):
+            # tile lon/lat bounds → web-mercator bbox
+            lon0 = x / nt * 360.0 - 180.0
+            lon1 = (x + 1) / nt * 360.0 - 180.0
+            lat0 = math.degrees(math.atan(math.sinh(math.pi * (1 - 2 * y / nt))))
+            lat1 = math.degrees(math.atan(math.sinh(math.pi * (1 - 2 * (y + 1) / nt))))
+            xa, ya = merc(lon0, lat1)
+            xb, yb = merc(lon1, lat0)
+            args = _tile_wms_params((xa, ya, xb, yb), layer, time_val)
+            if _fetch_tile(layer_key, args, save=True) is not None:
+                warmed += 1
+    return warmed
+
+def _tile_warm_time(layer_key):
+    """The `time` value to warm for a time-dimensioned layer (matches what the
+    frontend's default view requests). Static layers return None."""
+    today = _today_local().date().isoformat()
+    if layer_key == "danger":
+        return today
+    if layer_key == "burnt_area":
+        return f"{today[:4]}-01-01/{today}"      # year-to-date (frontend default)
+    if layer_key == "s3":
+        end = _today_local().date()
+        start = (end - pd.Timedelta(days=1)).isoformat()   # recent 48h window
+        return f"{start}/{end.isoformat()}"
+    return None
+
+def warm_all_tiles():
+    """Warm the cache for every enabled overlay layer, then prune old buckets so
+    the cache stays bounded. Called by the hourly cron (via /api/fires/tiles/warm)
+    and after an on-demand refresh."""
+    total = {}
+    for key in _FIRES_TILE_LAYERS:
+        if _tile_upstream(key):
+            total[key] = _warm_tile_layer(key)
+            _prune_tile_buckets(key)   # keep only the newest few day/window buckets
+    return total
+
+@app.route("/api/fires/tiles/warm", methods=["POST", "GET"])
+@limiter.limit("6 per hour")
+def api_fires_tiles_warm():
+    """Warm the overlay-tile cache (hourly cron target). Keyed like the other
+    cron-only refresh endpoints so it can't be triggered by arbitrary visitors."""
+    if not _fires_any_enabled():
+        return "", 204
+    key = request.args.get("key", "")
+    if not _TODAY_REFRESH_KEY or key != _TODAY_REFRESH_KEY:
+        return Response("Forbidden", status=403)
+    return jsonify({"warmed": warm_all_tiles()})
+
 # Serialise on-demand refreshes so concurrent clicks don't launch parallel FIRMS pulls.
 _FIRES_REFRESH_LOCK = threading.Lock()
 
@@ -2348,6 +2584,14 @@ def api_fires_refresh():
         return jsonify({"ok": False, "error": e.__class__.__name__}), 500
     finally:
         _FIRES_REFRESH_LOCK.release()
+    # Re-warm the "today"-dependent overlay tiles in the background so the map's
+    # danger/s3/burnt-area layers reflect the refresh without slowing the button.
+    def _warm_today_layers():
+        for k in ("danger", "s3", "burnt_area"):
+            if _tile_upstream(k):
+                _warm_tile_layer(k)
+                _prune_tile_buckets(k)   # keep the cache bounded
+    threading.Thread(target=_warm_today_layers, daemon=True).start()
     return jsonify(summary)
 
 

@@ -9,4 +9,9 @@
 #
 # A full historical backfill is a one-off manual run:
 #   COUNTRY=mk /opt/mk_climate/venv/bin/python fire_collect.py --force-refresh
-0 * * * * root cd /opt/mk_climate && COUNTRY=mk /opt/mk_climate/venv/bin/python fire_collect.py >> /var/log/fire_collect.log 2>&1; systemctl restart mk_climate >> /var/log/fire_collect.log 2>&1
+#
+# After collecting + restarting, warm the WMS overlay-tile cache (fire danger,
+# Sentinel-3, burnt-area, GHSL, WDPA) so visitors are served cached tiles from our
+# own server instead of hitting Copernicus/JRC live per tile. Keyed with
+# TODAY_REFRESH_KEY (read from .env), same as the today_status refresh.
+0 * * * * root cd /opt/mk_climate && COUNTRY=mk /opt/mk_climate/venv/bin/python fire_collect.py >> /var/log/fire_collect.log 2>&1; systemctl restart mk_climate >> /var/log/fire_collect.log 2>&1; sleep 20; curl -s -o /dev/null "http://localhost:5050/api/fires/tiles/warm?key=$(grep -o 'TODAY_REFRESH_KEY=.*' /opt/mk_climate/.env | cut -d= -f2-)" >> /var/log/fire_collect.log 2>&1
