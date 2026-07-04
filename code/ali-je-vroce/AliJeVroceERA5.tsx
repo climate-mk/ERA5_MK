@@ -95,7 +95,7 @@ function Dashboard(props: { meta: SiteMeta }) {
           <Show when={todayData()?.available}>
             <div class="today-chart">
               <div class="today-chart-title">
-                Dnevne najvišje temperature v Sloveniji za dve tedni okoli {fmtDayLabel(todayData()!.day_label ?? "")} od {todayData()!.year_min}
+                Dnevne najvišje temperature {todayData()?.loc ? `na postaji ${todayData()!.loc!.replace(/_/g, " ")}` : "v Sloveniji"} za dve tedni okoli {fmtDayLabel(todayData()!.day_label ?? "")} od {todayData()!.year_min}
               </div>
               <DistributionChart data={todayData()!} chartId="dist-chart" />
               <p class="today-explain" style={{ "font-size": "12px", "padding-top": "6px" }}>
@@ -108,7 +108,7 @@ function Dashboard(props: { meta: SiteMeta }) {
           </Show>
 
           <Show when={todayData()?.available}>
-            <TodayTrendChart date={date()} />
+            <TodayTrendChart date={date()} loc={loc()} />
           </Show>
         </div>
       </section>

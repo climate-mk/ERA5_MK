@@ -121,6 +121,7 @@ function TrendHighchart(props: ChartProps) {
 
 interface Props {
   date: string;
+  loc:  string | null;
 }
 
 export function TodayTrendChart(props: Props) {
@@ -147,7 +148,7 @@ export function TodayTrendChart(props: Props) {
           return (
             <>
               <div class="today-chart-title">
-                Najvišje temperature v Sloveniji okoli {d().dayLabel} · {d().yearMin}–{d().yearMax} · trend s projekcijo do 2050
+                Najvišje temperature {props.loc ? `na postaji ${props.loc.replace(/_/g, " ")}` : "v Sloveniji"} okoli {d().dayLabel} · {d().yearMin}–{d().yearMax} · trend s projekcijo do 2050
               </div>
               <TrendHighchart trend={d()} />
               <p class="today-explain" style={{ padding: "4px 0 2px" }}>

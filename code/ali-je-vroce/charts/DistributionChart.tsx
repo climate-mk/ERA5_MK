@@ -27,6 +27,12 @@ function buildOptions(r: TodayStatus): Highcharts.Options {
   const distMin = dist[0]![0];
   const distMax = dist[dist.length - 1]![0];
 
+  // Ensure the x-axis always includes today's temperature even when it is an
+  // extreme outlier beyond the historical KDE range (e.g. Kredarica on a heat wave).
+  const pad     = (distMax - distMin) * 0.06;
+  const axisMin = Math.min(distMin, todayX) - pad;
+  const axisMax = Math.max(distMax, todayX) + pad;
+
   const zoneLabelStyle = {
     color: INK_SOFT, fontSize: "9px", fontWeight: "600",
     ...MONO,
@@ -57,6 +63,8 @@ function buildOptions(r: TodayStatus): Highcharts.Options {
       },
     },
     xAxis: {
+      min:           axisMin,
+      max:           axisMax,
       title:         { text: null },
       labels:        { format: "{value}°C", style: { color: INK_SOFT, fontSize: "10px", ...MONO } },
       lineColor:     "rgba(14,14,12,0.1)",
@@ -78,7 +86,7 @@ function buildOptions(r: TodayStatus): Highcharts.Options {
         },
       }],
       plotBands: [
-        { from: distMin,  to: c.p10,  color: "transparent",
+        { from: axisMin,  to: c.p10,  color: "transparent",
           label: { text: `< ${c.p10.toFixed(1)}°C`,                        align: "center", verticalAlign: "top", y: 18, style: zoneLabelStyle } },
         { from: c.p10,   to: c.p20,  color: "transparent",
           label: { text: `${c.p10.toFixed(1)}–${c.p20.toFixed(1)}°C`,      align: "center", verticalAlign: "top", y: 18, style: zoneLabelStyle } },
@@ -86,7 +94,7 @@ function buildOptions(r: TodayStatus): Highcharts.Options {
           label: { text: `${c.p20.toFixed(1)}–${c.p80.toFixed(1)}°C`,      align: "center", verticalAlign: "top", y: 18, style: zoneLabelStyle } },
         { from: c.p80,   to: c.p95,  color: "transparent",
           label: { text: `${c.p80.toFixed(1)}–${c.p95.toFixed(1)}°C`,      align: "center", verticalAlign: "top", y: 18, style: zoneLabelStyle } },
-        { from: c.p95,   to: distMax, color: "transparent",
+        { from: c.p95,   to: axisMax, color: "transparent",
           label: { text: `> ${c.p95.toFixed(1)}°C`,                        align: "center", verticalAlign: "top", y: 18, style: zoneLabelStyle } },
       ],
     },
