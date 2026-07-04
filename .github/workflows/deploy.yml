@@ -71,11 +71,11 @@ jobs:
       # the hourly cron alone keeps it current from then on.
       - name: One-time historical fire backfill (fresh server only)
         run: |
-          ssh root@46.224.208.142 "
+          ssh -o ServerAliveInterval=15 root@46.224.208.142 "
             cd /opt/mk_climate &&
             if [ -z \"\$(ls -A data/mk/fires/*.csv 2>/dev/null)\" ]; then
               echo 'No fire data found — starting full historical backfill in the background (~30-60 min)...' &&
-              nohup env COUNTRY=mk venv/bin/python fire_collect.py --force-refresh > /var/log/fire_collect_backfill.log 2>&1 &
+              nohup env COUNTRY=mk venv/bin/python fire_collect.py --force-refresh < /dev/null > /var/log/fire_collect_backfill.log 2>&1 &
               disown &&
               echo 'Backfill started; hourly cron will keep it updated from here.'
             else
