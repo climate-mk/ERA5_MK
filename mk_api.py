@@ -93,6 +93,79 @@ MONTH_NAMES = ["Jan","Feb","Mar","Apr","May","Jun",
 PALETTE     = ["#e07b00","#9b4dca","#c9880a","#d0408a",
                "#20aab0","#b06830"]
 
+# ── Wildfire data (for the /fires page) ────────────────────────────────────────
+# Loaded lazily & independently from the climate DataFrame. Fire CSVs live under
+# data/<code>/fires/ (one per sensor), so the climate glob above never sees them.
+FIRES_CFG      = CONFIG.get("fires") or {}
+_FIRES_DIR     = os.path.join(DATA_DIR, "fires")
+GFW_API_KEY    = os.getenv("GFW_API_KEY", "").strip()
+_FIRES_DF      = None   # cached concat of all sensor CSVs (or empty frame)
+
+def _fires_any_enabled():
+    return any(_feature_enabled(f) for f in
+               ("fires_map", "fires_year_chart", "fires_danger",
+                "fires_satellite", "fires_settlement", "fires_burnt_area",
+                "fires_protected_areas"))
+
+def _load_fires():
+    """Concat all per-sensor fire CSVs into one DataFrame (cached).
+    Returns an empty DataFrame with the expected columns if none exist yet."""
+    global _FIRES_DF
+    if _FIRES_DF is not None:
+        return _FIRES_DF
+    cols = ["sensor", "acq_date", "acq_time", "latitude", "longitude",
+            "confidence", "frp", "daynight"]
+    frames = []
+    for f in sorted(glob.glob(os.path.join(_FIRES_DIR, "*.csv"))):
+        try:
+            frames.append(pd.read_csv(f))
+        except Exception:
+            pass
+    if frames:
+        df = pd.concat(frames, ignore_index=True)
+        df["acq_date"] = pd.to_datetime(df["acq_date"], errors="coerce")
+        df = df.dropna(subset=["acq_date", "latitude", "longitude"])
+        df["year"] = df["acq_date"].dt.year
+        # Combined UTC acquisition datetime (acq_time is HHMM UTC, or HH:MM:SS from
+        # the Sentinel-3 WFS) — used to report true data freshness.
+        df["acq_dt"] = _combine_acq_datetime(df)
+    else:
+        df = pd.DataFrame(columns=cols + ["year", "acq_dt"])
+    _FIRES_DF = df
+    return df
+
+def _combine_acq_datetime(df):
+    """Build a UTC acquisition timestamp from acq_date + acq_time.
+    Handles both FIRMS 'HHMM' (e.g. 1204) and 'HH:MM:SS' (Sentinel-3 WFS)."""
+    def to_minutes(v):
+        s = str(v).strip()
+        if not s or s.lower() == "nan":
+            return 0
+        if ":" in s:                       # HH:MM:SS
+            h, m = s.split(":")[:2]
+            return int(h) * 60 + int(m)
+        s = s.split(".")[0].zfill(4)       # HHMM
+        return int(s[:-2]) * 60 + int(s[-2:])
+    mins = df["acq_time"].map(to_minutes)
+    return (df["acq_date"] + pd.to_timedelta(mins, unit="m")).dt.tz_localize("UTC")
+
+def _fires_latest_detection():
+    """ISO-UTC timestamp of the newest detection in the data, or None."""
+    df = _load_fires()
+    if df.empty or "acq_dt" not in df or df["acq_dt"].isna().all():
+        return None
+    return df["acq_dt"].max().isoformat()
+
+def _fires_sensor_start_dates():
+    """Earliest acq_date actually present per sensor (YYYY-MM-DD), from the real
+    collected data — not the sensor's theoretical launch date — so the frontend
+    date pickers never let a user pick a date we can't actually query."""
+    df = _load_fires()
+    if df.empty:
+        return {}
+    return {sensor: d.date().isoformat()
+            for sensor, d in df.groupby("sensor")["acq_date"].min().items()}
+
 # ── Variable style ─────────────────────────────────────────────────────────────
 
 _VSTYLE = {
@@ -925,6 +998,12 @@ def index():
 def dashboard():
     return send_from_directory("static", "dashboard.html")
 
+@app.route("/fires")
+def fires_page():
+    if not _feature_enabled("fires_map"):
+        return "", 404
+    return send_from_directory("static", "fires.html")
+
 @app.route("/geo/<path:filename>")
 def serve_geo(filename):
     return send_from_directory(os.path.join("static", "geo"), filename)
@@ -944,13 +1023,48 @@ def api_meta():
         # ── new keys from CONFIG ───────────────────────────────────────────────
         "country":          CONFIG["code"],
         "name":             CONFIG["name"],
+        "timezone":         CONFIG["timezone"],
         "default_location": CONFIG["default_location"],
         "default_language": CONFIG["default_language"],
         "languages":        CONFIG["languages"],
         "map":              CONFIG["map"],
         "branding":         CONFIG["branding"],
         "features":         CONFIG["features"],
+        "fires":            _fires_meta(),
     })
+
+def _fires_meta():
+    """Resolved fire-map layer config for the frontend, honouring feature flags.
+    Only exposes a layer's URL/name when its feature is enabled — a disabled
+    feature yields no config, so the frontend can't build a layer for it."""
+    if not _fires_any_enabled():
+        return None
+    fc = FIRES_CFG
+    meta = {
+        "bbox":    fc.get("bbox"),
+        "sensors": [s["key"] for s in fc.get("firms_sources", [])]
+                   + (["SENTINEL3"] if fc.get("sentinel3") else []),
+        "sensor_start": _fires_sensor_start_dates(),
+    }
+    if _feature_enabled("fires_danger"):
+        meta["danger"] = {"wms": fc.get("effis_wms"),
+                          "layer": fc.get("effis_danger_layer")}
+    if _feature_enabled("fires_map") and fc.get("sentinel3"):
+        # Sentinel-3 hotspots shown as a WMS overlay (reliable fallback to WFS points).
+        meta["s3_wms"] = {"wms": fc.get("effis_wms"),
+                          "layer": fc.get("effis_s3_layer")}
+    if _feature_enabled("fires_satellite"):
+        meta["satellite_tiles"] = fc.get("satellite_tiles")
+    if _feature_enabled("fires_settlement"):
+        meta["settlement"] = {"wms": fc.get("ghsl_wms"),
+                              "builtup_layer": fc.get("ghsl_builtup_layer")}
+    if _feature_enabled("fires_burnt_area"):
+        meta["burnt_area"] = {"wms": fc.get("effis_ba_wms") or fc.get("effis_wms"),
+                              "layer": fc.get("effis_ba_layer")}
+    if _feature_enabled("fires_protected_areas"):
+        meta["protected_areas"] = {"wms": fc.get("effis_pa_wms") or fc.get("effis_wms"),
+                                   "layer": fc.get("effis_pa_layer")}
+    return meta
 
 @app.route("/api/regression")
 def api_regression():
@@ -2017,6 +2131,224 @@ def download_data():
         download_name=f"{CONFIG['code']}_climate_data.zip",
         conditional=True,
     )
+
+
+# ── Wildfire endpoints (/fires page) ───────────────────────────────────────────
+
+_FIRES_CACHE_DIR = os.path.join(_CACHE_DIR, "fires")
+# Cap points returned to the map so a multi-year range can't ship millions of rows.
+_FIRES_POINTS_CAP = 20000
+
+@app.route("/api/fires/points")
+def api_fires_points():
+    """Active-fire detections for a date range, optionally filtered by sensor.
+    ?start=YYYY-MM-DD&end=YYYY-MM-DD&sensor=MODIS,VIIRS_SNPP (default all)."""
+    if not _feature_enabled("fires_map"):
+        return "", 204
+    df = _load_fires()
+    if df.empty:
+        return jsonify({"points": [], "count": 0, "capped": False})
+
+    end   = request.args.get("end")   or _today_local().date().isoformat()
+    start = request.args.get("start") or (pd.to_datetime(end) - pd.Timedelta(days=7)).date().isoformat()
+    sensors = [s for s in (request.args.get("sensor") or "").split(",") if s]
+
+    try:
+        s_ts, e_ts = pd.to_datetime(start), pd.to_datetime(end)
+    except Exception:
+        return jsonify({"points": [], "count": 0, "capped": False}), 400
+
+    m = (df["acq_date"] >= s_ts) & (df["acq_date"] <= e_ts)
+    if sensors:
+        m &= df["sensor"].isin(sensors)
+    sub = df[m]
+    total = len(sub)
+    capped = total > _FIRES_POINTS_CAP
+    if capped:                       # keep the strongest fires when over the cap
+        sub = sub.sort_values("frp", ascending=False).head(_FIRES_POINTS_CAP)
+
+    points = [
+        {"lat": round(float(r.latitude), 5), "lon": round(float(r.longitude), 5),
+         "date": r.acq_date.date().isoformat(), "sensor": r.sensor,
+         "frp": (None if pd.isna(r.frp) else float(r.frp)),
+         "conf": (None if pd.isna(r.confidence) else str(r.confidence))}
+        for r in sub.itertuples()
+    ]
+    return jsonify({"points": points, "count": total, "capped": capped,
+                    "collected_at": _fires_collected_at(),
+                    "latest_detection": _fires_latest_detection()})
+
+def _fires_collected_at():
+    """Timestamp (local ISO) of the last server-side fire collection, or None."""
+    stamp = _fs_load(os.path.join(_FIRES_DIR, "_last_collected.json"))
+    return stamp.get("collected_at") if isinstance(stamp, dict) else None
+
+@app.route("/api/fires/yearly")
+def api_fires_yearly():
+    """Per-year fire-detection totals for the comparison chart.
+    Prefers GFW's server-side aggregation when GFW_API_KEY + gfw_yearly_via_api
+    are set; otherwise counts the local FIRMS CSVs. Cached daily.
+
+    GFW's dataset (VIIRS-based) only goes back to 2012, but our local CSVs include
+    MODIS back to 2000 — so any year before GFW's earliest is filled in from local
+    counts (_extend_yearly_with_local) rather than silently dropped. The response
+    marks which years came from the extension so the frontend can caption the
+    sensor-boundary honestly (MODIS vs VIIRS aren't directly comparable counts)."""
+    if not _feature_enabled("fires_year_chart"):
+        return "", 204
+    today   = _today_local().date().isoformat()
+    use_gfw = bool(GFW_API_KEY and FIRES_CFG.get("gfw_yearly_via_api"))
+    fs_path = os.path.join(_FIRES_CACHE_DIR, f"yearly_gfw_{today}.json")
+
+    # 1) Today's GFW cache is warm → serve it (fast). Only trust it if it actually
+    #    holds GFW data (guards against a stale local-in-gfw-file from older code).
+    if use_gfw:
+        cached = _fs_load(fs_path)
+        if cached is not None and cached.get("source") == "gfw":
+            return jsonify(_extend_yearly_with_local(cached))
+
+    # 2) Otherwise respond immediately with local counts (never block the request
+    #    on GFW's slow 15-call loop), and warm the GFW cache in the background so
+    #    the next load gets the official totals.
+    if use_gfw:
+        _warm_gfw_yearly_async(fs_path, today)
+        # If a previous day's GFW cache exists, prefer it over local (still fast).
+        stale = _latest_gfw_yearly_cache()
+        if stale is not None:
+            return jsonify(_extend_yearly_with_local(stale))
+
+    return jsonify(_fires_yearly_local())
+
+def _extend_yearly_with_local(gfw_result):
+    """Prepend any year before GFW's earliest year using local FIRMS counts (e.g.
+    MODIS 2000-2011, before VIIRS/GFW coverage begins). Marks the filled years in
+    `pre_gfw_years` so the frontend can caption the sensor-boundary clearly."""
+    if not gfw_result.get("years"):
+        return gfw_result
+    local = _fires_yearly_local()
+    gfw_start = min(gfw_result["years"])
+    extra_years, extra_counts = [], []
+    for y, c in zip(local["years"], local["counts"]):
+        if y < gfw_start:
+            extra_years.append(y)
+            extra_counts.append(c)
+    if not extra_years:
+        return gfw_result
+    return {
+        "years": extra_years + gfw_result["years"],
+        "counts": extra_counts + gfw_result["counts"],
+        "source": "gfw",
+        "pre_gfw_years": extra_years,
+    }
+
+def _latest_gfw_yearly_cache():
+    """Most recent *valid* GFW yearly cache from any day (stale-but-instant
+    fallback). Skips files that don't actually contain GFW data."""
+    for f in sorted(glob.glob(os.path.join(_FIRES_CACHE_DIR, "yearly_gfw_*.json")),
+                    reverse=True):
+        d = _fs_load(f)
+        if isinstance(d, dict) and d.get("source") == "gfw" and d.get("years"):
+            return d
+    return None
+
+_gfw_warming = set()
+def _warm_gfw_yearly_async(fs_path, today):
+    """Build today's GFW yearly cache off the request thread (once at a time)."""
+    if today in _gfw_warming:
+        return
+    _gfw_warming.add(today)
+    def _work():
+        try:
+            result = _fires_yearly_gfw()
+            if result:
+                _fs_save(fs_path, result,
+                         glob_pattern=os.path.join(_FIRES_CACHE_DIR, "yearly_gfw_*.json"),
+                         anchor_date=today)
+        finally:
+            _gfw_warming.discard(today)
+    threading.Thread(target=_work, daemon=True).start()
+
+def _fires_yearly_local():
+    df = _load_fires()
+    if df.empty:
+        return {"years": [], "counts": [], "source": "local"}
+    g = df.groupby("year").size().sort_index()
+    return {"years": [int(y) for y in g.index],
+            "counts": [int(c) for c in g.values], "source": "local"}
+
+def _fires_yearly_gfw():
+    """Query GFW's fire-alerts dataset for ISO-filtered yearly counts.
+
+    Notes from testing the live API: the dataset has no year column (year is
+    derived from alert__date), the key is domain-restricted so an Origin header
+    is required, and a full-history GROUP BY times out (504). Per-year queries
+    return instantly, so we loop one date-bounded SUM per year. VIIRS alerts
+    start in 2012. Any failure returns None → caller falls back to local counts."""
+    ds     = FIRES_CFG.get("gfw_dataset", "nasa_viirs_fire_alerts")
+    iso    = FIRES_CFG.get("iso3")
+    origin = "https://" + (CONFIG.get("branding", {}).get("domain") or "climate.mk")
+    url    = f"https://data-api.globalforestwatch.org/dataset/{ds}/latest/query/json"
+    headers = {"x-api-key": GFW_API_KEY, "origin": origin}
+
+    years, counts = [], []
+    failures = 0
+    for yr in range(2012, _today_local().year + 1):
+        sql = ("SELECT SUM(alert__count) AS cnt FROM results "
+               f"WHERE iso = '{iso}' AND alert__date >= '{yr}-01-01' "
+               f"AND alert__date <= '{yr}-12-31'")
+        try:
+            r = http_requests.post(url, headers=headers, json={"sql": sql}, timeout=20)
+            r.raise_for_status()
+            rows = r.json().get("data", [])
+        except Exception:
+            failures += 1
+            if failures > 3:      # GFW clearly unhealthy → fall back to local counts
+                return None
+            continue              # a single flaky year shouldn't sink the whole chart
+        cnt = rows[0].get("cnt") if rows else None
+        if cnt:
+            years.append(yr)
+            counts.append(int(cnt))
+    if not years:
+        return None
+    return {"years": years, "counts": counts, "source": "gfw"}
+
+@app.route("/api/fires/danger_meta")
+def api_fires_danger_meta():
+    """WMS config for the EFFIS fire-danger overlay (no key needed client-side)."""
+    if not _feature_enabled("fires_danger"):
+        return "", 204
+    return jsonify({
+        "wms":   FIRES_CFG.get("effis_wms"),
+        "layer": FIRES_CFG.get("effis_danger_layer"),
+        "bbox":  FIRES_CFG.get("bbox"),
+    })
+
+# Serialise on-demand refreshes so concurrent clicks don't launch parallel FIRMS pulls.
+_FIRES_REFRESH_LOCK = threading.Lock()
+
+@app.route("/api/fires/refresh", methods=["POST"])
+@limiter.limit("4 per minute")
+@limiter.limit("30 per hour")
+def api_fires_refresh():
+    """On-demand: pull today's fresh FIRMS/Sentinel-3 detections server-side, then
+    invalidate the in-memory fire data so the next /api/fires/points reflects it.
+    Rate-limited (it hits external APIs). The client waits for this to finish, then
+    reloads its points. Returns how many new detections were added."""
+    if not _feature_enabled("fires_map"):
+        return "", 204
+    global _FIRES_DF
+    if not _FIRES_REFRESH_LOCK.acquire(blocking=False):
+        return jsonify({"ok": False, "busy": True}), 409
+    try:
+        import fire_collect
+        summary = fire_collect.refresh_today(today_only=True)  # fast: today's window only
+        _FIRES_DF = None                      # force reload from the updated CSVs
+    except Exception as e:
+        return jsonify({"ok": False, "error": e.__class__.__name__}), 500
+    finally:
+        _FIRES_REFRESH_LOCK.release()
+    return jsonify(summary)
 
 
 if __name__ == "__main__":

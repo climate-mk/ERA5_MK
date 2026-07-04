@@ -38,6 +38,14 @@ Interactive web dashboard for exploring long-term climate trends across 20 locat
 - Dark/light variable theming via CSS custom properties
 - **Climate news** (`climate-news.html`, MK only) — recent climate-related headlines aggregated from Macedonian news outlet RSS feeds, plus the site's X (Twitter) timeline
 
+### Wildfire tracker (new — separate `/fires` page)
+A standalone page tracking current and historical wildfires, built on a Leaflet map (the climate pages keep using Highcharts Maps). Feature-flagged via `fires_map`, `fires_year_chart`, `fires_danger`, `fires_satellite`, `fires_settlement` — turn any off in `countries/<cc>.yaml` to hide the layer, its endpoint, and its nav link.
+- **Interactive fire map** — NASA FIRMS active-fire detections (MODIS + VIIRS SNPP / NOAA-20 / NOAA-21) plotted as points coloured by fire radiative power, with a **date/period picker** and a **per-satellite filter**
+- **Map layers** — base toggle (OpenStreetMap streets ↔ Esri satellite) and toggleable WMS overlays: **EFFIS Fire Weather Index** (fire-danger forecast), **Sentinel-3 hotspots**, and **GHSL built-up areas** (human settlement)
+- **Fires-per-year chart** — year-over-year detection totals; served from Global Forest Watch's aggregated VIIRS query when a `GFW_API_KEY` is set, otherwise counted from the local FIRMS CSVs (with a sensor-comparability caveat)
+- **Data sources block** — attributions/links for FIRMS, EFFIS, GFW, GHSL and the base maps, shown below the charts
+- **Collection** — `fire_collect.py` mirrors `mk_collect.py`: chunked 10-day FIRMS requests per sensor into `data/<cc>/fires/<SENSOR>.csv`, differential by default, `--force-refresh` for a full backfill, a self-healing `_gaps.json` retry log, and Sentinel-3 pulled from the EFFIS WFS. Needs `FIRMS_MAP_KEY` in `.env`; hourly cron entry at `cron/fire_collect`.
+
 ---
 
 ## Stack
@@ -57,21 +65,30 @@ Interactive web dashboard for exploring long-term climate trends across 20 locat
 ```
 ERA5_MK/
 ├── mk_collect.py          # Data collection — fetches ERA5-Land CSVs from Open-Meteo
-├── mk_api.py              # Flask API — all statistics and route handlers
+├── mk_api.py              # Flask API — all statistics and route handlers (incl. /api/fires/*)
+├── mk_collect.py          # ERA5-Land climate collection
+├── fire_collect.py        # Wildfire collection — FIRMS + Sentinel-3 → data/<cc>/fires/
 ├── climate_news.py        # Standalone climate-news aggregation (MK outlet RSS → cache)
+├── config.py              # Loads countries/<cc>.yaml into one CONFIG object
+├── countries/<cc>.yaml    # Per-country config: features, stations, fires block
 ├── requirements.txt       # Python dependencies
 ├── cron/
 │   ├── mk_collect         # cron.d file — runs mk_collect.py nightly
+│   ├── fire_collect       # cron.d file — runs fire_collect.py hourly
 │   └── climate_news       # cron.d file — refreshes climate-news cache every 6h
 ├── static/
 │   ├── index.html         # Single-page app shell
-│   ├── app.js             # All chart logic, API calls, UI interactions
-│   ├── style.css          # Light-theme responsive CSS
+│   ├── fires.html         # Standalone wildfire tracker page (/fires)
 │   ├── user-manual.html   # Standalone user manual page
 │   ├── climate-news.html  # Standalone climate-news page (MK only)
+│   ├── js/
+│   │   ├── app.js         # Climate chart logic, API calls, UI interactions
+│   │   ├── fires.js       # Wildfire page logic (Leaflet map, controls, year chart)
+│   │   └── vendor/        # Highcharts, Leaflet (self-hosted, no CDN)
+│   ├── css/style.css      # Light-theme responsive CSS
 │   └── locales/           # JSON translation files (en, mk, sq)
-├── data/                  # ERA5-Land CSVs, one per station (gitignored on server)
-└── cache/                 # Auto-generated JSON cache files (gitignored)
+├── data/<cc>/             # ERA5-Land CSVs per station; fires/ subdir for detections (gitignored)
+└── cache/<cc>/            # Auto-generated JSON cache files (gitignored)
 ```
 
 ---
@@ -96,6 +113,9 @@ To check from a browser whether the cron actually ran on prod, browse to `https:
 | `GET /api/token` | — | Short-lived Direct Line token for the chatbot (rate-limited) |
 | `GET /api/data/download` | — | Zip archive of all station CSVs (tmax, tmin, tmean, precip, ET₀; 1950–present) |
 | `GET /api/climate_news` | — | Recent Macedonian climate-news headlines, aggregated from MK outlet RSS feeds and filtered by keyword (archive refreshed by cron every 6h via `climate_news.py`) |
+| `GET /api/fires/points` | `start`, `end`, `sensor` | FIRMS/Sentinel-3 detections for a date range (lat/lon, date, sensor, FRP, confidence); capped and gated by `fires_map` |
+| `GET /api/fires/yearly` | — | Per-year detection totals for the comparison chart (GFW aggregation when `GFW_API_KEY` set, else local FIRMS counts); gated by `fires_year_chart` |
+| `GET /api/fires/danger_meta` | — | EFFIS Fire Weather Index WMS URL + layer for the fire-danger overlay; gated by `fires_danger` |
 
 ---
 
