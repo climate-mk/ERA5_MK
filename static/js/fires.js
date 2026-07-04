@@ -18,6 +18,7 @@ let _layerControl = null;  // Leaflet layers control (to add/remove the danger e
 let _dangerLayer = null;   // EFFIS fire-danger WMS layer
 let _dangerLabel = '';     // its label in the layer control
 let _burntLayer = null;    // EFFIS burnt-area WMS layer (time follows the date selection)
+let _s3Layer = null;       // EFFIS Sentinel-3 hotspots WMS layer (time follows the selection)
 let _protectedLayer = null; // WDPA protected-areas WMS layer
 
 // ── i18n (mirrors app.js) ──────────────────────────────────────────────────────
@@ -152,10 +153,13 @@ function buildMap() {
     tx('fires.desc_points', 'Individual satellite hot-spot detections (NASA FIRMS: MODIS + VIIRS, and Sentinel-3). Each dot is one detection; a big fire shows as a cluster.'))] = pointsLayer;
 
   if (FIRES.s3_wms) {
+    // The s3.hs layer is time-dimensioned and renders nothing without a `time`
+    // param — feed it the selected window (same as the fire dots) so it follows
+    // the date/period controls (see s3TimeRange / updateS3Time).
+    _s3Layer = L.tileLayer.wms(FIRES.s3_wms.wms,
+      wmsOpts(FIRES.s3_wms.layer, '© Copernicus EFFIS', { time: s3TimeRange() }));
     overlays[labelWithInfo(tx('fires.layer_s3', 'Sentinel-3 hotspots'),
-      tx('fires.desc_s3', 'Live hotspot overlay from the Sentinel-3 satellite (EFFIS), shown as a map layer in addition to the individual detection dots above.'))] =
-      L.tileLayer.wms(FIRES.s3_wms.wms, wmsOpts(FIRES.s3_wms.layer,
-        '© Copernicus EFFIS'));
+      tx('fires.desc_s3', 'Hotspots detected by the Sentinel-3 satellite (EFFIS) over the selected date/period, shown as a map layer in addition to the individual detection dots above.'))] = _s3Layer;
   }
   if (FIRES.danger) {
     // The EFFIS FWI layer is time-dimensioned and defaults to an old date
@@ -169,8 +173,14 @@ function buildMap() {
     overlays[_dangerLabel] = _dangerLayer;
   }
 
+  // On small screens the always-open switcher covers too much of the map — collapse
+  // it into a tappable icon there (matches the existing 780px breakpoint); desktop
+  // keeps it open. We manage open/closed ourselves (see setupLayerControlResponsive)
+  // rather than relying on Leaflet's built-in hover-collapse, which doesn't fire on
+  // touch and doesn't get wired when the control is created collapsed:false.
   _layerControl = L.control.layers(baseLayers, overlays, { collapsed: false }).addTo(map);
   wireLayerInfo();
+  setupLayerControlResponsive();
 
   // Legend
   const legend = L.control({ position: 'bottomright' });
@@ -178,11 +188,53 @@ function buildMap() {
     const div = L.DomUtil.create('div', 'fire-legend');
     const lbl = tx('fires.legend_intensity', 'Fire intensity (FRP)');
     const lo = tx('fires.legend_low', 'low'), hi = tx('fires.legend_high', 'high');
-    div.innerHTML = `<div style="margin-bottom:4px">${lbl}</div>` +
-      FIRE_RAMP.map((c, i) => `<div><i style="background:${c}"></i>${i === 0 ? lo : (i === FIRE_RAMP.length - 1 ? hi : '')}</div>`).join('');
+    div.innerHTML = `<div class="legend-title">${lbl}</div>` +
+      `<div class="legend-swatches">` +
+      `<span class="legend-end">${lo}</span>` +
+      FIRE_RAMP.map((c) => `<i style="background:${c}"></i>`).join('') +
+      `<span class="legend-end">${hi}</span>` +
+      `</div>`;
     return div;
   };
   legend.addTo(map);
+}
+
+// Self-managed responsive collapse for the layer switcher. Leaflet's built-in
+// collapsed mode relies on mouseenter/mouseleave (no good on touch, and not wired
+// when the control is created collapsed:false), so instead we toggle our own
+// `.fires-lc-collapsed` class: collapsed shows just a ⊞ button; tapping it opens
+// the list, tapping the button again or tapping the map closes it. Only active at
+// ≤780px; on desktop the control stays fully open.
+function setupLayerControlResponsive() {
+  const root = _layerControl?.getContainer?.();
+  if (!root) return;
+
+  // Inject a toggle button once (Leaflet's own toggle is hidden via our CSS).
+  let btn = root.querySelector('.fires-lc-toggle');
+  if (!btn) {
+    btn = L.DomUtil.create('a', 'fires-lc-toggle', root);
+    btn.href = '#';
+    btn.title = tx('fires.layers_toggle', 'Layers');
+    btn.setAttribute('role', 'button');
+    btn.innerHTML = '&#9638;';   // ⊞
+    L.DomEvent.on(btn, 'click', (e) => {
+      L.DomEvent.stop(e);
+      root.classList.toggle('fires-lc-open');
+    });
+    // Don't let clicks inside the panel bubble to the map (which would close it).
+    L.DomEvent.disableClickPropagation(root);
+  }
+
+  const mq = window.matchMedia('(max-width: 780px)');
+  const apply = (mobile) => {
+    root.classList.toggle('fires-lc-collapsed', mobile);
+    if (!mobile) root.classList.remove('fires-lc-open');   // desktop = always open
+  };
+  apply(mq.matches);
+  mq.addEventListener('change', (e) => apply(e.matches));
+
+  // Tapping the map closes an open switcher on mobile.
+  map.on('click', () => root.classList.remove('fires-lc-open'));
 }
 
 // Tap-to-expand info rows for the layer control. Leaflet's control shows only the
@@ -378,13 +430,23 @@ function renderDataSources() {
     ['OpenStreetMap / Esri', 'https://www.openstreetmap.org/copyright',
       tx('fires.src_base_desc', 'Street and satellite base maps.')],
   ];
-  const heading = tx('fires.sources_heading', 'Data sources');
-  const html =
-    `<div style="font-weight:600;text-transform:uppercase;letter-spacing:0.06em;color:var(--ink-soft);margin-bottom:8px">${heading}</div>` +
-    rows.map(([name, url, desc]) =>
-      `<div style="margin-bottom:4px"><a href="${url}" target="_blank" rel="noopener">${name}</a> — ${desc}</div>`
-    ).join('');
-  document.getElementById('credits').innerHTML = html;
+  const el = document.getElementById('data-sources-list');
+  if (!el) return;
+  el.innerHTML = rows.map(([name, url, desc]) =>
+    `<dt><a href="${url}" target="_blank" rel="noopener">${name}</a></dt><dd>${desc}</dd>`
+  ).join('');
+}
+
+// Collapsible "About this data" / "Data sources" cards — collapsed by default,
+// click the header to expand/collapse.
+function setupCollapsibles() {
+  document.querySelectorAll('.collapsible .collapse-head').forEach(head => {
+    head.addEventListener('click', () => {
+      const card = head.closest('.collapsible');
+      const open = card.classList.toggle('collapsed');
+      head.setAttribute('aria-expanded', String(!open));
+    });
+  });
 }
 
 // ── Static labels + language selector ──────────────────────────────────────────
@@ -401,6 +463,7 @@ function applyLabels() {
   set('lbl-recent', 'fires.recent', 'Recent (48h)');
   set('lag-note', 'fires.lag_note', 'How current is this? Polar-orbiting satellites pass over only a few times a day, and detections take ~1–3h more to process — so fire data is typically 3–12 hours old and can approach ~24h overnight. The “Recent” view shows the last 48 hours of available data (matching how the NASA FIRMS and EFFIS “today” views behave). Use the date controls to browse a specific day or period.');
   set('lbl-explain-heading', 'fires.explain_heading', 'About this data');
+  set('lbl-sources-heading', 'fires.sources_heading', 'Data sources');
   set('lbl-period', 'fires.custom_period', 'Custom period');
   set('lbl-start', 'fires.from', 'From');
   set('lbl-end', 'fires.to', 'To');
@@ -482,33 +545,33 @@ function localToday() {
 // how the FIRMS/EFFIS "today" views actually behave.
 const RECENT_DAYS = 2;
 
-// True when the user has switched on a custom historical period.
-function periodMode() {
-  return document.getElementById('period-toggle')?.checked;
+// The date mode is a single radio group: 'recent' | 'period' | 'date'.
+function currentMode() {
+  const el = document.querySelector('input[name="date-mode"]:checked');
+  return el ? el.value : 'recent';
 }
+function periodMode() { return currentMode() === 'period'; }
+function recentMode() { return currentMode() === 'recent'; }
 
-// True in the default rolling "Recent" view (last RECENT_DAYS).
-function recentMode() {
-  return !periodMode() && document.getElementById('recent-toggle')?.checked;
-}
-
-// Danger + auto-refresh apply to the "current" view: Recent mode, or a single day
-// pointing at today.
+// Danger + auto-refresh apply to the "current" view: Recent mode, or the single
+// "date" mode pointing at today.
 function viewingToday() {
-  if (periodMode()) return false;
-  if (recentMode()) return true;
+  const m = currentMode();
+  if (m === 'recent') return true;
+  if (m === 'period') return false;
   return document.getElementById('date-day')?.value === localToday();
 }
 
 // Resolve the active [start, end] window.
 function activeRange() {
-  if (periodMode()) {
+  const m = currentMode();
+  if (m === 'period') {
     return {
       start: document.getElementById('date-start').value,
       end:   document.getElementById('date-end').value,
     };
   }
-  if (recentMode()) {
+  if (m === 'recent') {
     const end = localToday();
     const d = new Date(end + 'T00:00:00');
     d.setDate(d.getDate() - (RECENT_DAYS - 1));
@@ -533,10 +596,20 @@ function updateBurntTime() {
   _burntLayer.setParams({ time: burntTimeRange() });
 }
 
+// Time window for the Sentinel-3 hotspot overlay. Unlike burnt area (which
+// accumulates), hotspots are point-in-time detections, so it follows the exact
+// active window — the same range the fire-detection dots use.
+function s3TimeRange() {
+  const { start, end } = activeRange();
+  return `${start}/${end}`;
+}
+
+function updateS3Time() {
+  if (!_s3Layer) return;
+  _s3Layer.setParams({ time: s3TimeRange() });
+}
+
 function shiftDay(deltaDays) {
-  // Stepping the date leaves Recent mode.
-  const rt = document.getElementById('recent-toggle');
-  if (rt && rt.checked) rt.checked = false;
   const cur = document.getElementById('date-day').value || localToday();
   const d = new Date(cur + 'T00:00:00');
   d.setDate(d.getDate() + deltaDays);
@@ -546,22 +619,39 @@ function shiftDay(deltaDays) {
   onDayChanged();
 }
 
+// Enable each mode's sub-fields only when that mode's radio is selected; the
+// others stay visible but greyed out. Called on load and on every mode change.
 function setDayNavEnabled() {
-  const on = recentMode();
-  ['day-prev', 'day-next', 'date-day'].forEach(id => {
-    const el = document.getElementById(id); if (el) el.disabled = on;
+  const m = currentMode();
+  const dateOn = m === 'date';
+  const periodOn = m === 'period';
+  ['day-prev', 'date-day'].forEach(id => {
+    const el = document.getElementById(id); if (el) el.disabled = !dateOn;
   });
-  if (!on) document.getElementById('day-next').disabled =
-    (document.getElementById('date-day').value >= localToday());
+  document.getElementById('day-next').disabled =
+    !dateOn || document.getElementById('date-day').value >= localToday();
+  ['date-start', 'date-end'].forEach(id => {
+    const el = document.getElementById(id); if (el) el.disabled = !periodOn;
+  });
 }
 
 function onDayChanged() {
-  // Picking a specific day leaves Recent mode.
-  const rt = document.getElementById('recent-toggle');
-  if (rt && rt.checked) rt.checked = false;
   setDayNavEnabled();
   updateDangerAvailability();
   updateBurntTime();
+  updateS3Time();
+  updateRefreshUI();
+  debouncedRefresh();
+}
+
+// Fired whenever the date-mode radio changes.
+function onModeChanged() {
+  // Entering "date" mode resets the picker to today so it starts somewhere sane.
+  if (currentMode() === 'date') document.getElementById('date-day').value = localToday();
+  setDayNavEnabled();
+  updateDangerAvailability();
+  updateBurntTime();
+  updateS3Time();
   updateRefreshUI();
   debouncedRefresh();
 }
@@ -581,37 +671,10 @@ function setupDateControls() {
   document.getElementById('day-next').addEventListener('click', () => shiftDay(1));
   document.getElementById('date-day').addEventListener('change', onDayChanged);
 
-  // Recent (rolling 48h) toggle — default on. Turning it off enables day picking;
-  // turning it back on returns to the rolling window AND resets the day picker
-  // back to today (otherwise it's left showing whatever day was picked while
-  // Recent was off, which breaks "next"/disabled-state and looks stuck).
-  document.getElementById('recent-toggle').addEventListener('change', (e) => {
-    if (e.target.checked) {
-      const dayInput = document.getElementById('date-day');
-      dayInput.value = localToday();
-      document.getElementById('day-next').disabled = true;
-    }
-    setDayNavEnabled();
-    updateDangerAvailability();
-    updateBurntTime();
-    updateRefreshUI();
-    debouncedRefresh();
-  });
+  document.querySelectorAll('input[name="date-mode"]').forEach(r =>
+    r.addEventListener('change', onModeChanged));
 
-  const toggle = document.getElementById('period-toggle');
-  const dayNav = document.getElementById('day-nav');
-  const fields = [document.getElementById('period-fields'),
-                  document.getElementById('period-fields-to')];
-  toggle.addEventListener('change', () => {
-    const on = toggle.checked;
-    dayNav.hidden = on;                    // swap the single-date nav for the range
-    fields.forEach(f => { if (f) f.hidden = !on; });
-    updateDangerAvailability();
-    updateBurntTime();
-    updateRefreshUI();
-    debouncedRefresh();
-  });
-  const onPeriodEdit = () => { updateBurntTime(); debouncedRefresh(); };
+  const onPeriodEdit = () => { updateBurntTime(); updateS3Time(); debouncedRefresh(); };
   document.getElementById('date-start').addEventListener('change', onPeriodEdit);
   document.getElementById('date-end').addEventListener('change', onPeriodEdit);
 
@@ -718,6 +781,7 @@ function renderLastRefresh() {
   updateRefreshUI();            // show last-refresh + start hourly auto-refresh
   renderDataExplain();
   renderDataSources();
+  setupCollapsibles();
   await refreshPoints();
   await renderYearChart();
 })();
