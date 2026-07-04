@@ -1,0 +1,12 @@
+# Hourly near-real-time wildfire update for the /fires page.
+# NASA FIRMS refreshes active-fire detections through the day, so an hourly
+# differential run keeps the map current. Each run fetches only new days per
+# sensor (last date in each CSV → yesterday) plus retries any pending gap
+# windows and the Sentinel-3 EFFIS WFS window.
+#
+# Requires FIRMS_MAP_KEY (and optionally GFW_API_KEY) in the app's .env.
+# The service restart reloads the updated fire CSVs into memory.
+#
+# A full historical backfill is a one-off manual run:
+#   COUNTRY=mk /opt/mk_climate/venv/bin/python fire_collect.py --force-refresh
+0 * * * * root cd /opt/mk_climate && COUNTRY=mk /opt/mk_climate/venv/bin/python fire_collect.py >> /var/log/fire_collect.log 2>&1; systemctl restart mk_climate >> /var/log/fire_collect.log 2>&1

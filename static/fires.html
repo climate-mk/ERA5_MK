@@ -1,0 +1,205 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Wildfire Tracker — climate.mk</title>
+  <meta name="description" content="Track current and historical wildfires across North Macedonia — NASA FIRMS satellite detections, EFFIS fire-danger forecast, and year-over-year fire totals.">
+  <link rel="icon" type="image/x-icon" href="favicon.ico">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="js/vendor/leaflet/leaflet.css">
+  <link rel="stylesheet" href="js/vendor/leaflet/MarkerCluster.css">
+  <link rel="stylesheet" href="js/vendor/leaflet/MarkerCluster.Default.css">
+  <script src="js/vendor/leaflet/leaflet.js"></script>
+  <script src="js/vendor/leaflet/leaflet.markercluster.js"></script>
+  <script src="js/vendor/highcharts.js"></script>
+  <script src="js/vendor/exporting.js"></script>
+  <script src="js/vendor/offline-exporting.js"></script>
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+    :root {
+      --paper:     #F5F2EC;
+      --paper-2:   #EFEBE2;
+      --card:      #FFFFFF;
+      --ink:       #0E0E0C;
+      --ink-soft:  #6B655B;
+      --ink-faint: #ABA59A;
+      --rule:      rgba(14,14,12,0.08);
+      --rule-2:    rgba(14,14,12,0.14);
+      --accent:    #C25A2C;
+      --radius:    14px;
+      /* fire intensity ramp (low → high FRP) */
+      --f0: #F2C14E; --f1: #E8940A; --f2: #D9662A; --f3: #C2341C; --f4: #8A1A10;
+    }
+    html { scroll-padding-top: 80px; }
+    body { font-family: 'Space Grotesk', system-ui, sans-serif; background: var(--paper); color: var(--ink); font-size: 15px; line-height: 1.6; }
+
+    /* ── Topbar (matches climate-news.html) ── */
+    .topbar { position: sticky; top: 0; z-index: 1200; background: var(--paper); border-bottom: 1px solid var(--rule); padding: 14px 40px; display: flex; align-items: center; gap: 20px; }
+    .topbar a.home { display: flex; align-items: center; gap: 10px; text-decoration: none; color: var(--ink-soft); font-family: 'JetBrains Mono', monospace; font-size: 11px; letter-spacing: 0.1em; text-transform: uppercase; }
+    .topbar a.home:hover { color: var(--accent); }
+    .topbar-sep { color: var(--ink-faint); }
+    .topbar-title { font-weight: 600; font-size: 15px; color: var(--ink); }
+    .topbar-lang { margin-left: auto; }
+    .topbar-lang select { font-family: 'JetBrains Mono', monospace; font-size: 11px; text-transform: uppercase; letter-spacing: 0.06em; color: var(--ink-soft); background: var(--card); border: 1px solid var(--rule); border-radius: 8px; padding: 5px 8px; cursor: pointer; }
+
+    /* ── Layout ── */
+    .page { max-width: 1200px; margin: 0 auto; padding: 32px 40px 80px; }
+    h1 { font-size: 30px; font-weight: 700; letter-spacing: -0.02em; margin-bottom: 6px; }
+    .wip-badge { font-family: 'JetBrains Mono', monospace; font-size: 9px; letter-spacing: 0.06em; text-transform: uppercase; background: var(--accent); color: #fff; border-radius: 4px; padding: 2px 6px; vertical-align: middle; margin-left: 10px; }
+    .section-sub { color: var(--ink-soft); font-size: 14px; margin-bottom: 24px; max-width: 720px; }
+    h2 { font-size: 13px; font-weight: 600; text-transform: uppercase; letter-spacing: 0.06em; color: var(--ink-soft); margin: 32px 0 14px; font-family: 'JetBrains Mono', monospace; }
+
+    /* ── Controls ── */
+    .controls { display: flex; flex-wrap: wrap; gap: 18px 26px; align-items: flex-end; background: var(--card); border: 1px solid var(--rule); border-radius: var(--radius); padding: 16px 18px; margin-bottom: 16px; }
+    .ctrl { display: flex; flex-direction: column; gap: 6px; }
+    .ctrl label { font-family: 'JetBrains Mono', monospace; font-size: 10px; text-transform: uppercase; letter-spacing: 0.06em; color: var(--ink-faint); }
+    .ctrl input[type=date] { font-family: 'Space Grotesk', sans-serif; font-size: 14px; padding: 6px 8px; border: 1px solid var(--rule-2); border-radius: 8px; background: var(--paper); color: var(--ink); }
+    .sensor-chips { display: flex; flex-wrap: wrap; gap: 8px; }
+    .sensor-chips label { display: inline-flex; align-items: center; gap: 6px; font-family: 'Space Grotesk', sans-serif; font-size: 12px; text-transform: none; letter-spacing: 0; color: var(--ink-soft); padding: 5px 10px; border: 1px solid var(--rule-2); border-radius: 20px; cursor: pointer; user-select: none; }
+    .sensor-chips input { accent-color: var(--accent); }
+    .period-toggle { display: inline-flex; align-items: center; gap: 7px; font-family: 'Space Grotesk', sans-serif; font-size: 13px; color: var(--ink-soft); cursor: pointer; user-select: none; padding: 6px 0; }
+    .period-toggle input { accent-color: var(--accent); }
+    .date-nav { display: inline-flex; align-items: center; gap: 6px; }
+    .nav-arrow { width: 30px; height: 34px; border: 1px solid var(--rule-2); border-radius: 8px; background: var(--paper); color: var(--ink-soft); font-size: 18px; line-height: 1; cursor: pointer; transition: color 0.12s, border-color 0.12s; }
+    .nav-arrow:hover:not(:disabled) { color: var(--accent); border-color: var(--accent); }
+    .nav-arrow:disabled { opacity: 0.35; cursor: default; }
+    .refresh-row { display: flex; align-items: center; gap: 12px; margin-bottom: 16px; flex-wrap: wrap; }
+    .refresh-info { font-family: 'JetBrains Mono', monospace; font-size: 11px; color: var(--ink-faint); letter-spacing: 0.02em; }
+    .refresh-btn { display: inline-flex; align-items: center; gap: 6px; font-family: 'Space Grotesk', sans-serif; font-size: 12px; color: var(--ink-soft); background: var(--card); border: 1px solid var(--rule-2); border-radius: 20px; padding: 5px 12px; cursor: pointer; transition: color 0.12s, border-color 0.12s; }
+    .refresh-btn:hover:not(:disabled) { color: var(--accent); border-color: var(--accent); }
+    .refresh-btn:disabled { opacity: 0.5; cursor: default; }
+    .recent-chip { display: inline-flex; align-items: center; gap: 6px; font-family: 'Space Grotesk', sans-serif; font-size: 12px; color: var(--ink-soft); padding: 5px 10px; border: 1px solid var(--rule-2); border-radius: 20px; cursor: pointer; user-select: none; margin-right: 4px; }
+    .recent-chip input { accent-color: var(--accent); }
+    .lag-note { font-size: 12px; color: var(--ink-faint); margin: 10px 0 0; max-width: 760px; line-height: 1.5; }
+    .fire-count { font-family: 'JetBrains Mono', monospace; font-size: 12px; color: var(--ink-soft); }
+    .fire-count b { color: var(--accent); }
+
+    /* ── Map ── */
+    #fires-map { height: 560px; width: 100%; border: 1px solid var(--rule-2); border-radius: var(--radius); background: var(--paper-2); z-index: 1; }
+    .leaflet-container { font-family: 'Space Grotesk', sans-serif; background: var(--paper-2); }
+    .fire-legend { background: var(--card); padding: 8px 10px; border-radius: 8px; box-shadow: 0 1px 6px rgba(0,0,0,0.12); font-size: 11px; line-height: 1.5; color: var(--ink-soft); }
+    .fire-legend i { display: inline-block; width: 11px; height: 11px; border-radius: 50%; margin-right: 6px; vertical-align: -1px; }
+
+    /* Leaflet layer-control rows: label + tap/hover info affordance + description */
+    .leaflet-control-layers-overlays label,
+    .leaflet-control-layers-base label { display: block; }
+    .layer-label { display: inline-flex; align-items: center; gap: 5px; }
+    .layer-info { color: var(--ink-faint); cursor: pointer; font-size: 12px; line-height: 1; padding: 2px; }
+    .layer-info:hover { color: var(--accent); }
+    .layer-desc { font-size: 11px; color: var(--ink-soft); line-height: 1.4; margin: 3px 0 4px 20px; max-width: 220px; }
+
+    /* ── Data & layers explanation (below the map/charts) ── */
+    .data-explain { background: var(--card); border: 1px solid var(--rule); border-radius: var(--radius); padding: 18px 20px; margin-top: 20px; }
+    .data-explain h2 { margin-top: 0; }
+    .data-explain dl { display: grid; grid-template-columns: max-content 1fr; gap: 6px 16px; margin: 0; }
+    .data-explain dt { font-weight: 600; font-size: 13px; color: var(--ink); white-space: nowrap; }
+    .data-explain dd { font-size: 13px; color: var(--ink-soft); line-height: 1.5; margin: 0 0 8px; }
+
+    /* ── Year chart ── */
+    #fires-year-chart { height: 380px; background: var(--card); border: 1px solid var(--rule); border-radius: var(--radius); padding: 8px; }
+    .chart-note { font-size: 12px; color: var(--ink-faint); margin-top: 8px; max-width: 720px; }
+
+    .credits { font-family: 'JetBrains Mono', monospace; font-size: 10px; color: var(--ink-faint); margin-top: 28px; line-height: 1.7; letter-spacing: 0.02em; }
+    .credits a { color: var(--ink-soft); }
+    .footer { border-top: 1px solid var(--rule); padding: 20px 40px; font-family: 'JetBrains Mono', monospace; font-size: 10px; color: var(--ink-faint); text-align: center; letter-spacing: 0.06em; }
+
+    @media (max-width: 780px) {
+      .topbar { padding: 12px 16px; }
+      .page { padding: 20px 16px 60px; }
+      #fires-map { height: 420px; }
+      h1 { font-size: 24px; }
+    }
+  </style>
+</head>
+<body>
+
+<header class="topbar">
+  <a href="/" class="home">← climate.mk</a>
+  <span class="topbar-sep">·</span>
+  <span class="topbar-title" id="page-title">Wildfire Tracker</span>
+  <div class="topbar-lang">
+    <select id="lang-select" aria-label="Language"></select>
+  </div>
+</header>
+
+<div class="page">
+  <h1 id="fires-h1">Wildfire Tracker <span class="wip-badge" id="wip-badge">work in progress</span></h1>
+  <p class="section-sub" id="fires-intro">Satellite-detected active fires and fire-danger forecast across the country.</p>
+
+  <!-- Controls -->
+  <div class="controls">
+    <!-- Single-date navigator (default; hidden in period mode) -->
+    <div class="ctrl" id="day-nav">
+      <label id="lbl-range">Date</label>
+      <div class="date-nav">
+        <label class="recent-chip" for="recent-toggle" id="recent-chip">
+          <input type="checkbox" id="recent-toggle" checked>
+          <span id="lbl-recent">Recent (48h)</span>
+        </label>
+        <button type="button" id="day-prev" class="nav-arrow" aria-label="Previous day">‹</button>
+        <input type="date" id="date-day">
+        <button type="button" id="day-next" class="nav-arrow" aria-label="Next day">›</button>
+      </div>
+    </div>
+    <!-- Custom period fields (shown when the checkbox is ticked) -->
+    <div class="ctrl period-fields" id="period-fields" hidden>
+      <label id="lbl-start" for="date-start">From</label>
+      <input type="date" id="date-start">
+    </div>
+    <div class="ctrl period-fields" id="period-fields-to" hidden>
+      <label id="lbl-end" for="date-end">To</label>
+      <input type="date" id="date-end">
+    </div>
+    <div class="ctrl">
+      <label id="lbl-mode">&nbsp;</label>
+      <label class="period-toggle" for="period-toggle">
+        <input type="checkbox" id="period-toggle">
+        <span id="lbl-period">Custom period</span>
+      </label>
+    </div>
+    <div class="ctrl">
+      <label id="lbl-sensors">Satellites</label>
+      <div class="sensor-chips" id="sensor-chips"></div>
+    </div>
+    <div class="ctrl">
+      <label id="lbl-count">Detections</label>
+      <div class="fire-count" id="fire-count">—</div>
+    </div>
+  </div>
+
+  <!-- Refresh status row (today only) -->
+  <div class="refresh-row" id="refresh-row" hidden>
+    <span class="refresh-info" id="refresh-info"></span>
+    <button type="button" id="refresh-now" class="refresh-btn">
+      <span id="refresh-now-lbl">Refresh now</span>
+    </button>
+  </div>
+
+  <div id="fires-map"></div>
+
+  <p class="lag-note" id="lag-note"></p>
+
+  <!-- What the map shows: data sources + each layer explained -->
+  <div class="data-explain" id="data-explain">
+    <h2 id="lbl-explain-heading">About this data</h2>
+    <dl id="data-explain-list"></dl>
+  </div>
+
+  <!-- Year comparison -->
+  <div id="year-block">
+    <h2 id="lbl-yearchart">Fires per year</h2>
+    <div id="fires-year-chart"></div>
+    <p class="chart-note" id="year-note"></p>
+  </div>
+
+  <div class="credits" id="credits"></div>
+</div>
+
+<footer class="footer" id="footer-text">climate.mk — wildfire data from NASA FIRMS, Copernicus EFFIS &amp; Global Forest Watch</footer>
+
+<script src="js/fires.js"></script>
+</body>
+</html>

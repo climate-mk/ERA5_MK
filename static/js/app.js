@@ -2512,6 +2512,11 @@ async function init() {
     const aboutDl = document.getElementById("about-col1-download");
     if (aboutDl) aboutDl.hidden = true;
   }
+  if (isEnabled("fires_map")) {
+    // Menu is English-only (like the other nav items) — no t() translation here.
+    const navFires = document.getElementById("nav-fires");
+    if (navFires) navFires.hidden = false;
+  }
   if (!isEnabled("regression_chart") && !isEnabled("hero_cards")) {
     const el = document.getElementById("reg-panel");
     if (el) el.hidden = true;

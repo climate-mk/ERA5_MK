@@ -53,6 +53,66 @@ features:
   tropical_days_chart:   true   # days with tmax > threshold per year (WIP)
   tropical_nights_chart: true   # nights with tmin > threshold per year (WIP)
   climate_news:          true   # Climate news page — Macedonian climate news + X timeline
+  # ── Wildfire tracker (separate /fires page) ──
+  fires_map:             true   # Leaflet fire map (FIRMS + Sentinel-3 detections) + date controls
+  fires_year_chart:      true   # year-over-year fire totals comparison chart
+  fires_danger:          true   # EFFIS Fire Weather Index (fire danger) WMS overlay toggle
+  fires_satellite:       true   # satellite basemap toggle (Esri World Imagery)
+  fires_settlement:      true   # GHSL human-settlement overlays (built-up + population)
+  fires_burnt_area:      false  # EFFIS burnt-area (fire footprint) polygon overlay (opt-in)
+  fires_protected_areas: true   # WDPA protected-areas (national parks/reserves) overlay
+
+# ── Wildfires ─────────────────────────────────────────────────────────────────
+# Data sources for the /fires page. Secrets (FIRMS_MAP_KEY, GFW_API_KEY) live in
+# .env, never here. Each FIRMS sensor is collected to its own file under
+# data/<code>/fires/. NOAA-20/21 are NRT-only (no deep archive → sp: null).
+fires:
+  iso3: MKD                              # FIRMS country code + GFW iso filter
+  bbox: [20.45, 40.85, 23.05, 42.40]     # W,S,E,N — EFFIS/GHSL overlay + map framing
+  history_start: "2000-11-01"            # earliest backfill (MODIS archive start)
+  firms_sources:
+    - { key: MODIS,        sp: MODIS_SP,      nrt: MODIS_NRT,        start: "2000-11-01" }
+    - { key: VIIRS_SNPP,   sp: VIIRS_SNPP_SP, nrt: VIIRS_SNPP_NRT,   start: "2012-01-20" }
+    - { key: VIIRS_NOAA20, sp: null,          nrt: VIIRS_NOAA20_NRT, start: "2020-01-01" }
+    - { key: VIIRS_NOAA21, sp: null,          nrt: VIIRS_NOAA21_NRT, start: "2023-01-01" }
+  sentinel3: true                        # collect S-3 SLSTR hotspots via the EFFIS WFS
+  # ── Copernicus EFFIS/GWIS (no key; layer names confirmed via GetCapabilities) ──
+  # Single MapServer host serves both WMS (map tiles) and WFS (GeoJSON features).
+  effis_wms: "https://maps.effis.emergency.copernicus.eu/gwis"    # WMS tiles (danger + hotspots + ghsl)
+  effis_wfs: "https://maps.effis.emergency.copernicus.eu/gwis"    # WFS GeoJSON (raw S-3 points; flaky)
+  effis_danger_layer:   "ecmwf.fwi"      # Fire Weather Index (fire-danger) WMS layer
+  effis_s3_layer:       "s3.hs"          # Sentinel-3 SLSTR hotspots (WMS overlay)
+  effis_s3_wfs_layer:   "s3.hs.query"    # queryable Sentinel-3 typeName for raw point collection
+  # NOTE: this MapServer 502s on WFS 2.0/1.1 JSON output; WFS 1.0.0 + GML works,
+  # so the collector uses version 1.0.0 and parses GML (see fire_collect.py).
+  effis_wfs_version:    "1.0.0"
+  # Burnt-area (fire footprint) overlay — EFFIS MODIS burnt-area raster. Served on
+  # the /effis host (NOT /gwis). Time-filterable (follows the date selection) and
+  # confirmed to render real burnt polygons over the country. On by default.
+  # (The vector `*.ba.poly` layers render empty via WMS GetMap — use the raster.)
+  effis_ba_wms:         "https://maps.effis.emergency.copernicus.eu/effis"
+  effis_ba_layer:       "modis.ba"
+  # Protected areas (national parks, nature reserves, etc.) — WDPA (World Database
+  # on Protected Areas) polygon layer, served on the /gwis host. Confirmed to
+  # render real protected-area polygons over the country. Off by default (opt-in).
+  effis_pa_wms:         "https://maps.effis.emergency.copernicus.eu/gwis"
+  effis_pa_layer:       "wdpa.poly"
+  # ── Global Forest Watch (aggregated yearly totals; needs GFW_API_KEY) ──
+  gfw_dataset: nasa_viirs_fire_alerts
+  # Yearly chart source. Local FIRMS counts are the default (fast, instant, and
+  # now that the historical backfill is complete, cover the full 2000-now range —
+  # GFW's VIIRS-only dataset only starts at 2012 anyway). Set true to prefer GFW's
+  # official VIIRS totals instead (needs GFW_API_KEY): each request is up to 15
+  # sequential per-year calls, which GFW itself has been slow/timing out on, so
+  # this stays off by default and is kept as a working, opt-in secondary source.
+  gfw_yearly_via_api: false
+  # ── Map base + overlay layers (all free, no key) ──
+  satellite_tiles: "https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}"
+  # GHSL human-settlement built-up surface — served as a WMS layer on the same
+  # EFFIS GWIS host (confirmed via GetCapabilities). Population density is not
+  # exposed here, so the settlement overlay is a single built-up layer.
+  ghsl_wms: "https://maps.effis.emergency.copernicus.eu/gwis"
+  ghsl_builtup_layer: "ghsl"             # GHSL built-up surface WMS layer
 
 # ── Stations ──────────────────────────────────────────────────────────────────
 # Single source of truth — mk_collect.py and mk_api.py both read from here.

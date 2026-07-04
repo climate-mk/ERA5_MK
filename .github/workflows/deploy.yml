@@ -46,6 +46,8 @@ jobs:
           DIRECT_LINE_SECRET=${{ secrets.DIRECT_LINE_SECRET }}
           ANALYTICS_EXPORT_KEY=${{ secrets.ANALYTICS_EXPORT_KEY }}
           TODAY_REFRESH_KEY=${{ secrets.TODAY_REFRESH_KEY }}
+          FIRMS_MAP_KEY=${{ secrets.FIRMS_MAP_KEY }}
+          GFW_API_KEY=${{ secrets.GFW_API_KEY }}
           EOF
           chmod 600 /opt/mk_climate/.env"
 
@@ -60,6 +62,27 @@ jobs:
             systemctl is-active mk_climate
           "
 
+      # NOTE: `data/` is excluded from rsync (built on the server, not shipped).
+      # Fire CSVs under data/mk/fires/ are populated by the hourly cron/fire_collect
+      # going forward. On a fresh server (no fire CSVs yet), kick off the full
+      # historical backfill once, in the background, so this step doesn't block the
+      # deploy for the ~30-60 min a full --force-refresh takes. Safe to leave in:
+      # once data/mk/fires/ has files, this step is a no-op on every future deploy —
+      # the hourly cron alone keeps it current from then on.
+      - name: One-time historical fire backfill (fresh server only)
+        run: |
+          ssh root@46.224.208.142 "
+            cd /opt/mk_climate &&
+            if [ -z \"\$(ls -A data/mk/fires/*.csv 2>/dev/null)\" ]; then
+              echo 'No fire data found — starting full historical backfill in the background (~30-60 min)...' &&
+              nohup env COUNTRY=mk venv/bin/python fire_collect.py --force-refresh > /var/log/fire_collect_backfill.log 2>&1 &
+              disown &&
+              echo 'Backfill started; hourly cron will keep it updated from here.'
+            else
+              echo 'Fire data already present — skipping backfill (hourly cron keeps it current).'
+            fi
+          "
+
       - name: Install cron jobs
         run: |
           ssh root@46.224.208.142 "
@@ -71,11 +94,14 @@ jobs:
             chmod 644 /etc/cron.d/mk_climate_news_serpapi &&
             cp /opt/mk_climate/cron/today_status_refresh /etc/cron.d/mk_today_status_refresh &&
             chmod 644 /etc/cron.d/mk_today_status_refresh &&
+            cp /opt/mk_climate/cron/fire_collect /etc/cron.d/mk_fire_collect &&
+            chmod 644 /etc/cron.d/mk_fire_collect &&
             echo 'Cron installed:' &&
             cat /etc/cron.d/mk_climate &&
             cat /etc/cron.d/mk_climate_news &&
             cat /etc/cron.d/mk_climate_news_serpapi &&
-            cat /etc/cron.d/mk_today_status_refresh
+            cat /etc/cron.d/mk_today_status_refresh &&
+            cat /etc/cron.d/mk_fire_collect
           "
 
       - name: Health check
@@ -94,7 +120,8 @@ jobs:
             for url in \
               http://localhost:5050/api/spei_station_seasonal \
               http://localhost:5050/api/spei_heatmap \
-              http://localhost:5050/api/season_heatmap; do
+              http://localhost:5050/api/season_heatmap \
+              http://localhost:5050/api/fires/yearly; do
               status=\$(curl -s -o /dev/null -w '%{http_code}' \"\$url\")
               name=\$(echo \"\$url\" | sed 's|.*/||')
               if [ \"\$status\" = '204' ]; then

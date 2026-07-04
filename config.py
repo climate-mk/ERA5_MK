@@ -56,6 +56,14 @@ _FEATURE_DEFAULTS = {
     "tropical_days_chart":   False,
     "tropical_nights_chart": False,
     "climate_news":          False,
+    # ── Wildfire tracker (separate /fires page) ──
+    "fires_map":             False,   # Leaflet fire map (FIRMS + Sentinel-3) + date controls
+    "fires_year_chart":      False,   # year-over-year fire totals comparison chart
+    "fires_danger":          False,   # EFFIS Fire Weather Index WMS overlay toggle
+    "fires_satellite":       False,   # satellite basemap toggle (Esri World Imagery)
+    "fires_settlement":      False,   # GHSL human-settlement overlays (built-up + population)
+    "fires_burnt_area":      False,   # EFFIS burnt-area (fire footprint) polygon overlay
+    "fires_protected_areas": False,   # WDPA protected-areas (parks/reserves) polygon overlay
 }
 
 
@@ -119,6 +127,24 @@ def _load(country_code: str) -> dict:
             file=sys.stderr,
         )
     raw["features"] = resolved_features
+
+    # ── Fires: require the `fires:` block when any fire feature is enabled ─────
+    _fire_feats = ("fires_map", "fires_year_chart", "fires_danger",
+                   "fires_satellite", "fires_settlement", "fires_burnt_area",
+                   "fires_protected_areas")
+    if any(resolved_features.get(f) for f in _fire_feats):
+        fires = raw.get("fires")
+        if not isinstance(fires, dict):
+            sys.exit(
+                f"countries/{country_code}.yaml: a fire feature is enabled but the "
+                f"'fires:' config block is missing (needs iso3, bbox, firms_sources)."
+            )
+        for field in ("iso3", "bbox", "firms_sources"):
+            if field not in fires:
+                sys.exit(
+                    f"countries/{country_code}.yaml: fires.{field} is required "
+                    f"when a fire feature is enabled."
+                )
 
     return raw
 
