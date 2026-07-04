@@ -642,7 +642,34 @@ def _today_status(date_str: str, loc: str | None, *, include_rank: bool = True) 
         return {"available": False}
     if loc:
         if loc not in temps:
-            return {"available": False}
+            # Batch fetch may have cached a partial result (SQLite threshold met
+            # before all stations had data).  Try a direct single-station fetch.
+            coords = LOC_COORDS.get(loc)
+            if not coords:
+                return {"available": False}
+            try:
+                today_str = datetime.date.today().isoformat()
+                if date_str == today_str:
+                    om_url   = "https://api.open-meteo.com/v1/forecast"
+                    om_extra = {"forecast_days": 1}
+                else:
+                    om_url   = "https://archive-api.open-meteo.com/v1/archive"
+                    om_extra = {"start_date": date_str, "end_date": date_str}
+                resp = http_requests.get(om_url, params={
+                    "latitude":  f"{coords['lat']:.4f}",
+                    "longitude": f"{coords['lon']:.4f}",
+                    "daily":     "temperature_2m_max",
+                    "timezone":  CONFIG["timezone"],
+                    **om_extra,
+                }, timeout=10)
+                resp.raise_for_status()
+                arr = resp.json().get("daily", {}).get("temperature_2m_max", [])
+                if arr and arr[0] is not None:
+                    temps = {loc: float(arr[0]) + _STATION_CORR_OFFSET.get(loc, 0.0)}
+                else:
+                    return {"available": False}
+            except Exception:
+                return {"available": False}
         today_temp = temps[loc]
     else:
         today_temp = max(temps.values())
