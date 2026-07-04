@@ -18,7 +18,7 @@ import yaml
 from flask import Flask, jsonify, request
 from flask_cors import CORS
 from scipy import stats
-from scipy.stats import theilslopes
+from scipy.stats import theilslopes, gaussian_kde
 import pymannkendall as mk_test
 
 warnings.filterwarnings("ignore")
@@ -33,6 +33,17 @@ DB_PATH    = Path("var") / "sqlite" / "era5-slovenia.db"
 PORT       = int(os.environ.get("SIDECAR_PORT", 5052))
 MONTH_NAMES = ["Jan","Feb","Mar","Apr","May","Jun",
                "Jul","Aug","Sep","Oct","Nov","Dec"]
+
+def _load_locale() -> dict:
+    lang = CONFIG.get("default_language", "en")
+    path = os.path.join(os.path.dirname(__file__), "static", "locales", f"{lang}_default.json")
+    try:
+        with open(path, encoding="utf-8") as f:
+            return json.load(f)
+    except Exception:
+        return {}
+
+_LOCALE = _load_locale()
 
 LOC_COORDS = {s["name"]: {"lat": s["lat"], "lon": s["lon"]}
               for s in CONFIG["stations"]}
@@ -127,6 +138,15 @@ else:
     _data = pd.DataFrame()
 
 _LOCATIONS = sorted(_data["location"].unique().tolist()) if not _data.empty else []
+
+# Per-station lapse-rate correction offset (°C) = elevation_diff_m * LAPSE_RATE
+# Applied to every raw temperature_max value read from SQLite or Open-Meteo.
+_STATION_CORR_OFFSET: dict[str, float] = {}
+if not _data.empty and "elevation_diff_m" in _data.columns:
+    for _name in _LOCATIONS:
+        _sub = _data[_data["location"] == _name]
+        if not _sub.empty:
+            _STATION_CORR_OFFSET[_name] = float(_sub["elevation_diff_m"].iloc[0]) * LAPSE_RATE
 
 # ── Regression computation ────────────────────────────────────────────────────
 
@@ -288,42 +308,96 @@ def _db_conn():
     return conn
 
 
-def _get_cutoffs(station: str | None, month: int, day: int) -> dict | None:
-    """Fetch pre-computed percentile cutoffs for (station or national aggregate, month, day)."""
+_NATIONAL_CUTOFFS_CACHE: dict[tuple, dict] = {}
+
+
+def _compute_national_cutoffs(month: int, day: int) -> dict | None:
+    """National peak distribution: MAX across all stations per date, ±7-day window.
+
+    Mirrors mk_api.py exactly — groups all station data by date and takes the
+    daily maximum across stations before computing percentiles and KDE.
+    n_samples = n_years × 15 days (≈1 140), not 18 × that.
+    """
+    key = (month, day)
+    if key in _NATIONAL_CUTOFFS_CACHE:
+        return _NATIONAL_CUTOFFS_CACHE[key]
     if not DB_PATH.exists():
         return None
     try:
+        # Load temperatures for months around the target to cover the ±7-day window.
+        months_needed = {((month - 2) % 12) + 1, ((month - 1) % 12) + 1, month % 12 + 1, month}
         with _db_conn() as conn:
-            if station:
-                row = conn.execute(
-                    "SELECT * FROM si_daily_window WHERE station=? AND month=? AND day=?",
-                    (station, month, day),
-                ).fetchone()
-            else:
-                # National aggregate: average cutoffs across all stations;
-                # pick distribution_json from the station closest to median p50
-                agg = conn.execute(
-                    """SELECT
-                         AVG(p5) AS p5, AVG(p10) AS p10, AVG(p20) AS p20,
-                         AVG(p50) AS p50, AVG(p80) AS p80, AVG(p95) AS p95,
-                         SUM(n_samples) AS n_samples,
-                         MIN(year_min) AS year_min, MAX(year_max) AS year_max
-                       FROM si_daily_window WHERE month=? AND day=?""",
-                    (month, day),
-                ).fetchone()
-                if agg is None:
-                    return None
-                median_p50 = dict(agg).get("p50") or 0
-                rep = conn.execute(
-                    """SELECT distribution_json FROM si_daily_window
-                       WHERE month=? AND day=?
-                       ORDER BY ABS(p50 - ?) LIMIT 1""",
-                    (month, day, median_p50),
-                ).fetchone()
-                row = {**dict(agg), "distribution_json": (rep[0] if rep else None)}
-            if row is None:
-                return None
-            return dict(row)
+            frames = []
+            for name, tbl in _STATION_TABLES.items():
+                rows = conn.execute(
+                    f'SELECT date, temperature_max FROM "{tbl}" WHERE temperature_max IS NOT NULL'
+                ).fetchall()
+                if rows:
+                    offset = _STATION_CORR_OFFSET.get(name, 0.0)
+                    df_s = pd.DataFrame(rows, columns=["date", "tmax"])
+                    df_s["tmax"] += offset
+                    frames.append(df_s)
+        if not frames:
+            return None
+
+        df = pd.concat(frames, ignore_index=True)
+        df["date"] = pd.to_datetime(df["date"])
+        df["doy"]  = df["date"].dt.dayofyear
+
+        ref_doy = pd.Timestamp(2001, month, day).dayofyear
+        circ    = (df["doy"] - ref_doy + 182) % 365 - 182
+        df      = df[np.abs(circ) <= 7]
+
+        # One sample per date = national peak (max across all stations per date)
+        daily_max = df.groupby("date")["tmax"].max().dropna()
+        samples   = daily_max.to_numpy()
+        if len(samples) < 50:
+            return None
+
+        pcts = {
+            "p5":  round(float(np.percentile(samples,  5)), 2),
+            "p10": round(float(np.percentile(samples, 10)), 2),
+            "p20": round(float(np.percentile(samples, 20)), 2),
+            "p50": round(float(np.percentile(samples, 50)), 2),
+            "p80": round(float(np.percentile(samples, 80)), 2),
+            "p95": round(float(np.percentile(samples, 95)), 2),
+        }
+        smin, smax = float(samples.min()), float(samples.max())
+        pad    = max((smax - smin) * 0.05, 0.5)
+        x_grid = np.linspace(smin - pad, smax + pad, 200)
+        try:
+            density = gaussian_kde(samples)(x_grid)
+        except Exception:
+            density = np.zeros_like(x_grid)
+        distribution = [[round(float(x), 3), round(float(d), 6)]
+                        for x, d in zip(x_grid, density)]
+
+        result: dict = {
+            **pcts,
+            "n_samples":         int(len(samples)),
+            "year_min":          int(df["date"].dt.year.min()),
+            "year_max":          datetime.date.today().year,
+            "distribution_json": json.dumps(distribution, separators=(",", ":")),
+        }
+        _NATIONAL_CUTOFFS_CACHE[key] = result
+        return result
+    except Exception:
+        return None
+
+
+def _get_cutoffs(station: str | None, month: int, day: int) -> dict | None:
+    """Fetch percentile cutoffs for (station or national peak, month, day)."""
+    if not DB_PATH.exists():
+        return None
+    if not station:
+        return _compute_national_cutoffs(month, day)
+    try:
+        with _db_conn() as conn:
+            row = conn.execute(
+                "SELECT * FROM si_daily_window WHERE station=? AND month=? AND day=?",
+                (station, month, day),
+            ).fetchone()
+            return dict(row) if row else None
     except Exception:
         return None
 
@@ -332,11 +406,104 @@ def _get_cutoffs(station: str | None, month: int, day: int) -> dict | None:
 _RAW_CACHE: dict[str, dict[str, float]] = {}
 
 
+def _prefetch_range(date_strings: list[str]) -> None:
+    """Batch-fetch a list of dates via the archive API, 1 call per station.
+
+    Each station request covers the full date range in one HTTP call instead of
+    one call per date — reduces 7×18=126 calls down to 18 for the last7 endpoint.
+    Already-cached dates are skipped.
+    """
+    today_str  = datetime.date.today().isoformat()
+    need = [d for d in date_strings if d not in _RAW_CACHE and d != today_str]
+    if not need:
+        return
+
+    # SQLite fast path — fill what we can
+    if DB_PATH.exists():
+        try:
+            with _db_conn() as conn:
+                for d in need[:]:
+                    row_map: dict[str, float] = {}
+                    for name, tbl in _STATION_TABLES.items():
+                        row = conn.execute(
+                            f'SELECT temperature_max FROM "{tbl}" WHERE date=?', (d,)
+                        ).fetchone()
+                        if row and row[0] is not None:
+                            row_map[name] = float(row[0]) + _STATION_CORR_OFFSET.get(name, 0.0)
+                    if len(row_map) >= len(_STATION_TABLES) // 2:
+                        _RAW_CACHE[d] = row_map
+                        need.remove(d)
+        except Exception:
+            pass
+
+    if not need:
+        return
+
+    start, end = min(need), max(need)
+
+    def _one_station(name: str, lat: float, lon: float) -> tuple[str, dict[str, float]]:
+        try:
+            resp = http_requests.get(
+                "https://archive-api.open-meteo.com/v1/archive",
+                params={
+                    "latitude": f"{lat:.4f}", "longitude": f"{lon:.4f}",
+                    "daily": "temperature_2m_max",
+                    "timezone": CONFIG["timezone"],
+                    "start_date": start, "end_date": end,
+                },
+                timeout=15,
+            )
+            resp.raise_for_status()
+            daily = resp.json().get("daily", {})
+            dates = daily.get("time", [])
+            temps = daily.get("temperature_2m_max", [])
+            return name, {d: float(t) + _STATION_CORR_OFFSET.get(name, 0.0)
+                          for d, t in zip(dates, temps) if t is not None}
+        except Exception:
+            return name, {}
+
+    # 18 parallel calls, one per station, each covering the full range
+    station_data: dict[str, dict[str, float]] = {}
+    with ThreadPoolExecutor(max_workers=20) as pool:
+        futures = {pool.submit(_one_station, n, c["lat"], c["lon"]): n
+                   for n, c in LOC_COORDS.items()}
+        for fut in as_completed(futures):
+            name, by_date = fut.result()
+            station_data[name] = by_date
+
+    # Pivot: date → {station: temp}
+    for d in need:
+        row_map = {}
+        for name, by_date in station_data.items():
+            if d in by_date:
+                row_map[name] = by_date[d]
+        if row_map:
+            _RAW_CACHE[d] = row_map
+
+
 def _fetch_om(date_str: str) -> dict[str, float]:
     if date_str in _RAW_CACHE:
         return _RAW_CACHE[date_str]
 
     today_str = datetime.date.today().isoformat()
+
+    # Fast path: pre-collected SQLite data for any historical date
+    if date_str < today_str and DB_PATH.exists():
+        try:
+            sqlite_result: dict[str, float] = {}
+            with _db_conn() as conn:
+                for name, tbl in _STATION_TABLES.items():
+                    row = conn.execute(
+                        f'SELECT temperature_max FROM "{tbl}" WHERE date=?', (date_str,)
+                    ).fetchone()
+                    if row and row[0] is not None:
+                        sqlite_result[name] = float(row[0]) + _STATION_CORR_OFFSET.get(name, 0.0)
+            if len(sqlite_result) >= len(_STATION_TABLES) // 2:
+                _RAW_CACHE[date_str] = sqlite_result
+                return sqlite_result
+        except Exception:
+            pass
+
     if date_str == today_str:
         url, extra = "https://api.open-meteo.com/v1/forecast", {"forecast_days": 1}
     else:
@@ -364,9 +531,10 @@ def _fetch_om(date_str: str) -> dict[str, float]:
         for fut in as_completed(futures):
             name, val = fut.result()
             if val is not None:
-                result[name] = val
+                result[name] = val + _STATION_CORR_OFFSET.get(name, 0.0)
 
-    _RAW_CACHE[date_str] = result
+    if result:
+        _RAW_CACHE[date_str] = result
     return result
 
 # ── Category helper ───────────────────────────────────────────────────────────
@@ -381,7 +549,7 @@ def _categorize(pct: float) -> tuple[str, str]:
 # ── Same-date rank ────────────────────────────────────────────────────────────
 
 # Map station name → SQLite table name
-_STATION_TABLES = {s["name"]: f"si_{s['name']}" for s in CONFIG["stations"]}
+_STATION_TABLES = {s["name"]: f"si_{s['name'].lower()}" for s in CONFIG["stations"]}
 
 
 def _compute_rank(loc: str | None, month: int, day: int,
@@ -400,24 +568,25 @@ def _compute_rank(loc: str | None, month: int, day: int,
                     (f"{month:02d}", f"{day:02d}", date_str),
                 ).fetchall()
                 # One row per year for a single station
-                by_date = {r["date"]: r["temperature_max"] for r in rows if r["temperature_max"] is not None}
+                offset = _STATION_CORR_OFFSET.get(loc, 0.0)
+                by_date = {r["date"]: r["temperature_max"] + offset
+                           for r in rows if r["temperature_max"] is not None}
             else:
-                # National: max across all station tables for each calendar date
-                parts = []
-                for tbl in _STATION_TABLES.values():
-                    parts.append(
+                # National: corrected max across all station tables per calendar date
+                date_to_temps: dict[str, list[float]] = {}
+                for name, tbl in _STATION_TABLES.items():
+                    offset = _STATION_CORR_OFFSET.get(name, 0.0)
+                    rows = conn.execute(
                         f'SELECT date, temperature_max FROM "{tbl}" '
-                        f"WHERE strftime('%m', date)=? AND strftime('%d', date)=? AND date != ?"
-                    )
-                union = " UNION ALL ".join(parts)
-                params = []
-                for _ in _STATION_TABLES:
-                    params += [f"{month:02d}", f"{day:02d}", date_str]
-                rows = conn.execute(
-                    f"SELECT date, MAX(temperature_max) AS tmax FROM ({union}) GROUP BY date",
-                    params,
-                ).fetchall()
-                by_date = {r["date"]: r["tmax"] for r in rows if r["tmax"] is not None}
+                        f"WHERE strftime('%m', date)=? AND strftime('%d', date)=? AND date != ?",
+                        (f"{month:02d}", f"{day:02d}", date_str),
+                    ).fetchall()
+                    for r in rows:
+                        if r["temperature_max"] is not None:
+                            date_to_temps.setdefault(r["date"], []).append(
+                                r["temperature_max"] + offset
+                            )
+                by_date = {d: max(temps) for d, temps in date_to_temps.items()}
 
         if len(by_date) < 10:
             return None
@@ -449,7 +618,7 @@ def _compute_rank(loc: str | None, month: int, day: int,
 
 # ── Core computation ──────────────────────────────────────────────────────────
 
-def _today_status(date_str: str, loc: str | None) -> dict:
+def _today_status(date_str: str, loc: str | None, *, include_rank: bool = True) -> dict:
     target = datetime.date.fromisoformat(date_str)
     today  = datetime.date.today()
     if target > today:
@@ -502,26 +671,29 @@ def _today_status(date_str: str, loc: str | None) -> dict:
     dist_raw = cutoffs.get("distribution_json")
     distribution = json.loads(dist_raw) if dist_raw else []
 
-    rank_info = _compute_rank(loc, month, day, date_str, today_temp)
+    rank_info = _compute_rank(loc, month, day, date_str, today_temp) if include_rank else None
+
+    era5t_cutoff = today - datetime.timedelta(days=7)
 
     return {
-        "available":    True,
-        "date":         date_str,
-        "today_temp":   round(float(today_temp), 1),
-        "percentile":   pct,
-        "category_key": cat_key,
-        "color":        color,
-        "n_samples":    int(cutoffs.get("n_samples") or 0),
-        "year_min":     int(cutoffs.get("year_min") or 0),
-        "year_max":     int(cutoffs.get("year_max") or 0),
-        "distribution": distribution,
-        "cutoffs":      {"p5": p5, "p10": p10, "p20": p20,
-                         "p50": p50, "p80": p80, "p95": p95},
-        "day_label":    dlabel,
-        "month_num":    month,
-        "day_num":      day,
-        "rank_info":    rank_info,
-        "loc":          loc,
+        "available":      True,
+        "date":           date_str,
+        "today_temp":     round(float(today_temp), 1),
+        "percentile":     pct,
+        "category_key":   cat_key,
+        "color":          color,
+        "n_samples":      int(cutoffs.get("n_samples") or 0),
+        "year_min":       int(cutoffs.get("year_min") or 0),
+        "year_max":       int(cutoffs.get("year_max") or 0),
+        "distribution":   distribution,
+        "cutoffs":        {"p5": p5, "p10": p10, "p20": p20,
+                           "p50": p50, "p80": p80, "p95": p95},
+        "day_label":      dlabel,
+        "month_num":      month,
+        "day_num":        day,
+        "rank_info":      rank_info,
+        "loc":            loc,
+        "is_preliminary": target >= era5t_cutoff,
     }
 
 # ── Flask app ─────────────────────────────────────────────────────────────────
@@ -543,19 +715,32 @@ def api_today_last7():
     end = datetime.date.fromisoformat(
         request.args.get("date", datetime.date.today().isoformat())
     )
-    days = []
-    for offset in range(6, -1, -1):
-        d = end - datetime.timedelta(days=offset)
-        r = _today_status(d.isoformat(), loc)
-        if r.get("available"):
-            days.append({
-                "date":         r["date"],
-                "day_label":    r["day_label"],
-                "today_temp":   r["today_temp"],
-                "percentile":   r["percentile"],
-                "category_key": r["category_key"],
-                "color":        r["color"],
-            })
+    date_strings = [(end - datetime.timedelta(days=offset)).isoformat()
+                    for offset in range(6, -1, -1)]
+
+    # Batch-prefetch all dates in one round of archive API calls (18 calls, not 126)
+    _prefetch_range(date_strings)
+
+    # Pre-warm national cutoffs cache sequentially to avoid 7 concurrent SQLite
+    # full-table-scan collisions (each unique day-of-year scans all 18 tables).
+    if not loc:
+        for d in date_strings:
+            dt = datetime.date.fromisoformat(d)
+            _compute_national_cutoffs(dt.month, dt.day)
+
+    # Now each _today_status call hits only the in-memory cache
+    with ThreadPoolExecutor(max_workers=7) as pool:
+        results = list(pool.map(lambda d: _today_status(d, loc, include_rank=False), date_strings))
+
+    days = [
+        {"date":         r["date"],
+         "day_label":    r["day_label"],
+         "today_temp":   r["today_temp"],
+         "percentile":   r["percentile"],
+         "category_key": r["category_key"],
+         "color":        r["color"]}
+        for r in results if r.get("available")
+    ]
     return jsonify({"available": bool(days), "days": days})
 
 
@@ -575,6 +760,10 @@ def api_meta():
              "elevation": s["elevation"]}
             for s in CONFIG["stations"]
         ],
+        "strings": {
+            "explain_reg": _LOCALE.get("hero", {}).get("explain_reg", ""),
+            "explain_cal": _LOCALE.get("hero", {}).get("explain_cal", ""),
+        },
     })
 
 

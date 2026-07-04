@@ -7,7 +7,7 @@ name: Slovenia
 timezone: Europe/Ljubljana
 default_location: Ljubljana
 languages: [en, sl]
-default_language: en
+default_language: sl
 
 data_start_date: "1950-01-01"
 baseline:          { start: 1950, end: 1980 }

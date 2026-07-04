@@ -1,0 +1,5 @@
+# Podnebnik nightly data refresh — runs at 03:30 each day
+# Collects latest ERA5-Land data, rebuilds pre-computed stats, restarts services.
+# Logs go to /var/log/podnebnik_collect.log
+
+30 3 * * * www-data cd /opt/podnebnik && COUNTRY=si venv/bin/python3 mk_refresh.py >> /var/log/podnebnik_collect.log 2>&1

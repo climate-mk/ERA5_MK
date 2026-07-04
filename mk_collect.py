@@ -45,7 +45,14 @@ parser.add_argument(
 args = parser.parse_args()
 
 START_DATE = str(CONFIG["data_start_date"])
-END_DATE   = (datetime.now() - timedelta(days=10)).strftime("%Y-%m-%d")
+# ERA5-Land reanalysis from Open-Meteo has a ~5-day lag; for the most recent days
+# the archive API returns ERA5T (near-real-time).  We collect everything through
+# yesterday and mark the trailing window as preliminary.  Each collection run
+# re-fetches the last REFRESH_WINDOW days so preliminary rows get silently
+# upgraded to final ERA5 once the reanalysis catches up.
+ERA5_PRELIM_DAYS = 7   # rows within this window are tagged source="era5t"
+REFRESH_WINDOW   = 15  # always re-fetch last N days to pick up ERA5T→ERA5 upgrades
+END_DATE = (datetime.now() - timedelta(days=1)).strftime("%Y-%m-%d")
 OUTPUT_DIR = os.path.join("data", CONFIG["code"])
 
 # ── Derive required variables from enabled features ───────────────────────────
@@ -120,8 +127,9 @@ def read_last_date_from_csv(filepath):
 
 def load_existing_data(filepath):
     """Load existing CSV data into a DataFrame.
-    
+
     Returns DataFrame or None if file doesn't exist/is invalid.
+    Backfills 'source' column if absent (legacy files pre-date the two-tier scheme).
     """
     try:
         if not os.path.exists(filepath):
@@ -129,6 +137,8 @@ def load_existing_data(filepath):
         df = pd.read_csv(filepath)
         if not df.empty:
             df["date"] = pd.to_datetime(df["date"]).dt.date
+            if "source" not in df.columns:
+                df["source"] = "era5"
         return df
     except Exception as e:
         if args.verbose:
@@ -223,17 +233,20 @@ def fetch_location(loc):
     fetch_mode = "full (--force-refresh)"
     
     if os.path.exists(filepath) and not args.force_refresh:
-        # Differential update: fetch from day after last date in existing file
+        # Differential update: fetch from day after last date, but always reach
+        # back REFRESH_WINDOW days so ERA5T rows get upgraded to final ERA5.
         last_date = read_last_date_from_csv(filepath)
         if last_date is not None:
             last_date_dt = pd.to_datetime(last_date)
-            next_date = (last_date_dt + timedelta(days=1)).date()
-            
-            # Only fetch if there's new data to fetch
-            if next_date <= end_date:
-                fetch_start_date = next_date.strftime("%Y-%m-%d")
-                fetch_end_date = END_DATE
-                fetch_mode = f"differential (from {fetch_start_date} to {fetch_end_date})"
+            next_date    = (last_date_dt + timedelta(days=1)).date()
+            refresh_from = (datetime.now() - timedelta(days=REFRESH_WINDOW)).date()
+            # Effective start is the earlier of "first missing day" and "refresh window"
+            effective_start = min(next_date, refresh_from)
+
+            if effective_start <= end_date:
+                fetch_start_date = effective_start.strftime("%Y-%m-%d")
+                fetch_end_date   = END_DATE
+                fetch_mode = f"differential+refresh (from {fetch_start_date} to {fetch_end_date})"
                 print(f"Updating {name} ({lat}, {lon})... {fetch_mode}", flush=True)
             else:
                 print(f"Skipping {name} — already up-to-date (last: {last_date})", flush=True)
@@ -300,6 +313,11 @@ def fetch_location(loc):
         df_new.insert(3, "elevation_station_m", elevation)
         df_new.insert(4, "elevation_era5_m",    round(era5_elevation, 1))
         df_new.insert(5, "elevation_diff_m",    round(elev_diff, 1))
+
+        # Tag data source: era5t for recent days (within ERA5 reanalysis lag),
+        # era5 for everything older (final reanalysis confirmed available).
+        prelim_cutoff = (datetime.now() - timedelta(days=ERA5_PRELIM_DAYS)).date()
+        df_new["source"] = ["era5t" if d >= prelim_cutoff else "era5" for d in df_new["date"]]
 
         # Merge with existing data if differential update
         if not args.force_refresh and os.path.exists(filepath):

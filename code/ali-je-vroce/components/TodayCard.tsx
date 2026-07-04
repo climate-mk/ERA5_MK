@@ -1,8 +1,9 @@
 import { Show, For, createSignal, lazy, Suspense } from "solid-js";
 import type { TodayStatus, Last7, SiteMeta, RankInfo } from "../../types/index.ts";
 import { TodayFlag } from "./TodayFlag.tsx";
+import { TodayGauge } from "../charts/TodayGauge.tsx";
 
-const TodayGauge = lazy(() => import("../charts/TodayGauge.tsx").then(m => ({ default: m.TodayGauge })));
+const TodayLast7Chart = lazy(() => import("./TodayLast7Chart.tsx").then(m => ({ default: m.TodayLast7Chart })));
 
 const CATEGORIES: Record<string, string> = {
   freezing: "Zmrzujoče",
@@ -22,7 +23,7 @@ const CAT_DESCS: Record<string, string> = {
 
 function catDesc(catKey: string, r: TodayStatus): string {
   const tpl = CAT_DESCS[catKey] ?? "";
-  const d = r.day_label ?? "";
+  const d = fmtDayLabel(r.day_label ?? "");
   const yearMin = r.year_min ?? 1950;
   const yearMax = r.year_max ?? new Date().getFullYear();
   return tpl
@@ -32,10 +33,35 @@ function catDesc(catKey: string, r: TodayStatus): string {
     .replace("{record_years}", String(yearMax - yearMin + 1));
 }
 
+function fmtDate(dateStr: string): string {
+  const parts = dateStr.split("-");
+  return `${parts[2]}.${parts[1]}.`;
+}
+
+const EN_MONTHS: Record<string, string> = {
+  Jan:"01", Feb:"02", Mar:"03", Apr:"04", May:"05", Jun:"06",
+  Jul:"07", Aug:"08", Sep:"09", Oct:"10", Nov:"11", Dec:"12",
+};
+function fmtDayLabel(dl: string): string {
+  const [mon, day] = dl.split(" ");
+  return `${(day ?? "").padStart(2, "0")}.${EN_MONTHS[mon ?? ""] ?? "??"}`;
+}
+
+function addDays(dateStr: string, n: number): string {
+  const d = new Date(dateStr + "T12:00:00Z");
+  d.setUTCDate(d.getUTCDate() + n);
+  return d.toISOString().slice(0, 10);
+}
+
 interface Props {
-  data:  TodayStatus;
-  last7: Last7 | undefined;
-  meta:  SiteMeta;
+  data:         TodayStatus;
+  last7:        Last7 | undefined;
+  meta:         SiteMeta;
+  date:         string;
+  today:        string;
+  loading:      boolean;
+  onDateChange: (d: string) => void;
+  onLocChange:  (v: string) => void;
 }
 
 export function TodayCard(props: Props) {
@@ -43,86 +69,129 @@ export function TodayCard(props: Props) {
   const catKey = () => r().category_key ?? "nope";
 
   return (
-    <Show when={r().available} fallback={<UnavailableCard />}>
-      <div class="space-y-6">
+    <div class="today-card">
 
-        {/* ── Main row: gauge | flag + cat + desc | percentile ── */}
-        <div class="flex flex-col sm:flex-row items-center gap-6">
+      {/* ── Date + location controls — always fully visible ── */}
+      <div class="today-date-control">
+        <button
+          class="today-nav-btn"
+          aria-label="Previous day"
+          disabled={props.date <= "1950-01-01"}
+          onClick={() => props.onDateChange(addDays(props.date, -1))}
+        >
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+            <polyline points="15 18 9 12 15 6"/>
+          </svg>
+        </button>
+        <div class="today-date-badge">{fmtDate(props.date)}</div>
+        <button
+          class="today-nav-btn"
+          aria-label="Next day"
+          disabled={props.date >= props.today}
+          onClick={() => props.onDateChange(addDays(props.date, 1))}
+        >
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+            <polyline points="9 18 15 12 9 6"/>
+          </svg>
+        </button>
+        <select
+          class="today-loc-select"
+          value={r().loc ?? ""}
+          onChange={(e) => props.onLocChange(e.currentTarget.value)}
+        >
+          <option value="">Slovenija</option>
+          <For each={props.meta.stations}>
+            {(s) => <option value={s.name}>{s.name.replace(/_/g, " ")}</option>}
+          </For>
+        </select>
+      </div>
 
-          {/* Gauge */}
-          <Suspense fallback={<div style={{ width: "230px", height: "116px" }} class="animate-pulse bg-[var(--color-paper-2)] rounded" />}>
+      {/* ── Data content — dims while loading to cover stale→fresh transition ── */}
+      <Show when={r().available} fallback={<UnavailableCard />}>
+        <div class="today-card-data" classList={{ "today-card-data--loading": props.loading }}>
+
+          {/* Main row: gauge | divider | body | divider | percentile */}
+          <div class="today-main-row">
+
             <TodayGauge data={r()} />
-          </Suspense>
 
-          {/* Divider */}
-          <div class="hidden sm:block w-px self-stretch bg-[var(--color-rule)]" />
+            <div class="today-divider" />
 
-          {/* Flag + category name + description */}
-          <div class="flex-1 flex flex-col items-center sm:items-start gap-2 text-center sm:text-left min-w-0">
-            <div class="flex items-center gap-3 flex-wrap justify-center sm:justify-start">
-              <TodayFlag catKey={catKey()} />
-              <span
-                class="text-[34px] font-semibold tracking-tight leading-none"
-                style={{ color: r().color }}
-              >
-                {CATEGORIES[catKey()] ?? catKey()}
-              </span>
-              <Show when={r().rank_info}>
-                {(ri) => (
-                  <RankBadge
-                    info={ri()}
-                    dayLabel={r().day_label ?? ""}
-                  />
-                )}
+            <div class="today-body">
+              <div class="today-text">
+                <div class="today-cat-row">
+                  <TodayFlag catKey={catKey()} />
+                  <span class="today-cat" style={{ color: r().color }}>
+                    {CATEGORIES[catKey()] ?? catKey()}
+                  </span>
+                  <Show when={r().rank_info}>
+                    {(ri) => <RankBadge info={ri()} dayLabel={fmtDayLabel(r().day_label ?? "")} />}
+                  </Show>
+                </div>
+                <span class="today-desc">{catDesc(catKey(), r())}</span>
+              </div>
+            </div>
+
+            <div class="today-divider" />
+
+            <div class="today-pct-wrap">
+              <span class="today-pct-num">{(r().percentile ?? 0).toFixed(0)}</span>
+              <span class="today-pct-label">percentil</span>
+              <span class="today-pct-samples">{(r().n_samples ?? 0).toLocaleString()} vzorcev</span>
+              <Show when={r().is_preliminary}>
+                <span style={{
+                  "font-family": "var(--font-mono)", "font-size": "9px",
+                  "letter-spacing": "0.06em", "text-transform": "uppercase",
+                  color: "var(--color-ink-soft)",
+                  background: "var(--color-paper-2)",
+                  border: "1px solid var(--color-rule)",
+                  "border-radius": "4px", padding: "2px 6px",
+                  "margin-top": "4px", display: "inline-block",
+                }}>
+                  ERA5T · preliminarno
+                </span>
               </Show>
             </div>
-            <p class="text-sm text-[var(--color-ink-soft)] max-w-sm">
-              {catDesc(catKey(), r())}
-            </p>
+
           </div>
 
-          {/* Divider */}
-          <div class="hidden sm:block w-px self-stretch bg-[var(--color-rule)]" />
+          {/* Explain */}
+          <p class="today-explain">
+            {r().loc
+              ? `Temperatura na postaji ${r().loc!.replace(/_/g, " ")}, razvrstena glede na zapise ERA5-Land od leta ${r().year_min} za isto ±7-dnevno okno.`
+              : `Današnji vrh je najvišja napovedana temperatura na vseh 18 postajah, razvrstena glede na zapise ERA5-Land od leta ${r().year_min} za isto ±7-dnevno okno.`
+            }
+          </p>
 
-          {/* Percentile */}
-          <PercentileDisplay pct={r().percentile ?? 0} nSamples={r().n_samples ?? 0} />
+          {/* Climate context */}
+          <p class="today-context">
+            Slovenija leži na stičišču štirih podnebnih con — alpske, sredozemske, celinsko in panonske — stisnjenih v eno izmed podnebno najbolj raznolikih držav v Evropi. Srednja Evropa se segreva približno 1,5-krat hitreje od svetovnega povprečja. Temperature so v zadnjih 70 letih narasle za skoraj 2 °C. Pomlad v Alpah prihaja vse prej, sredozemske suše segajo vse globlje v notranjost, severovzhodni panonski del pa se sooča z vedno hujšimi vročinskimi vali. Kar je bilo leta 1980 tipično poletje, danes sodi med hladnejšo polovico nedavnih desetletij.
+          </p>
+
+          {/* Last 7 days */}
+          <Show when={props.last7?.available && (props.last7?.days.length ?? 0) > 0}>
+            <div class="today-last7-row">
+              <div class="today-last7-card">
+                <div class="today-chart-title">Zadnjih 7 dni</div>
+                <Suspense fallback={<div style={{ height: "190px" }} class="animate-pulse bg-[var(--color-paper-2)] rounded" />}>
+                  <TodayLast7Chart days={props.last7!.days} />
+                </Suspense>
+              </div>
+            </div>
+          </Show>
+
+          {/* Footer */}
+          <div class="today-foot">
+            {(r().today_temp ?? 0).toFixed(1)} °C · {(r().percentile ?? 0).toFixed(0)}th percentile · {(r().n_samples ?? 0).toLocaleString()} samples ({r().year_min}–{r().year_max})
+          </div>
+
         </div>
-
-        {/* ── Last 7 days ── */}
-        <Show when={props.last7?.available && (props.last7?.days.length ?? 0) > 0}>
-          <Last7Chart days={props.last7!.days} />
-        </Show>
-
-        {/* ── Explain footer ── */}
-        <p class="text-xs text-[var(--color-ink-soft)] border-t border-dashed border-[var(--color-rule)] pt-4">
-          {r().loc
-            ? `Temperatura na postaji ${r().loc!.replace(/_/g, " ")}, razvrstena glede na zapise ERA5-Land od leta ${r().year_min} za isto ±7-dnevno okno.`
-            : `Današnji vrh je najvišja napovedana temperatura na vseh 18 postajah, razvrstena glede na zapise ERA5-Land od leta ${r().year_min} za isto ±7-dnevno okno.`
-          }
-        </p>
-      </div>
-    </Show>
+      </Show>
+    </div>
   );
 }
 
 // ── Sub-components ─────────────────────────────────────────────────────────────
-
-
-function PercentileDisplay(props: { pct: number; nSamples: number }) {
-  return (
-    <div class="flex flex-col items-center gap-1 flex-shrink-0 min-w-[72px]">
-      <div class="text-[40px] font-bold leading-none text-[var(--color-accent)]">
-        {props.pct.toFixed(0)}.
-      </div>
-      <div class="text-[10px] uppercase tracking-[0.08em] text-[var(--color-ink-soft)] font-semibold font-mono">
-        percentil
-      </div>
-      <div class="text-[10px] text-[var(--color-ink-soft)] opacity-75 font-mono">
-        {props.nSamples.toLocaleString()} vzorcev
-      </div>
-    </div>
-  );
-}
 
 function RankBadge(props: { info: RankInfo; dayLabel: string }) {
   const [open, setOpen] = createSignal(false);
@@ -136,22 +205,14 @@ function RankBadge(props: { info: RankInfo; dayLabel: string }) {
   return (
     <div class="relative">
       <button
-        class="font-mono text-[11px] font-semibold tracking-wide px-2.5 py-1 rounded-full cursor-pointer border transition-[filter] hover:brightness-95"
-        style={
-          isHot()
-            ? { background: "rgba(150,44,26,0.10)", border: "1px solid rgba(150,44,26,0.35)", color: "#962c1a" }
-            : { background: "rgba(58,90,138,0.10)", border: "1px solid rgba(58,90,138,0.35)", color: "#3a5a8a" }
-        }
+        class={`today-rank-badge today-rank-badge--${isHot() ? "hot" : "cold"}`}
         onClick={() => setOpen((v) => !v)}
       >
         {label()}
       </button>
 
       <Show when={open()}>
-        {/* Backdrop */}
         <div class="fixed inset-0 z-10" onClick={() => setOpen(false)} />
-
-        {/* Popup */}
         <div class="absolute top-full mt-2 left-0 z-20 bg-[var(--color-card)] border border-[var(--color-rule)] rounded-xl shadow-lg p-4 min-w-[220px]">
           <div class="text-[10px] font-semibold uppercase tracking-widest text-[var(--color-ink-soft)] mb-3">
             {isHot() ? `Najtoplejši ${props.dayLabel}` : `Najhladnejši ${props.dayLabel}`}
@@ -181,35 +242,10 @@ function RankBadge(props: { info: RankInfo; dayLabel: string }) {
   );
 }
 
-function Last7Chart(props: { days: Last7["days"] }) {
-  return (
-    <div class="space-y-1">
-      <div class="text-xs uppercase tracking-widest text-[var(--color-ink-soft)]">Zadnjih 7 dni</div>
-      <div class="flex gap-2 items-end h-16">
-        <For each={props.days}>
-          {(d) => {
-            const h = Math.max(8, (d.percentile / 100) * 56);
-            return (
-              <div class="flex flex-col items-center gap-1 flex-1">
-                <div
-                  class="w-full rounded-sm"
-                  style={{ height: `${h}px`, background: d.color }}
-                  title={`${d.day_label}: ${d.today_temp.toFixed(1)}°C (${d.percentile.toFixed(0)}. pct)`}
-                />
-                <div class="text-[9px] text-[var(--color-ink-soft)] text-center leading-tight">
-                  {d.day_label.split(" ")[1]}
-                </div>
-              </div>
-            );
-          }}
-        </For>
-      </div>
-    </div>
-  );
-}
-
 function UnavailableCard() {
   return (
-    <div class="text-[var(--color-ink-soft)]">Podatki za ta dan niso na voljo.</div>
+    <div class="today-card">
+      <p class="today-explain">Podatki za ta dan niso na voljo.</p>
+    </div>
   );
 }

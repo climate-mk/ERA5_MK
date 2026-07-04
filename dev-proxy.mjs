@@ -8,9 +8,25 @@ export const proxyConfig = {
     target: "http://localhost:5052",
     changeOrigin: true,
   },
+  // Fallback: remaining /api/* routes go to the main Flask API (port 5050)
+  // This covers spei_heatmap, spei_station_seasonal, tropical_days/nights, etc.
+  "/api": {
+    target: "http://localhost:5050",
+    changeOrigin: true,
+  },
   "/datasette": {
     target: "http://localhost:8001",
     changeOrigin: true,
     rewrite: (path) => path.replace(/^\/datasette/, ""),
+  },
+  // Static data files (flood PNGs, flood-stats.json, etc.) served by Flask
+  "/data": {
+    target: "http://localhost:5050",
+    changeOrigin: true,
+  },
+  // Static files (topo JSON, highcharts maps data, etc.) served by Flask at root
+  "/js": {
+    target: "http://localhost:5050",
+    changeOrigin: true,
   },
 };

@@ -1,10 +1,9 @@
 import { onMount, onCleanup, createEffect } from "solid-js";
-import "leaflet/dist/leaflet.css";
 import type { SiteMeta } from "../../types/index.ts";
 
 interface Props {
   meta:     SiteMeta;
-  loc:      string | null;       // currently selected station name
+  loc:      string | null;
   onSelect: (loc: string | null) => void;
 }
 
@@ -18,72 +17,133 @@ function elevColor(elev: number): string {
 
 export function StationMap(props: Props) {
   let container!: HTMLDivElement;
-  let map: import("leaflet").Map | null = null;
-  const markers: Map<string, import("leaflet").CircleMarker> = new Map();
+  let chart: any = null;
+
+  function buildPoints(loc: string | null) {
+    return props.meta.stations.map(s => ({
+      name:  s.name,
+      lat:   s.lat,
+      lon:   s.lon,
+      color: elevColor(s.elevation),
+      marker: {
+        radius:    s.name === loc ? 9 : 6,
+        lineWidth: s.name === loc ? 2.5 : 1,
+        lineColor: s.name === loc ? "#1a1a18" : "#fff",
+        symbol:    "circle",
+      },
+    }));
+  }
 
   onMount(async () => {
-    const L = (await import("leaflet")).default;
+    try {
+    const Highcharts = (await import("highcharts")).default;
+    // modules/map registers mapChart on the Highcharts namespace (same pattern as highcharts-more)
+    const mapMod = await import("highcharts/modules/map") as any;
+    const initFn = mapMod.default ?? mapMod;
+    if (typeof initFn === 'function') initFn(Highcharts);
 
-    map = L.map(container, {
-      center:    [props.meta.map.center_lat, props.meta.map.center_lon],
-      zoom:      props.meta.map.zoom,
-      zoomControl: true,
-      scrollWheelZoom: false,
-    });
+    const topoUrl = `/js/highcharts/mapdata/countries/${props.meta.country}/${props.meta.country}-all.topo.json`;
+    const topo = await fetch(topoUrl).then(r => r.json());
 
-    // Recalculate size whenever the container resizes (handles initial 0-width case)
-    const ro = new ResizeObserver(() => map?.invalidateSize());
-    ro.observe(container);
-    onCleanup(() => ro.disconnect());
+    const mapChart = (Highcharts as any).mapChart;
+    const currentLoc = props.loc;
+    const points = buildPoints(currentLoc);
 
-    L.tileLayer("https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png", {
-      attribution: '© <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a>',
-      maxZoom: 13,
-    }).addTo(map);
-
-    for (const s of props.meta.stations) {
-      const isActive = s.name === props.loc;
-      const marker = L.circleMarker([s.lat, s.lon], {
-        radius:      isActive ? 10 : 7,
-        fillColor:   elevColor(s.elevation),
-        color:       isActive ? "#1a1a18" : "#fff",
-        weight:      isActive ? 2.5 : 1.5,
-        fillOpacity: 0.9,
-      })
-        .bindTooltip(s.name.replace(/_/g, " "), {
-          permanent: false,
-          direction: "top",
-          offset:    [0, -6],
-          className: "station-tooltip",
-        })
-        .addTo(map);
-
-      marker.on("click", () => {
-        // Toggle off if clicking the already-selected station
-        props.onSelect(props.loc === s.name ? null : s.name);
-      });
-
-      markers.set(s.name, marker);
+    chart = mapChart(container, {
+      chart: {
+        backgroundColor: "#F5F2EC",
+        style: { fontFamily: "'Space Grotesk', system-ui, sans-serif" },
+        animation: false,
+        margin: [4, 4, 4, 4],
+      },
+      title:    { text: null },
+      subtitle: { text: null },
+      credits:  { enabled: false },
+      legend:   { enabled: false },
+      mapNavigation: {
+        enabled: true,
+        buttonOptions: { verticalAlign: "bottom" },
+      },
+      plotOptions: {
+        series: { states: { inactive: { opacity: 1 } } },
+      },
+      tooltip: {
+        useHTML: true,
+        backgroundColor: "#ffffff",
+        borderColor: "rgba(14,14,12,0.14)",
+        style: { fontSize: "13px", fontFamily: "'Space Grotesk', sans-serif" },
+        formatter(this: any) {
+          return `<span style="font-weight:600">${this.point.name.replace(/_/g, " ")}</span>`;
+        },
+      },
+      series: [
+        {
+          type: "map",
+          mapData: topo,
+          color: "#EFEBE2",
+          borderColor: "rgba(14,14,12,0.18)",
+          borderWidth: 1.25,
+          enableMouseTracking: false,
+          nullColor: "#EFEBE2",
+          states: { hover: { enabled: false }, inactive: { opacity: 1 } },
+        },
+        {
+          type: "mappoint",
+          name: "Postaje",
+          data: points,
+          cursor: "pointer",
+          findNearestPointBy: "xy",
+          stickyTracking: false,
+          dataLabels: {
+            enabled: true,
+            formatter(this: any) { return this.point.name.replace(/_/g, " "); },
+            style: {
+              fontSize: "8px",
+              fontWeight: "400",
+              color: "#1a1a18",
+              textOutline: "2px #fff",
+              fontFamily: "'JetBrains Mono', monospace",
+            },
+            y: -2,
+          },
+          point: {
+            events: {
+              click(this: any) {
+                const name: string = this.name;
+                props.onSelect(props.loc === name ? null : name);
+              },
+            },
+          },
+        },
+      ],
+    } as any);
+    } catch(err) {
+      console.error("[StationMap] onMount error:", err);
     }
   });
 
-  // React to loc changes — update marker styles
+  // Update marker styles on loc change without rebuilding the chart
   createEffect(() => {
-    const active = props.loc;
-    markers.forEach((marker, name) => {
-      const sel = name === active;
-      marker.setStyle({
-        radius:      sel ? 10 : 7,
-        color:       sel ? "#1a1a18" : "#fff",
-        weight:      sel ? 2.5 : 1.5,
-      });
+    if (!chart) return;
+    const loc = props.loc;
+    const series = chart.series?.[1];
+    if (!series) return;
+    series.data.forEach((pt: any) => {
+      const sel = pt.name === loc;
+      pt.update({
+        marker: {
+          radius:    sel ? 9 : 6,
+          lineWidth: sel ? 2.5 : 1,
+          lineColor: sel ? "#1a1a18" : "#fff",
+        },
+      }, false);
     });
+    chart.redraw(false);
   });
 
   onCleanup(() => {
-    map?.remove();
-    map = null;
-    markers.clear();
+    chart?.destroy();
+    chart = null;
   });
 
   return (

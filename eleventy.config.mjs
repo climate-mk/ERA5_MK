@@ -11,7 +11,7 @@ export default function (eleventyConfig) {
   eleventyConfig.addPlugin(EleventyVitePlugin, {
     viteOptions: {
       plugins: [TailwindCSS(), SolidPlugin()],
-      server: { proxy: proxyConfig },
+      server: { proxy: proxyConfig, host: true },
       resolve: {
         alias: {
           "/code":   path.resolve(__dirname, "code"),

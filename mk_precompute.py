@@ -41,12 +41,17 @@ MONTH_NAMES = ["Jan","Feb","Mar","Apr","May","Jun",
 def _load_csv(filepath: str) -> pd.DataFrame:
     df = pd.read_csv(filepath)
     df["date"] = pd.to_datetime(df["date"], format="%Y-%m-%d")
+    if "source" not in df.columns:
+        df["source"] = "era5"
     return df
 
 def load_all() -> pd.DataFrame:
     dfs = [_load_csv(f) for f in sorted(glob.glob(str(DATA_DIR / "*.csv")))]
     data = pd.concat(dfs, ignore_index=True)
     data = data[data["date"] <= pd.Timestamp.today()]
+    # Exclude ERA5T (preliminary) rows from statistical tables — they will be
+    # silently upgraded to final ERA5 on the next collection run.
+    data = data[data["source"] != "era5t"]
     data["year"]  = data["date"].dt.year
     data["month"] = data["date"].dt.month
     for c in ["temperature_max", "temperature_min", "temperature_mean"]:
@@ -87,7 +92,7 @@ def _compute_daily_window_row(station: str, loc_data: pd.DataFrame,
                                month: int, day: int) -> dict | None:
     """Percentile cutoffs + KDE for one (station, month, day) with ±7-day window."""
     window    = window_filter(loc_data, month, day, 7)
-    daily_max = window.groupby("date")["temperature_max"].max().dropna()
+    daily_max = window.groupby("date")["temperature_max_corr"].max().dropna()
     samples   = daily_max.to_numpy()
     if len(samples) < 50:
         return None

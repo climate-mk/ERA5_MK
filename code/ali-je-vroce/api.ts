@@ -34,6 +34,17 @@ export async function fetchDailyWindow(station: string | null, month: number, da
   );
 }
 
+export async function fetchPageData(
+  date: string,
+  loc: string | null,
+): Promise<{ status: TodayStatus; last7: Last7 }> {
+  const [status, last7] = await Promise.all([
+    fetchTodayStatus(date, loc),
+    fetchLast7(date, loc),
+  ]);
+  return { status, last7 };
+}
+
 export function fetchSeasonHeatmap(): Promise<SeasonHeatmapRow[]> {
   return get<SeasonHeatmapRow[]>(
     `${DATASETTE}/era5-slovenia/si_season_heatmap.json?_shape=array&_size=2000`
@@ -53,6 +64,43 @@ export function fetchRegression(p: RegressionParams): Promise<RegressionResponse
   const params = new URLSearchParams({ var: p.var, doy: String(p.doy), window: String(p.window), corr: p.corr, method: p.method });
   p.locs.forEach(l => params.append("loc", l));
   return get<RegressionResponse>(`${SIDECAR}/api/live/regression?${params}`);
+}
+
+export function fetchSpeiHeatmap(): Promise<any> {
+  return get("/api/spei_heatmap");
+}
+
+export function fetchSpeiStationSeasonal(): Promise<any> {
+  return fetch("/api/spei_station_seasonal").then(r => {
+    if (r.status === 204) return null;
+    if (!r.ok) throw new Error(`${r.status}`);
+    return r.json();
+  });
+}
+
+export interface CalendarRow {
+  month:   number;
+  day:     number;
+  trend10: number;
+  p_val:   number;
+}
+
+export interface CalendarData {
+  loc:          string;
+  var:          string;
+  unit:         string;
+  method_label: string;
+  rows:         CalendarRow[];
+}
+
+export function fetchCalendar(
+  loc: string, variable: string, window_: number,
+  corr: "raw" | "corr", method: "theilsen" | "ols"
+): Promise<CalendarData> {
+  const params = new URLSearchParams({
+    loc, var: variable, window: String(window_), corr, method,
+  });
+  return get<CalendarData>(`${SIDECAR}/api/live/calendar?${params}`);
 }
 
 export async function fetchAnnualTrend(month: number, day: number): Promise<AnnualTrend> {

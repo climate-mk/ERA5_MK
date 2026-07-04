@@ -1,5 +1,5 @@
 ---
-title: Je danes vroče v Sloveniji?
+title: Ali je vroče v Sloveniji?
 layout: base.html
 ---
 

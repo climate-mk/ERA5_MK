@@ -50,14 +50,11 @@ def _load_csv(filepath):
     try:
         df["date"] = pd.to_datetime(df["date"], format="%Y-%m-%d")
     except (ValueError, TypeError):
-        # Fallback for legacy DD-MM-YY format (e.g. old Gevgelija exports).
-        # All CSVs were migrated to YYYY-MM-DD by mk_collect.py (2026-05-25) so
-        # this branch no longer triggers, but is kept as a safety net.
-        # dayfirst=True parses day/month correctly, but dateutil maps 2-digit years
-        # 50-68 → 2050-2068 instead of 1950-1968, so subtract 100 years to fix.
         df["date"] = pd.to_datetime(df["date"], dayfirst=True)
         mask = df["date"].dt.year > pd.Timestamp.today().year
         df.loc[mask, "date"] = df.loc[mask, "date"] - pd.DateOffset(years=100)
+    if "source" not in df.columns:
+        df["source"] = "era5"
     return df
 
 dfs = [_load_csv(f) for f in sorted(glob.glob(os.path.join(DATA_DIR, "*.csv")))]
@@ -66,13 +63,25 @@ data = data[data["date"] <= pd.Timestamp.today()]
 data["year"]  = data["date"].dt.year
 data["month"] = data["date"].dt.month
 
-_CSV_MAX_DATE    = data["date"].max().date()
+# Separate view: only final ERA5 reanalysis rows (no ERA5T / preliminary).
+# Used for all statistical endpoints (trend, SPEI, season heatmap, regression).
+# The full `data` frame (including era5t) is used only for today-card display.
+# Full frame (era5 + era5t): used only in today_status for temperature lookup
+# and live display of recent dates.
+data_all = data
+
+# Era5-only frame: used by all statistical endpoints so preliminary rows don't
+# pollute trend regression, SPEI, season heatmap, tropical days, etc.
+data = data[data["source"] != "era5t"].copy()
+
+_CSV_MAX_DATE    = data_all["date"].max().date()   # includes era5t so recent dates are "in range"
 _RECORD_YEARS    = int(data["year"].max() - data["year"].min() + 1)
 _DATA_START_YEAR = int(data["year"].min())
 
 LAPSE_RATE = 0.0065
 for _c in ["temperature_max", "temperature_min", "temperature_mean"]:
-    data[_c + "_corr"] = data[_c] + data["elevation_diff_m"] * LAPSE_RATE
+    data[_c + "_corr"]     = data[_c]     + data["elevation_diff_m"]     * LAPSE_RATE
+    data_all[_c + "_corr"] = data_all[_c] + data_all["elevation_diff_m"] * LAPSE_RATE
 
 LOCATIONS   = sorted(data["location"].unique().tolist())
 VARIABLES   = {
@@ -615,7 +624,7 @@ def compute_today_status(target_date=None, loc=None):
             return {"available": False}
         today_temp = temps_by_station[loc] if loc else max(temps_by_station.values())
     else:
-        day_rows = data[data["date"] == pd.Timestamp(target_date)]
+        day_rows = data_all[data_all["date"] == pd.Timestamp(target_date)]
         if loc:
             day_rows = day_rows[day_rows["location"] == loc]
         if day_rows.empty or day_rows["temperature_max"].isna().all():
@@ -624,7 +633,9 @@ def compute_today_status(target_date=None, loc=None):
 
     month, day = target_date.month, target_date.day
     dlabel   = f"{MONTH_NAMES[month - 1]} {day}"
-    loc_data = data[data["location"] == loc] if loc else data
+    # Use full data (including era5t) for the historical distribution so that
+    # recent dates resolve correctly; era5t rows are a tiny fraction of 70+ years.
+    loc_data = data_all[data_all["location"] == loc] if loc else data_all
     window   = window_filter(loc_data, month, day, 7)
     daily_max = window.groupby("date")["temperature_max"].max().dropna()
     samples   = daily_max.to_numpy()
@@ -691,10 +702,11 @@ def compute_today_status(target_date=None, loc=None):
         "distribution": distribution,
         "cutoffs":      cutoffs,
         "day_label":    dlabel,
-        "month_num":    month,
-        "day_num":      day,
-        "rank_info":    rank_info,
-        "loc":          loc,
+        "month_num":      month,
+        "day_num":        day,
+        "rank_info":      rank_info,
+        "loc":            loc,
+        "is_preliminary": target_date > data["date"].max().date(),
     }
     _TODAY_CACHE[mem_key] = result
     if not is_today:

@@ -1,0 +1,100 @@
+name: Deploy Podnebnik stack
+
+on:
+  push:
+    branches: [feature/podnebnik-stack]
+
+env:
+  FORCE_JAVASCRIPT_ACTIONS_TO_NODE24: true
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v5
+
+      - name: Set up Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: "22"
+
+      - name: Enable Corepack (Yarn)
+        run: corepack enable
+
+      - name: Install JS dependencies
+        run: yarn install --immutable
+
+      - name: Build Eleventy frontend
+        run: yarn build
+
+      - name: Set up SSH
+        run: |
+          mkdir -p ~/.ssh
+          echo "${{ secrets.SSH_PRIVATE_KEY }}" > ~/.ssh/id_ed25519
+          chmod 600 ~/.ssh/id_ed25519
+          ssh-keygen -y -f ~/.ssh/id_ed25519 > /dev/null
+          cat >> ~/.ssh/config << 'EOF'
+          Host 46.224.208.142
+            StrictHostKeyChecking no
+            UserKnownHostsFile /dev/null
+          EOF
+
+      - name: Deploy via rsync
+        run: |
+          rsync -az \
+            --exclude='.git' \
+            --exclude='.github' \
+            --exclude='__pycache__' \
+            --exclude='*.pyc' \
+            --exclude='venv' \
+            --exclude='/data' \
+            --exclude='/var/sqlite' \
+            --exclude='node_modules' \
+            --exclude='.yarn' \
+            --exclude='*.sqlite' \
+            ./ root@46.224.208.142:/opt/podnebnik/
+
+      - name: Write .env
+        run: |
+          ssh root@46.224.208.142 "cat > /opt/podnebnik/.env << 'EOF'
+          COUNTRY=si
+          PORT=5053
+          SIDECAR_PORT=5052
+          EOF
+          chmod 600 /opt/podnebnik/.env"
+
+      - name: Install Python deps & restart services
+        run: |
+          ssh root@46.224.208.142 "
+            cd /opt/podnebnik &&
+            venv/bin/pip install -q -r requirements.txt &&
+            chown -R www-data:www-data /opt/podnebnik &&
+            systemctl restart podnebnik_api podnebnik_sidecar podnebnik_datasette &&
+            sleep 5 &&
+            systemctl is-active podnebnik_api podnebnik_sidecar podnebnik_datasette
+          "
+
+      - name: Health check
+        run: |
+          sleep 3
+          ssh root@46.224.208.142 "
+            curl -sf http://localhost:5053/api/meta | python3 -c '
+            import sys, json; d=json.load(sys.stdin)
+            print(\"API OK —\", len(d[\"locations\"]), \"locations\")' &&
+            curl -sf http://localhost:5052/api/live/meta | python3 -c '
+            import sys, json; d=json.load(sys.stdin)
+            print(\"Sidecar OK — country:\", d[\"country\"])' &&
+            curl -sf http://localhost:8001/era5-slovenia.json | python3 -c '
+            import sys, json; d=json.load(sys.stdin)
+            print(\"Datasette OK —\", d.get(\"title\",\"era5-slovenia\"))' || true
+          "
+
+      - name: Install cron job
+        run: |
+          ssh root@46.224.208.142 "
+            cp /opt/podnebnik/cron/podnebnik_collect /etc/cron.d/podnebnik &&
+            chmod 644 /etc/cron.d/podnebnik &&
+            echo 'Cron installed:' &&
+            cat /etc/cron.d/podnebnik
+          "

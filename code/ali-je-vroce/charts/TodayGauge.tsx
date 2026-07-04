@@ -1,4 +1,4 @@
-import { onMount, onCleanup } from "solid-js";
+import { onMount, onCleanup, createEffect } from "solid-js";
 import type { TodayStatus } from "../../types/index.ts";
 
 interface Props {
@@ -27,13 +27,14 @@ export function TodayGauge(props: Props) {
     const r = props.data;
     const catKey = r.category_key ?? "nope";
     const pct    = r.percentile ?? 0;
+    const target = dialPosition(catKey, pct);
 
     chart = Highcharts.chart(container, {
       chart: {
         type:            "gauge",
         backgroundColor: "transparent",
         margin:          [0, 0, 0, 0],
-        animation:       false,
+        animation:       { duration: 900, easing: "easeOutQuint" },
       },
       title:         null,
       credits:       { enabled: false },
@@ -63,7 +64,7 @@ export function TodayGauge(props: Props) {
       },
       series: [{
         type: "gauge",
-        data: [dialPosition(catKey, pct)],
+        data: [0],
         dial: {
           radius:          "62%",
           baseWidth:       4,
@@ -75,6 +76,16 @@ export function TodayGauge(props: Props) {
         dataLabels: { enabled: false },
       }],
     } as Highcharts.Options);
+
+    // Animate needle from 0 → actual value on first render
+    chart.series[0]?.setData([target], true, { duration: 900 });
+  });
+
+  createEffect(() => {
+    const catKey = props.data.category_key ?? "nope";
+    const pct    = props.data.percentile    ?? 0;
+    if (!chart) return;
+    chart.series[0]?.setData([dialPosition(catKey, pct)], true, { duration: 500 }, false);
   });
 
   onCleanup(() => { chart?.destroy(); chart = null; });

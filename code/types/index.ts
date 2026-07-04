@@ -17,8 +17,9 @@ export interface TodayStatus {
   day_label?:   string;
   month_num?:   number;
   day_num?:     number;
-  rank_info?:   RankInfo | null;
-  loc?:         string | null;
+  rank_info?:      RankInfo | null;
+  loc?:            string | null;
+  is_preliminary?: boolean;
 }
 
 export interface RankInfo {
@@ -91,6 +92,7 @@ export interface SiteMeta {
   map:              { center_lat: number; center_lon: number; zoom: number };
   branding:         { site_title: string; domain: string };
   stations: Array<{ name: string; lat: number; lon: number; elevation: number }>;
+  strings:          { explain_reg: string; explain_cal: string };
 }
 
 /** Datasette si_season_heatmap row */

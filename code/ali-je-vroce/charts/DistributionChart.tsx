@@ -1,4 +1,4 @@
-import { onMount, onCleanup } from "solid-js";
+import { onMount, onCleanup, createEffect } from "solid-js";
 import type { TodayStatus } from "../../types/index.ts";
 
 interface Props {
@@ -6,102 +6,150 @@ interface Props {
   chartId: string;
 }
 
-const BAND_COLORS = [
-  { from: -99, to: 10,  color: "rgba(58,90,138,0.12)"  },
-  { from: 10,  to: 20,  color: "rgba(108,143,182,0.12)" },
-  { from: 20,  to: 80,  color: "rgba(231,217,184,0.12)" },
-  { from: 80,  to: 95,  color: "rgba(194,90,44,0.12)"  },
-  { from: 95,  to: 101, color: "rgba(150,44,26,0.12)"  },
+const INK      = "#0E0E0C";
+const INK_SOFT = "#6B655B";
+const MONO     = { fontFamily: "'JetBrains Mono', monospace", letterSpacing: "0.04em" };
+
+const ZONE_COLORS = [
+  "#3a5a8a",   // p0–p10   Cold
+  "#6c8fb6",   // p10–p20  Cool
+  "#e7d9b8",   // p20–p80  Normal
+  "#c25a2c",   // p80–p95  Hot
+  "#962c1a",   // p95+     Extreme
 ];
+
+const ZONE_LABELS = ["Hladno", "Sveže", "Normalno", "Vroče", "Ekstremno"];
+
+function buildOptions(r: TodayStatus): Highcharts.Options {
+  const c       = r.cutoffs!;
+  const todayX  = r.today_temp!;
+  const dist    = r.distribution!;
+  const distMin = dist[0]![0];
+  const distMax = dist[dist.length - 1]![0];
+
+  const zoneLabelStyle = {
+    color: INK_SOFT, fontSize: "9px", fontWeight: "600",
+    ...MONO,
+  };
+
+  return {
+    chart: {
+      type:            "areaspline",
+      height:          220,
+      margin:          [28, 16, 32, 16],
+      backgroundColor: "transparent",
+      animation:       false,
+      style:           { fontFamily: "Space Grotesk, system-ui, sans-serif" },
+    },
+    title:   { text: undefined },
+    credits: { enabled: false },
+    legend:  { enabled: false },
+    tooltip: {
+      formatter(this: any) {
+        const temp: number = this.x;
+        let zone: string;
+        if      (temp < c.p10) zone = "Hladno";
+        else if (temp < c.p20) zone = "Sveže";
+        else if (temp < c.p80) zone = "Normalno";
+        else if (temp < c.p95) zone = "Vroče";
+        else                   zone = "Ekstremno";
+        return `${temp.toFixed(1)} °C · ${zone}`;
+      },
+    },
+    xAxis: {
+      title:         { text: null },
+      labels:        { format: "{value}°C", style: { color: INK_SOFT, fontSize: "10px", ...MONO } },
+      lineColor:     "rgba(14,14,12,0.1)",
+      tickColor:     "rgba(14,14,12,0.1)",
+      gridLineWidth: 0,
+      crosshair:     { color: "rgba(14,14,12,0.15)", width: 1 },
+      plotLines: [{
+        value:  todayX,
+        color:  INK,
+        width:  3,
+        zIndex: 5,
+        label: {
+          text:      `DANES: ${todayX.toFixed(1)} °C`,
+          rotation:  -90,
+          x:         -4,
+          y:         40,
+          align:     "right",
+          style:     { color: INK, fontSize: "11px", fontWeight: "600", ...MONO, textOutline: "3px white" },
+        },
+      }],
+      plotBands: [
+        { from: distMin,  to: c.p10,  color: "transparent",
+          label: { text: `< ${c.p10.toFixed(1)}°C`,                        align: "center", verticalAlign: "top", y: 18, style: zoneLabelStyle } },
+        { from: c.p10,   to: c.p20,  color: "transparent",
+          label: { text: `${c.p10.toFixed(1)}–${c.p20.toFixed(1)}°C`,      align: "center", verticalAlign: "top", y: 18, style: zoneLabelStyle } },
+        { from: c.p20,   to: c.p80,  color: "transparent",
+          label: { text: `${c.p20.toFixed(1)}–${c.p80.toFixed(1)}°C`,      align: "center", verticalAlign: "top", y: 18, style: zoneLabelStyle } },
+        { from: c.p80,   to: c.p95,  color: "transparent",
+          label: { text: `${c.p80.toFixed(1)}–${c.p95.toFixed(1)}°C`,      align: "center", verticalAlign: "top", y: 18, style: zoneLabelStyle } },
+        { from: c.p95,   to: distMax, color: "transparent",
+          label: { text: `> ${c.p95.toFixed(1)}°C`,                        align: "center", verticalAlign: "top", y: 18, style: zoneLabelStyle } },
+      ],
+    },
+    yAxis: {
+      title:         { text: null },
+      labels:        { enabled: false },
+      gridLineWidth: 0,
+      lineWidth:     0,
+      tickWidth:     0,
+    },
+    plotOptions: {
+      areaspline: {
+        marker:      { enabled: false },
+        lineWidth:   0,
+        fillOpacity: 1,
+        zoneAxis:    "x",
+        zones: [
+          { value: c.p10, color: "transparent", fillColor: ZONE_COLORS[0] },
+          { value: c.p20, color: "transparent", fillColor: ZONE_COLORS[1] },
+          { value: c.p80, color: "transparent", fillColor: ZONE_COLORS[2] },
+          { value: c.p95, color: "transparent", fillColor: ZONE_COLORS[3] },
+          {               color: "transparent", fillColor: ZONE_COLORS[4] },
+        ],
+      },
+    },
+    series: [{ type: "areaspline", name: "Density", data: dist }],
+  } as Highcharts.Options;
+}
 
 export function DistributionChart(props: Props) {
   let container!: HTMLDivElement;
-  let chart: Highcharts.Chart | null = null;
+  let chart: any = null;
 
   onMount(async () => {
     const Highcharts = (await import("highcharts")).default;
     const r = props.data;
-    if (!r.available || !r.distribution?.length) return;
+    if (!r.available || !r.distribution?.length || !r.cutoffs) return;
+    chart = Highcharts.chart(container, buildOptions(r));
+  });
 
-    const dist    = r.distribution;
-    const cutoffs = r.cutoffs!;
-    const todayX  = r.today_temp!;
-    const color   = r.color!;
-
-    // Convert percentile cutoffs to x-axis plotBands
-    const pctToX = (pct: number): number => {
-      const map: [number, number][] = [
-        [0, cutoffs.p5 - (cutoffs.p10 - cutoffs.p5)],
-        [5, cutoffs.p5], [10, cutoffs.p10], [20, cutoffs.p20],
-        [50, cutoffs.p50], [80, cutoffs.p80], [95, cutoffs.p95],
-        [100, cutoffs.p95 + (cutoffs.p95 - cutoffs.p80)],
-      ];
-      for (let i = 0; i < map.length - 1; i++) {
-        const [pLo, xLo] = map[i]!;
-        const [pHi, xHi] = map[i + 1]!;
-        if (pct >= pLo && pct <= pHi) {
-          return xLo + (xHi - xLo) * ((pct - pLo) / (pHi - pLo));
-        }
-      }
-      return cutoffs.p95;
-    };
-
-    const plotBands = BAND_COLORS.map(({ from, to, color: bc }) => ({
-      from: pctToX(from), to: pctToX(to), color: bc, zIndex: 0,
-    }));
-
-    chart = Highcharts.chart(container, {
-      chart: {
-        type: "area",
-        animation: false,
-        backgroundColor: "transparent",
-        style: { fontFamily: "Space Grotesk, system-ui, sans-serif" },
-      },
-      title: { text: undefined },
-      credits: { enabled: false },
-      legend: { enabled: false },
-      xAxis: {
-        title: { text: "°C", style: { fontSize: "11px" } },
-        plotLines: [{
-          value:     todayX,
-          color,
-          width:     2,
-          dashStyle: "Solid" as Highcharts.DashStyleValue,
-          zIndex:    5,
-          label: {
-            text:  `${todayX.toFixed(1)} °C`,
-            style: { color, fontWeight: "600", fontSize: "11px" },
-            y:     14,
-          },
-        }],
-        plotBands,
-      },
-      yAxis: {
-        title: { text: undefined },
-        labels: { enabled: false },
-        gridLineWidth: 0,
-      },
-      tooltip: {
-        formatter(this: Highcharts.Point) {
-          if (typeof this.x === "number") {
-            return `${(this.x as number).toFixed(1)} °C`;
-          }
-          return "";
-        },
-      },
-      series: [{
-        type:      "area",
-        name:      "Porazdelitev",
-        data:      dist,
-        color,
-        fillOpacity: 0.18,
-        lineWidth:   2,
-        marker:    { enabled: false },
-      }],
-    } as Highcharts.Options);
+  createEffect(() => {
+    const r = props.data;
+    if (!chart || !r.available || !r.distribution?.length || !r.cutoffs) return;
+    const opts = buildOptions(r);
+    chart.series[0]?.setData(r.distribution, false, false, false);
+    chart.xAxis[0]?.update({ plotLines: opts.xAxis?.plotLines, plotBands: opts.xAxis?.plotBands }, false);
+    chart.update({ plotOptions: opts.plotOptions }, false);
+    chart.redraw(false);
   });
 
   onCleanup(() => { chart?.destroy(); chart = null; });
 
-  return <div id={props.chartId} ref={container} style={{ "min-height": "200px" }} />;
+  return (
+    <>
+      <div id={props.chartId} ref={container} style={{ "min-height": "200px" }} />
+      <div class="today-chart-legend">
+        {ZONE_COLORS.map((bg, i) => (
+          <span class="tcl-item">
+            <span class="tcl-sw" style={{ background: bg }} />
+            {ZONE_LABELS[i]}
+          </span>
+        ))}
+      </div>
+    </>
+  );
 }
