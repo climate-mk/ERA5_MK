@@ -139,8 +139,14 @@ export function DistributionChart(props: Props) {
     const r = props.data;
     if (!chart || !r.available || !r.distribution?.length || !r.cutoffs) return;
     const opts = buildOptions(r);
+    const xOpts = opts.xAxis as Highcharts.XAxisOptions;
     chart.series[0]?.setData(r.distribution, false, false, false);
-    chart.xAxis[0]?.update({ plotLines: opts.xAxis?.plotLines, plotBands: opts.xAxis?.plotBands }, false);
+    chart.xAxis[0]?.update({
+      min: xOpts.min,
+      max: xOpts.max,
+      plotLines: xOpts.plotLines,
+      plotBands: xOpts.plotBands,
+    }, false);
     chart.update({ plotOptions: opts.plotOptions }, false);
     chart.redraw(false);
   });
