@@ -182,6 +182,9 @@ function buildMap() {
   wireLayerInfo();
   setupLayerControlResponsive();
 
+  // Distance scale bar (metric), bottom-left so it clears the FRP legend at bottom-right.
+  L.control.scale({ position: 'bottomleft', metric: true, imperial: false }).addTo(map);
+
   // Legend
   const legend = L.control({ position: 'bottomright' });
   legend.onAdd = function () {
@@ -305,8 +308,8 @@ async function refreshPoints(manual) {
   pointsLayer.clearLayers();
   (data.points || []).forEach(p => {
     const marker = L.circleMarker([p.lat, p.lon], {
-      radius: 4, weight: 0.5, color: '#5a1a10',
-      fillColor: frpColor(p.frp), fillOpacity: 0.8,
+      radius: 8, weight: 1.5, color: '#fff', opacity: 0.85,
+      fillColor: frpColor(p.frp), fillOpacity: 0.85,
     }).bindPopup(
       `<b>${p.sensor}</b><br>${p.date}` +
       (p.frp != null ? `<br>FRP: ${p.frp.toFixed(1)} MW` : '') +
@@ -361,7 +364,7 @@ async function renderYearChart() {
     chart: { type: 'column', backgroundColor: 'transparent', style: { fontFamily: "'Space Grotesk', sans-serif" } },
     title: { text: null }, credits: { enabled: false }, legend: { enabled: false },
     xAxis: { categories: d.years.map(String), title: { text: null }, labels: { style: { fontSize: '11px' } } },
-    yAxis: { title: { text: tx('fires.axis_detections', 'Detections') }, gridLineColor: 'rgba(14,14,12,0.06)' },
+    yAxis: { title: { text: tx('fires.axis_title', 'Fire Detections') }, gridLineColor: 'rgba(14,14,12,0.06)' },
     tooltip: {
       formatter() {
         const suffix = preGfw.has(+this.x) ? ' (' + tx('fires.modis_only', 'MODIS only') + ')' : '';

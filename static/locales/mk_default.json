@@ -53,6 +53,7 @@
     "confidence": "сигурност",
     "showing_top": "прикажани се најсилните {n}",
     "axis_detections": "Детекции",
+    "axis_title": "Детекции на пожари",
     "base_streets": "Улици",
     "base_satellite": "Сателит",
     "layer_danger": "Опасност од пожар (EFFIS)",
