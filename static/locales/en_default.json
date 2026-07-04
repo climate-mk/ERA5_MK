@@ -53,6 +53,7 @@
     "confidence": "confidence",
     "showing_top": "showing strongest {n}",
     "axis_detections": "Detections",
+    "axis_title": "Fire Detections",
     "base_streets": "Streets",
     "base_satellite": "Satellite",
     "layer_danger": "Fire danger (EFFIS)",

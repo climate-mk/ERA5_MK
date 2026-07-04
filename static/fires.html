@@ -91,6 +91,8 @@
     .fire-legend .legend-swatches { display: flex; align-items: center; gap: 3px; }
     .fire-legend .legend-end { color: var(--ink-soft); }
     .fire-legend i { display: inline-block; width: 11px; height: 11px; border-radius: 50%; }
+    /* Distance scale bar — match the map's design language */
+    .leaflet-control-scale-line { font-family: 'JetBrains Mono', monospace; font-size: 10px; color: var(--ink-soft); background: rgba(255,255,255,0.8); border: 1px solid var(--rule-2); border-top: none; padding: 1px 5px; }
 
     /* Leaflet layer-control rows: label + tap/hover info affordance + description */
     .leaflet-control-layers-overlays label,
@@ -122,10 +124,11 @@
     .data-explain .collapse-head:hover { color: var(--accent); }
     .data-explain .collapse-chevron { transition: transform 0.15s ease; font-size: 11px; }
     .data-explain:not(.collapsed) .collapse-chevron { transform: rotate(90deg); }
-    .data-explain dl { display: grid; grid-template-columns: max-content 1fr; gap: 6px 16px; margin: 0; padding: 0 18px 16px; }
-    .data-explain dt { font-weight: 600; font-size: 13px; color: var(--ink); white-space: nowrap; }
-    .data-explain dd { font-size: 13px; color: var(--ink-soft); line-height: 1.5; margin: 0 0 8px; }
-    .data-explain dd a { color: var(--ink-soft); }
+    .data-explain dl { margin: 0; padding: 0 18px 16px; }
+    .data-explain dt { font-weight: 600; font-size: 13px; color: var(--ink); margin-bottom: 2px; }
+    .data-explain dd { font-size: 13px; color: var(--ink-soft); line-height: 1.5; margin: 0 0 12px; }
+    .data-explain dd:last-child { margin-bottom: 0; }
+    .data-explain dd a, .data-explain dt a { color: var(--ink-soft); }
     .data-explain.collapsed dl { display: none; }
 
     /* ── Year chart ── */
@@ -139,6 +142,9 @@
       .page { padding: 20px 16px 60px; }
       #fires-map { height: 420px; }
       h1 { font-size: 24px; }
+      /* Drop the WIP badge onto its own line under the title on small screens */
+      #fires-h1 .wip-badge { display: inline-block; margin-left: 0; margin-top: 6px; }
+      #fires-h1 { display: flex; flex-direction: column; align-items: flex-start; gap: 0; }
 
       /* Tighter controls bar so the map appears higher up on small screens */
       .controls { padding: 10px 12px; gap: 12px 14px; margin-bottom: 10px; }
