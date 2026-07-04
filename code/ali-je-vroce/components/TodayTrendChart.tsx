@@ -129,8 +129,8 @@ export function TodayTrendChart(props: Props) {
   const day   = () => Number(props.date.split("-")[2]);
 
   const [trend] = createResource(
-    () => ({ month: month(), day: day() }),
-    ({ month, day }) => fetchAnnualTrend(month, day),
+    () => ({ month: month(), day: day(), loc: props.loc }),
+    ({ month, day, loc }) => fetchAnnualTrend(month, day, loc),
   );
 
   // Keep previous data visible while refetching so the chart stays mounted
@@ -152,7 +152,7 @@ export function TodayTrendChart(props: Props) {
               </div>
               <TrendHighchart trend={d()} />
               <p class="today-explain" style={{ padding: "4px 0 2px" }}>
-                Vsaka pika je 90. percentil nacionalne povprečne dnevne najvišje temperature vseh postaj v ±30-dnevnem oknu okoli tega datuma za vsako leto od {d().yearMin}. Trend Theil-Sen je {trendStr()} °C/desetletje ({sig()}). Po tem tempu projekcija kaže {proj2050()} °C do leta 2050. Zasenčeni pas je 95% interval zaupanja za nagib. Opomba: ta grafikon uporablja nacionalno povprečje vseh postaj; kartica zgoraj pa uporablja nacionalni vrh (posamezna najtoplejša postaja) — obe sta veljavni, a merita različne stvari.
+                Vsaka pika je 90. percentil {props.loc ? `lapsno popravljene dnevne najvišje temperature na postaji ${props.loc.replace(/_/g, " ")}` : "nacionalne povprečne dnevne najvišje temperature vseh postaj"} v ±30-dnevnem oknu okoli tega datuma za vsako leto od {d().yearMin}. Trend Theil-Sen je {trendStr()} °C/desetletje ({sig()}). Po tem tempu projekcija kaže {proj2050()} °C do leta 2050. Zasenčeni pas je 95% interval zaupanja za nagib.
               </p>
               <div class="today-foot">
                 Theil-Sen + TFPW MK: {trendStr()} °C/desetletje · {sig()} · τ = {d().tau.toFixed(3)} · 95% CI · {d().nYears} let

@@ -103,9 +103,10 @@ export function fetchCalendar(
   return get<CalendarData>(`${SIDECAR}/api/live/calendar?${params}`);
 }
 
-export async function fetchAnnualTrend(month: number, day: number): Promise<AnnualTrend> {
-  const url = `${DATASETTE}/era5-slovenia/si_annual_trend.json`
-    + `?month=${month}&day=${day}&_shape=array&_size=1`;
+export async function fetchAnnualTrend(month: number, day: number, loc?: string | null): Promise<AnnualTrend> {
+  const params = new URLSearchParams({ month: String(month), day: String(day) });
+  if (loc) params.set("loc", loc);
+  const url = `${SIDECAR}/api/live/annual_trend?${params}`;
   const rows = await get<AnnualTrendRow[]>(url);
   if (!rows.length) throw new Error("No annual trend row");
   const r = rows[0]!;

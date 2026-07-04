@@ -772,6 +772,108 @@ def health():
     return "ok"
 
 
+# ── Per-station annual trend (on-the-fly, lapse-corrected) ───────────────────
+
+_ANNUAL_TREND_CACHE: dict = {}
+_TREND_START = CONFIG.get("trend_start_year", 1950)
+_PROJ_END    = CONFIG.get("projection_end_year", 2050)
+
+
+def _compute_station_annual_trend(loc: str, month: int, day: int) -> dict | None:
+    key = (loc, month, day)
+    if key in _ANNUAL_TREND_CACHE:
+        return _ANNUAL_TREND_CACHE[key]
+    if _data.empty:
+        return None
+    ld = _data[_data["location"] == loc]
+    if ld.empty:
+        return None
+
+    window = _window_filter(ld, month, day, 30)
+    annual_raw = (
+        window.groupby("_window_year")["temperature_max_corr"]
+        .apply(lambda x: float(np.percentile(x.dropna(), 90)) if len(x.dropna()) >= 5 else np.nan)
+        .dropna()
+    )
+    annual = annual_raw[annual_raw.index >= _TREND_START]
+    if len(annual) < 10:
+        return None
+
+    x_arr = annual.index.to_numpy(float)
+    y_arr = annual.values
+    first_yr, last_yr = int(x_arr.min()), int(x_arr.max())
+
+    res   = theilslopes(y_arr, x_arr, 0.95)
+    slope = res.slope
+    x_med, y_med = float(np.median(x_arr)), float(np.median(y_arr))
+    ic    = y_med - slope          * x_med
+    ic_hi = y_med - res.high_slope * x_med
+    ic_lo = y_med - res.low_slope  * x_med
+    mk_r  = mk_test.yue_wang_modification_test(y_arr)
+
+    x_hist = np.linspace(x_arr.min(), x_arr.max(), 300)
+    y_hist = slope * x_hist + ic
+    u_hist = res.high_slope * x_hist + ic_hi
+    l_hist = res.low_slope  * x_hist + ic_lo
+
+    x_fc = np.linspace(last_yr, _PROJ_END, 200)
+    y_fc = slope * x_fc + ic
+    u_fc = res.high_slope * x_fc + ic_hi
+    l_fc = res.low_slope  * x_fc + ic_lo
+
+    scatter = [{"x": int(yr), "y": round(float(v), 2)} for yr, v in zip(x_arr, y_arr)]
+    dlabel  = f"{MONTH_NAMES[month - 1]} {day}"
+
+    result = {
+        "month":       month,
+        "day":         day,
+        "day_label":   dlabel,
+        "year_min":    first_yr,
+        "year_max":    last_yr,
+        "trend10":     round(float(slope * 10), 3),
+        "p_val":       round(float(mk_r.p), 5),
+        "tau":         round(float(mk_r.Tau), 3),
+        "n_years":     int(len(x_arr)),
+        "scatter_json":    json.dumps(scatter, separators=(",", ":")),
+        "hist_x_json":     json.dumps([round(v, 2) for v in x_hist.tolist()], separators=(",", ":")),
+        "hist_y_json":     json.dumps([round(v, 3) for v in y_hist.tolist()], separators=(",", ":")),
+        "hist_upper_json": json.dumps([round(v, 3) for v in u_hist.tolist()], separators=(",", ":")),
+        "hist_lower_json": json.dumps([round(v, 3) for v in l_hist.tolist()], separators=(",", ":")),
+        "proj_x_json":     json.dumps([round(v, 2) for v in x_fc.tolist()],  separators=(",", ":")),
+        "proj_y_json":     json.dumps([round(v, 3) for v in y_fc.tolist()],  separators=(",", ":")),
+        "proj_upper_json": json.dumps([round(v, 3) for v in u_fc.tolist()],  separators=(",", ":")),
+        "proj_lower_json": json.dumps([round(v, 3) for v in l_fc.tolist()],  separators=(",", ":")),
+    }
+    _ANNUAL_TREND_CACHE[key] = result
+    return result
+
+
+@app.route("/api/live/annual_trend")
+def api_annual_trend():
+    month = int(request.args.get("month", 1))
+    day   = int(request.args.get("day",   1))
+    loc   = request.args.get("loc") or None
+
+    if loc:
+        row = _compute_station_annual_trend(loc, month, day)
+        if not row:
+            return jsonify({"error": "no data"}), 404
+        return jsonify([row])
+
+    # National: serve from precomputed SQLite table
+    if not DB_PATH.exists():
+        return jsonify({"error": "db not ready"}), 503
+    try:
+        with _db_conn() as conn:
+            row = conn.execute(
+                "SELECT * FROM si_annual_trend WHERE month=? AND day=?",
+                (month, day),
+            ).fetchone()
+        return jsonify([dict(row)] if row else [])
+    except Exception as e:
+        return jsonify({"error": str(e)}), 500
+
+
 @app.route("/api/live/regression")
 def api_regression():
     locs   = request.args.getlist("loc") or [CONFIG["default_location"]]
