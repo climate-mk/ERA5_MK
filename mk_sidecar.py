@@ -140,8 +140,17 @@ else:
 _LOCATIONS = sorted(_data["location"].unique().tolist()) if not _data.empty else []
 
 # Per-station lapse-rate correction offset (°C) = elevation_diff_m * LAPSE_RATE
+# elevation_diff_m = elevation_era5_m - elevation_station_m (negative for high-altitude stations)
 # Applied to every raw temperature_max value read from SQLite or Open-Meteo.
+#
+# Seeded from the YAML config (always available, even before CSVs are collected), then
+# overridden with CSV-derived values when the station data file is loaded.
 _STATION_CORR_OFFSET: dict[str, float] = {}
+for _s in CONFIG["stations"]:
+    _era5_m = _s.get("elevation_era5_m")
+    if _era5_m is not None:
+        _STATION_CORR_OFFSET[_s["name"]] = (float(_era5_m) - float(_s["elevation"])) * LAPSE_RATE
+
 if not _data.empty and "elevation_diff_m" in _data.columns:
     for _name in _LOCATIONS:
         _sub = _data[_data["location"] == _name]
@@ -783,9 +792,29 @@ def _compute_station_annual_trend(loc: str, month: int, day: int) -> dict | None
     key = (loc, month, day)
     if key in _ANNUAL_TREND_CACHE:
         return _ANNUAL_TREND_CACHE[key]
-    if _data.empty:
-        return None
-    ld = _data[_data["location"] == loc]
+
+    ld = _data[_data["location"] == loc] if not _data.empty else pd.DataFrame()
+
+    # SQLite fallback when station CSV is not loaded (e.g., not yet collected on this server)
+    if ld.empty and DB_PATH.exists() and loc in _STATION_TABLES:
+        try:
+            with _db_conn() as conn:
+                rows = conn.execute(
+                    f'SELECT date, temperature_max FROM "{_STATION_TABLES[loc]}" '
+                    "WHERE temperature_max IS NOT NULL"
+                ).fetchall()
+            if rows:
+                df_sql = pd.DataFrame(rows, columns=["date", "temperature_max"])
+                df_sql["date"] = pd.to_datetime(df_sql["date"])
+                df_sql["year"]  = df_sql["date"].dt.year
+                df_sql["month"] = df_sql["date"].dt.month
+                df_sql["temperature_max_corr"] = (
+                    df_sql["temperature_max"] + _STATION_CORR_OFFSET.get(loc, 0.0)
+                )
+                ld = df_sql
+        except Exception:
+            pass
+
     if ld.empty:
         return None
 
