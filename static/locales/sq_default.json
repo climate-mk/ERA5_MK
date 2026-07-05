@@ -24,7 +24,7 @@
   "fires": {
     "title": "Gjurmuesi i zjarreve",
     "wip_badge": "në vazhdim",
-    "intro": "Zjarre aktive të zbuluara nga satelitët dhe parashikimi i rrezikut nga zjarri në të gjithë vendin.",
+    "intro": "Zjarre të zbuluara nga satelitët dhe parashikimi i rrezikut nga zjarri në të gjithë vendin.",
     "date": "Data",
     "recent": "Së fundmi (48h)",
     "lag_note": "Sa të freskëta janë? Satelitët polarë kalojnë vetëm disa herë në ditë, dhe zbulimet marrin edhe ~1–3h për t’u përpunuar — kështu të dhënat e zjarreve janë zakonisht 3–12 orë të vjetra dhe mund t’i afrohen ~24h gjatë natës. Pamja “Së fundmi” shfaq të dhënat e 48 orëve të fundit (si pamjet “sot” të NASA FIRMS dhe EFFIS). Përdorni kontrollet e datës për një ditë ose periudhë specifike.",

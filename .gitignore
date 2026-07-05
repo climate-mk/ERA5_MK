@@ -28,6 +28,8 @@ countries/_after/
 
 # ── Claude ────────────────────────────────────────────────────────────────────
 CLAUDE.md
+REFACTORING_PLAN.md
+DROUGHT_LAYER_PLAN.md
 
 # ── Editor / OS ───────────────────────────────────────────────────────────────
 .DS_Store

@@ -24,7 +24,7 @@
   "fires": {
     "title": "Wildfire Tracker",
     "wip_badge": "work in progress",
-    "intro": "Satellite-detected active fires and fire-danger forecast across the country.",
+    "intro": "Satellite-detected fires and fire-danger forecast across the country.",
     "date": "Date",
     "recent": "Recent (48h)",
     "lag_note": "How current is this? Polar-orbiting satellites pass over only a few times a day, and detections take ~1–3h more to process — so fire data is typically 3–12 hours old and can approach ~24h overnight. The “Recent” view shows the last 48 hours of available data (matching how the NASA FIRMS and EFFIS “today” views behave). Use the date controls to browse a specific day or period.",
