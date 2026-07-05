@@ -61,7 +61,9 @@ function frpColor(frp) {
 function buildMap() {
   const bbox = FIRES.bbox;                 // [W,S,E,N]
   const center = [ (bbox[1] + bbox[3]) / 2, (bbox[0] + bbox[2]) / 2 ];
-  map = L.map('fires-map', { zoomControl: true }).setView(center, 8);
+  // One zoom level higher on larger screens (map is also taller there so the country still fits).
+  const initialZoom = window.innerWidth > 780 ? 9 : 8;
+  map = L.map('fires-map', { zoomControl: true }).setView(center, initialZoom);
 
   // ── Base layers ──
   const streets = L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
@@ -461,7 +463,7 @@ function applyLabels() {
   const h1 = document.getElementById('fires-h1');
   if (h1?.firstChild) h1.firstChild.textContent = tx('fires.title', 'Wildfire Tracker') + ' ';
   set('wip-badge', 'fires.wip_badge', 'work in progress');
-  set('fires-intro', 'fires.intro', 'Satellite-detected active fires and fire-danger forecast across the country.');
+  set('fires-intro', 'fires.intro', 'Satellite-detected fires and fire-danger forecast across the country.');
   set('lbl-range', 'fires.date', 'Date');
   set('lbl-recent', 'fires.recent', 'Recent (48h)');
   set('lag-note', 'fires.lag_note', 'How current is this? Polar-orbiting satellites pass over only a few times a day, and detections take ~1–3h more to process — so fire data is typically 3–12 hours old and can approach ~24h overnight. The “Recent” view shows the last 48 hours of available data (matching how the NASA FIRMS and EFFIS “today” views behave). Use the date controls to browse a specific day or period.');
