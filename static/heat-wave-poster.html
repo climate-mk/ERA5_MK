@@ -70,7 +70,9 @@
   .hero .sub{font-size:clamp(17px,2.4vw,22px);max-width:46ch;color:var(--ink);margin:22px 0 0;font-weight:500;}
   .hero .lede{max-width:60ch;color:var(--ink-soft);margin:12px 0 0;font-size:16px;}
   .call{display:inline-flex;align-items:stretch;margin-top:30px;border:2px solid var(--deep);border-radius:12px;overflow:hidden;background:var(--card);box-shadow:var(--shadow);text-decoration:none;color:var(--ink);}
-  .call .l{background:var(--deep);color:#fff;padding:14px 18px;font-family:"IBM Plex Mono",monospace;font-size:11px;letter-spacing:.12em;text-transform:uppercase;display:flex;align-items:center;line-height:1.3;white-space:normal;max-width:12ch;}
+  /* max-width is border-box, so it must cover the 36px of padding too; min-content
+     keeps the longest word (EMERGENCY / URGJENCE / СЛУЧАЈ) from being clipped. */
+  .call .l{background:var(--deep);color:#fff;padding:14px 18px;font-family:"IBM Plex Mono",monospace;font-size:11px;letter-spacing:.12em;text-transform:uppercase;display:flex;align-items:center;line-height:1.3;white-space:normal;max-width:18ch;min-width:min-content;}
   .call .n{padding:10px 26px;display:flex;flex-direction:column;justify-content:center;}
   .call .n b{font-family:"Oswald",sans-serif;font-size:44px;font-weight:700;line-height:1;color:var(--deep);}
   .call .n span{font-size:12px;color:var(--ink-soft);letter-spacing:.04em;}
@@ -163,7 +165,7 @@
 
   /* ---------- footer ---------- */
   footer{border-top:1px solid var(--line);background:var(--paper-2);margin-top:8px;}
-  footer .wrap{padding:26px 0 32px;display:flex;flex-wrap:wrap;gap:18px;justify-content:space-between;align-items:center;}
+  footer .wrap{padding:26px clamp(18px,4vw,40px) 32px;display:flex;flex-wrap:wrap;gap:18px;justify-content:space-between;align-items:center;}
   footer .dial{font-family:"Oswald",sans-serif;font-weight:600;text-transform:uppercase;font-size:16px;color:var(--deep);}
   footer .dial b{font-size:22px;}
   footer .meta{font-size:12.5px;color:var(--ink-soft);max-width:60ch;font-family:"IBM Plex Mono",monospace;letter-spacing:.01em;}
@@ -185,7 +187,7 @@
   @media (max-width:600px){
     .hero h1{font-size:clamp(40px,13.5vw,120px);}
     .call{display:flex;width:100%;margin-top:26px;}
-    .call .l{max-width:none;flex:0 0 auto;}
+    .call .l{max-width:none;flex:0 1 auto;}
     .call .n{flex:1 1 auto;padding:12px 20px;}
     .bignum{display:block;width:100%;padding:18px 20px;}
     .bignum b{font-size:64px;}
