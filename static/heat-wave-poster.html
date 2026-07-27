@@ -1,0 +1,547 @@
+<!DOCTYPE html>
+<html lang="mk">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Преживеј ја жештината — climate.mk</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Oswald:wght@500;600;700&family=IBM+Plex+Sans:wght@400;500;600;700&family=IBM+Plex+Mono:wght@500;600&display=swap" rel="stylesheet">
+<style>
+  :root{
+    --ink:#231A15;
+    --ink-soft:#5A4E44;
+    --paper:#F1ECE3;
+    --paper-2:#F8F4EC;
+    --card:#FCFAF5;
+    --line:#DBD1C1;
+
+    --cool:#2F7D67;
+    --ready:#C88A16;
+    --alive:#C0271C;
+    --deep:#7C130E;
+
+    --shadow:0 1px 0 rgba(35,26,21,.04), 0 10px 30px -18px rgba(35,26,21,.35);
+    --maxw:1120px;
+  }
+
+  *{box-sizing:border-box;}
+  html{scroll-behavior:smooth;}
+  body{
+    margin:0;background:var(--paper);color:var(--ink);
+    font-family:"IBM Plex Sans",system-ui,sans-serif;line-height:1.5;
+    -webkit-font-smoothing:antialiased;
+  }
+  .wrap{max-width:var(--maxw);margin:0 auto;padding:0 clamp(18px,4vw,40px);}
+
+  /* ---------- top bar ---------- */
+  .topbar{border-bottom:1px solid var(--line);background:var(--paper-2);position:sticky;top:0;z-index:20;}
+  .topbar .wrap{display:flex;align-items:center;justify-content:space-between;gap:10px 14px;min-height:54px;padding-top:8px;padding-bottom:8px;flex-wrap:wrap;}
+  .brand{font-family:"IBM Plex Mono",monospace;font-weight:600;letter-spacing:.02em;font-size:15px;}
+  .brand b{color:var(--alive);}
+  .tbright{display:flex;align-items:center;gap:16px;}
+  .topbar .tag{font-family:"IBM Plex Mono",monospace;font-size:11px;letter-spacing:.16em;text-transform:uppercase;color:var(--ink-soft);}
+  .langsel{display:inline-flex;border:1.5px solid var(--line);border-radius:8px;overflow:hidden;flex:none;}
+  .langbtn{font-family:"IBM Plex Mono",monospace;font-size:12px;font-weight:600;letter-spacing:.06em;padding:7px 13px;background:transparent;color:var(--ink-soft);border:0;border-left:1px solid var(--line);cursor:pointer;transition:background .15s ease,color .15s ease;}
+  .langbtn:first-child{border-left:0;}
+  .langbtn:hover{color:var(--ink);}
+  .langbtn[aria-pressed="true"]{background:var(--alive);color:#fff;}
+  .langbtn:focus-visible{outline:3px solid var(--alive);outline-offset:-3px;}
+
+  /* ---------- layout with heat spine ---------- */
+  .stage{display:grid;grid-template-columns:64px 1fr;max-width:var(--maxw);margin:0 auto;}
+  .spine{position:relative;background:linear-gradient(to bottom,
+      #2F7D67 0%,#2F7D67 20%,#E7C21C 32%,#E7C21C 48%,
+      #E07B24 58%,#E07B24 72%,#C0271C 84%,var(--deep) 100%);}
+  .spine .lab{position:absolute;left:0;right:0;font-family:"IBM Plex Mono",monospace;font-size:9px;letter-spacing:.14em;color:#fff;text-align:center;transform:rotate(180deg);writing-mode:vertical-rl;opacity:.95;}
+  .spine .lab.l1{top:5%;} .spine .lab.l2{top:34%;} .spine .lab.l3{top:58%;} .spine .lab.l4{top:82%;}
+  .spine .tick{position:absolute;left:50%;width:1px;height:20px;background:rgba(255,255,255,.5);transform:translateX(-50%);}
+  .spine .tick.t1{top:29%;} .spine .tick.t2{top:55%;} .spine .tick.t3{top:80%;}
+
+  .column{min-width:0;}
+
+  /* ---------- hero ---------- */
+  .hero{padding:clamp(40px,7vw,84px) clamp(18px,4vw,48px) clamp(34px,5vw,56px);}
+  .eyebrow{font-family:"IBM Plex Mono",monospace;font-size:12px;letter-spacing:.22em;text-transform:uppercase;color:var(--alive);margin:0 0 18px;}
+  .hero h1{font-family:"Oswald",sans-serif;font-weight:700;text-transform:uppercase;letter-spacing:.005em;font-size:clamp(46px,10vw,120px);line-height:.92;margin:0;
+    background:linear-gradient(96deg,#3a2a12 0%,var(--alive) 46%,var(--deep) 78%,#3a2a12 100%);background-size:220% 100%;
+    -webkit-background-clip:text;background-clip:text;color:transparent;animation:shimmer 7s ease-in-out infinite;}
+  @keyframes shimmer{0%,100%{background-position:0% 0}50%{background-position:100% 0}}
+  .hero .sub{font-size:clamp(17px,2.4vw,22px);max-width:46ch;color:var(--ink);margin:22px 0 0;font-weight:500;}
+  .hero .lede{max-width:60ch;color:var(--ink-soft);margin:12px 0 0;font-size:16px;}
+  .call{display:inline-flex;align-items:stretch;margin-top:30px;border:2px solid var(--deep);border-radius:12px;overflow:hidden;background:var(--card);box-shadow:var(--shadow);text-decoration:none;color:var(--ink);}
+  .call .l{background:var(--deep);color:#fff;padding:14px 18px;font-family:"IBM Plex Mono",monospace;font-size:11px;letter-spacing:.12em;text-transform:uppercase;display:flex;align-items:center;line-height:1.3;white-space:normal;max-width:12ch;}
+  .call .n{padding:10px 26px;display:flex;flex-direction:column;justify-content:center;}
+  .call .n b{font-family:"Oswald",sans-serif;font-size:44px;font-weight:700;line-height:1;color:var(--deep);}
+  .call .n span{font-size:12px;color:var(--ink-soft);letter-spacing:.04em;}
+
+  /* ---------- official guidance ---------- */
+  .official{padding:clamp(30px,4vw,44px) clamp(18px,4vw,48px);border-top:1px solid var(--line);background:var(--paper-2);}
+  .official .stamp{display:inline-block;font-family:"IBM Plex Mono",monospace;font-size:11px;letter-spacing:.16em;text-transform:uppercase;color:#fff;background:var(--ink);padding:5px 10px;border-radius:5px;}
+  .official h2{font-family:"Oswald",sans-serif;font-weight:600;text-transform:uppercase;letter-spacing:.03em;font-size:clamp(22px,3.2vw,32px);margin:14px 0 4px;line-height:1.02;}
+  .official .src{font-family:"IBM Plex Mono",monospace;font-size:12px;color:var(--ink-soft);margin:0 0 22px;letter-spacing:.01em;}
+  .cols{display:grid;grid-template-columns:1fr 1fr;gap:clamp(20px,3vw,40px);}
+  .panel-title{font-family:"IBM Plex Mono",monospace;font-size:11px;letter-spacing:.14em;text-transform:uppercase;color:var(--ink-soft);margin:0 0 12px;}
+  .scale{margin:0 0 16px;}
+  .scale .row{display:flex;align-items:center;gap:11px;padding:8px 0;border-bottom:1px solid var(--line);}
+  .scale .sw{width:16px;height:16px;border-radius:4px;flex:none;}
+  .scale .nm{font-family:"Oswald",sans-serif;font-weight:600;text-transform:uppercase;font-size:14px;flex:0 0 auto;min-width:78px;}
+  .scale .ds{font-size:13.5px;color:#4a4038;}
+  .season{font-size:14.5px;color:#38302a;margin:0;} .season b{color:var(--ink);}
+  .check{list-style:none;margin:0;padding:0;display:grid;gap:12px;}
+  .check li{position:relative;padding-left:30px;font-size:15px;color:#38302a;}
+  .check li::before{content:"";position:absolute;left:0;top:2px;width:17px;height:17px;border-radius:5px;border:2px solid var(--cool);background:linear-gradient(135deg,transparent 46%,var(--cool) 46%,var(--cool) 54%,transparent 54%);}
+  .check li b{color:var(--ink);}
+  .official a{color:var(--alive);text-decoration:underline;text-underline-offset:2px;text-decoration-thickness:1px;transition:color .15s ease;}
+  .official a:hover{color:var(--deep);}
+  .sources{margin:26px 0 0;padding-top:16px;border-top:1px solid var(--line);}
+  .sources .panel-title{margin-bottom:10px;}
+  .sources ul{list-style:none;margin:0;padding:0;display:grid;gap:9px;}
+  .sources li{font-size:13.5px;color:var(--ink-soft);padding-left:16px;position:relative;}
+  .sources li::before{content:"\2192";position:absolute;left:0;color:var(--alive);}
+  .sources li b{color:var(--ink);font-family:inherit;font-size:inherit;letter-spacing:0;text-transform:none;display:inline;}
+  .live{margin:26px 0 0;border:1px solid var(--line);border-radius:12px;background:var(--card);padding:18px 20px;box-shadow:var(--shadow);display:grid;grid-template-columns:1fr auto;gap:16px 24px;align-items:center;}
+  .live .txt{min-width:0;}
+  .live .now{display:flex;align-items:center;gap:8px;margin:0 0 4px;}
+  .live .dot{width:9px;height:9px;border-radius:50%;background:var(--alive);flex:none;animation:pulse 2s ease-in-out infinite;}
+  @keyframes pulse{0%,100%{opacity:1;transform:scale(1)}50%{opacity:.35;transform:scale(.8)}}
+  .live .now span{font-family:"IBM Plex Mono",monospace;font-size:11px;letter-spacing:.16em;text-transform:uppercase;color:var(--alive);}
+  .live h3{font-family:"Oswald",sans-serif;font-weight:600;text-transform:uppercase;letter-spacing:.02em;font-size:19px;margin:0 0 5px;line-height:1.05;}
+  .live p{margin:0;font-size:13.5px;color:var(--ink-soft);}
+  .live .btns{display:flex;flex-wrap:wrap;gap:10px;justify-content:flex-end;}
+  .live .btn{display:inline-flex;flex-direction:column;text-decoration:none;border:1.5px solid var(--ink);border-radius:9px;padding:9px 15px;transition:background .15s ease,color .15s ease,border-color .15s ease;}
+  .live .btn b{font-family:"Oswald",sans-serif;font-weight:600;text-transform:uppercase;font-size:14.5px;color:var(--ink);letter-spacing:.02em;}
+  .live .btn span{font-size:11px;color:var(--ink-soft);}
+  .live .btn:hover{background:var(--ink);border-color:var(--ink);}
+  .live .btn:hover b,.live .btn:hover span{color:#fff;}
+  .live .btn:focus-visible{outline:3px solid var(--alive);outline-offset:2px;}
+
+  /* ---------- phase ---------- */
+  .phase{padding:clamp(30px,4vw,44px) clamp(18px,4vw,48px);border-top:1px solid var(--line);}
+  .phase-head{display:flex;align-items:baseline;gap:16px;flex-wrap:wrap;margin:0 0 22px;}
+  .phase-head .no{font-family:"IBM Plex Mono",monospace;font-size:13px;font-weight:600;color:#fff;padding:4px 9px;border-radius:5px;letter-spacing:.08em;}
+  .phase-head h2{font-family:"Oswald",sans-serif;font-weight:600;text-transform:uppercase;letter-spacing:.03em;font-size:clamp(23px,3.4vw,34px);margin:0;line-height:1;}
+  .phase-head .note{font-size:14px;color:var(--ink-soft);margin:0;flex:1;min-width:200px;}
+  .p1 .no{background:var(--cool);} .p1 h2{color:var(--cool);}
+  .p2 .no{background:var(--ready);} .p2 h2{color:var(--ready);}
+  .p3 .no{background:var(--alive);} .p3 h2{color:var(--alive);}
+  .grid{display:grid;grid-template-columns:repeat(2,1fr);gap:14px;}
+  .card{background:var(--card);border:1px solid var(--line);border-radius:12px;padding:20px 20px 22px;position:relative;box-shadow:var(--shadow);transition:transform .18s ease,border-color .18s ease;}
+  .card:hover{transform:translateY(-3px);}
+  .p1 .card:hover{border-color:var(--cool);}
+  .p2 .card:hover{border-color:var(--ready);}
+  .p3 .card:hover{border-color:var(--alive);}
+  .cardtop{display:flex;align-items:center;justify-content:space-between;gap:8px;margin-bottom:2px;flex-wrap:wrap;}
+  .card .idx{font-family:"IBM Plex Mono",monospace;font-size:12px;font-weight:600;color:var(--ink-soft);}
+  .tag{font-family:"IBM Plex Mono",monospace;font-size:9.5px;font-weight:600;letter-spacing:.06em;text-transform:uppercase;padding:3px 8px;border-radius:5px;white-space:nowrap;max-width:100%;overflow:hidden;text-overflow:ellipsis;}
+  .tag-iph{background:rgba(47,125,103,.16);color:#215849;}
+  .tag-prep{background:rgba(200,138,22,.18);color:#835806;}
+  .tag-aid{background:rgba(192,39,28,.14);color:#96241b;}
+  .taglegend{display:flex;flex-wrap:wrap;align-items:center;gap:8px 14px;padding:16px clamp(18px,4vw,48px) 0;font-size:13px;color:var(--ink-soft);}
+  .taglegend .tag{margin-right:2px;}
+  .card h3{font-family:"Oswald",sans-serif;font-weight:600;text-transform:uppercase;letter-spacing:.02em;font-size:19px;margin:6px 0 8px;line-height:1.08;}
+  .card p{margin:0;font-size:15px;color:#38302a;}
+  .card p b{color:var(--ink);}
+
+  /* ---------- emergency zone ---------- */
+  .zone{margin-top:16px;background:var(--deep);color:#F6EDE6;border-radius:14px;padding:clamp(24px,3.5vw,38px);box-shadow:0 24px 50px -24px rgba(124,19,14,.7);}
+  .zone .kick{font-family:"IBM Plex Mono",monospace;font-size:11px;letter-spacing:.18em;text-transform:uppercase;color:#F3B0A8;margin:0 0 8px;}
+  .zone h3{font-family:"Oswald",sans-serif;font-weight:700;text-transform:uppercase;font-size:clamp(28px,5vw,50px);line-height:.96;margin:0;letter-spacing:.01em;}
+  .zone .sign{margin:18px 0 0;font-size:clamp(16px,2vw,19px);max-width:62ch;}
+  .zone .sign b{color:#fff;background:rgba(255,255,255,.12);padding:1px 6px;border-radius:4px;}
+  .zone-grid{display:grid;grid-template-columns:auto 1fr;gap:clamp(20px,3vw,40px);margin-top:26px;align-items:start;}
+  .bignum{text-align:center;border:2px solid rgba(246,237,230,.45);border-radius:12px;padding:16px 24px;background:rgba(0,0,0,.14);text-decoration:none;color:#fff;display:inline-block;}
+  .bignum b{font-family:"Oswald",sans-serif;font-size:clamp(56px,11vw,92px);font-weight:700;line-height:.9;display:block;color:#fff;}
+  .bignum span{font-family:"IBM Plex Mono",monospace;font-size:11px;letter-spacing:.12em;text-transform:uppercase;color:#F3B0A8;}
+  .steps{margin:0;padding:0;list-style:none;counter-reset:s;display:grid;gap:12px;}
+  .steps li{position:relative;padding-left:40px;font-size:clamp(15px,1.8vw,17px);counter-increment:s;}
+  .steps li::before{content:counter(s);position:absolute;left:0;top:-1px;width:26px;height:26px;border-radius:50%;background:#fff;color:var(--deep);font-family:"Oswald",sans-serif;font-weight:700;font-size:15px;display:flex;align-items:center;justify-content:center;}
+  .steps li b{color:#fff;}
+  .zone .warn{margin:22px 0 0;padding:14px 16px;border-left:3px solid #F3B0A8;background:rgba(0,0,0,.14);font-size:15px;border-radius:0 8px 8px 0;}
+  .zone .warn b{color:#fff;}
+  .zone .basis{margin:16px 0 0;font-size:12.5px;color:#E9B4AC;opacity:.85;}
+
+  /* ---------- footer ---------- */
+  footer{border-top:1px solid var(--line);background:var(--paper-2);margin-top:8px;}
+  footer .wrap{padding:26px 0 32px;display:flex;flex-wrap:wrap;gap:18px;justify-content:space-between;align-items:center;}
+  footer .dial{font-family:"Oswald",sans-serif;font-weight:600;text-transform:uppercase;font-size:16px;color:var(--deep);}
+  footer .dial b{font-size:22px;}
+  footer .meta{font-size:12.5px;color:var(--ink-soft);max-width:60ch;font-family:"IBM Plex Mono",monospace;letter-spacing:.01em;}
+
+  a:focus-visible,.card:focus-visible{outline:3px solid var(--alive);outline-offset:3px;}
+
+  @media (max-width:820px){
+    .stage{grid-template-columns:1fr;}
+    .spine{display:none;}
+    .grid{grid-template-columns:1fr;}
+    .cols{grid-template-columns:1fr;}
+    .live{grid-template-columns:1fr;}
+    .live .btns{justify-content:flex-start;}
+    .zone-grid{grid-template-columns:1fr;}
+    .bignum{justify-self:start;}
+  }
+  @media (max-width:560px){ .topbar .tag{display:none;} }
+  /* ---------- small screens: emergency buttons, headings, badges ---------- */
+  @media (max-width:600px){
+    .hero h1{font-size:clamp(40px,13.5vw,120px);}
+    .call{display:flex;width:100%;margin-top:26px;}
+    .call .l{max-width:none;flex:0 0 auto;}
+    .call .n{flex:1 1 auto;padding:12px 20px;}
+    .bignum{display:block;width:100%;padding:18px 20px;}
+    .bignum b{font-size:64px;}
+    .zone{padding:22px 18px;}
+    .zone h3{font-size:clamp(25px,8vw,40px);}
+    .zone .sign{font-size:16px;}
+    .live .btns{flex-direction:column;}
+    .live .btn{width:100%;}
+    .cardtop{flex-wrap:nowrap;}
+    .card .idx{flex:0 0 auto;}
+    .tag{flex:0 1 auto;}
+  }
+  @media (max-width:400px){
+    .langbtn{padding:8px 11px;font-size:12px;}
+    .brand{font-size:14px;}
+    .hero,.official,.phase{padding-left:16px;padding-right:16px;}
+    .steps li{padding-left:36px;font-size:15px;}
+    .steps li::before{width:24px;height:24px;font-size:14px;}
+    .tag{font-size:9px;letter-spacing:.04em;padding:3px 7px;}
+  }
+  @media (prefers-reduced-motion:reduce){
+    .hero h1{animation:none;background-position:0 0;}
+    .live .dot{animation:none;}
+    html{scroll-behavior:auto;}
+  }
+</style>
+</head>
+<body>
+
+<div class="topbar">
+  <div class="wrap">
+    <div class="brand">climate<b>.mk</b></div>
+    <div class="tbright">
+      <span class="tag" data-i18n="tag_top"></span>
+      <div class="langsel" role="group" aria-label="Language / Јазик / Gjuha">
+        <button class="langbtn" data-l="mk" onclick="setLang('mk')">MK</button>
+        <button class="langbtn" data-l="sq" onclick="setLang('sq')">AL</button>
+        <button class="langbtn" data-l="en" onclick="setLang('en')">EN</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<div class="stage">
+  <div class="spine" aria-hidden="true">
+    <span class="lab l1" data-i18n="spine1"></span>
+    <span class="tick t1"></span>
+    <span class="lab l2" data-i18n="spine2"></span>
+    <span class="tick t2"></span>
+    <span class="lab l3" data-i18n="spine3"></span>
+    <span class="tick t3"></span>
+    <span class="lab l4" data-i18n="spine4"></span>
+  </div>
+
+  <div class="column">
+
+    <!-- HERO -->
+    <section class="hero">
+      <p class="eyebrow" data-i18n="hero_eyebrow"></p>
+      <h1 data-i18n="hero_h1"></h1>
+      <p class="sub" data-i18n="hero_sub"></p>
+      <p class="lede" data-i18n="hero_lede"></p>
+      <a class="call" href="tel:112">
+        <span class="l" data-i18n="hero_call_label"></span>
+        <span class="n"><b>112</b><span data-i18n="hero_call_sub"></span></span>
+      </a>
+    </section>
+
+    <!-- OFFICIAL GUIDANCE -->
+    <section class="official">
+      <span class="stamp" data-i18n="off_stamp"></span>
+      <h2 data-i18n="off_h2"></h2>
+      <p class="src" data-i18n="off_src"></p>
+      <div class="cols">
+        <div>
+          <p class="panel-title" data-i18n="off_scaletitle"></p>
+          <div class="scale" data-i18n="off_scale"></div>
+          <p class="season" data-i18n="off_season"></p>
+        </div>
+        <div>
+          <p class="panel-title" data-i18n="off_rectitle"></p>
+          <ul class="check" data-i18n="off_reclist"></ul>
+        </div>
+      </div>
+
+      <div class="live">
+        <div class="txt" data-i18n="live_txt"></div>
+        <div class="btns" data-i18n="live_btns"></div>
+      </div>
+
+      <div class="sources">
+        <p class="panel-title" data-i18n="src_title"></p>
+        <ul data-i18n="src_list"></ul>
+      </div>
+    </section>
+
+    <p class="taglegend" data-i18n="legend"></p>
+
+    <!-- PHASE 1 -->
+    <section class="phase p1">
+      <div class="phase-head">
+        <span class="no">01</span>
+        <h2 data-i18n="p1_h2"></h2>
+        <p class="note" data-i18n="p1_note"></p>
+      </div>
+      <div class="grid">
+        <div class="card" tabindex="0">
+          <div class="cardtop"><span class="idx">01</span><span class="tag tag-iph" data-i18n="tag_iph"></span></div>
+          <h3 data-i18n="c01_h3"></h3><p data-i18n="c01_p"></p>
+        </div>
+        <div class="card" tabindex="0">
+          <div class="cardtop"><span class="idx">02</span><span class="tag tag-prep" data-i18n="tag_prep"></span></div>
+          <h3 data-i18n="c02_h3"></h3><p data-i18n="c02_p"></p>
+        </div>
+        <div class="card" tabindex="0">
+          <div class="cardtop"><span class="idx">03</span><span class="tag tag-iph" data-i18n="tag_iph"></span></div>
+          <h3 data-i18n="c03_h3"></h3><p data-i18n="c03_p"></p>
+        </div>
+        <div class="card" tabindex="0">
+          <div class="cardtop"><span class="idx">04</span><span class="tag tag-prep" data-i18n="tag_prep"></span></div>
+          <h3 data-i18n="c04_h3"></h3><p data-i18n="c04_p"></p>
+        </div>
+      </div>
+    </section>
+
+    <!-- PHASE 2 -->
+    <section class="phase p2">
+      <div class="phase-head">
+        <span class="no">02</span>
+        <h2 data-i18n="p2_h2"></h2>
+        <p class="note" data-i18n="p2_note"></p>
+      </div>
+      <div class="grid">
+        <div class="card" tabindex="0">
+          <div class="cardtop"><span class="idx">05</span><span class="tag tag-iph" data-i18n="tag_iph"></span></div>
+          <h3 data-i18n="c05_h3"></h3><p data-i18n="c05_p"></p>
+        </div>
+        <div class="card" tabindex="0">
+          <div class="cardtop"><span class="idx">06</span><span class="tag tag-prep" data-i18n="tag_prep"></span></div>
+          <h3 data-i18n="c06_h3"></h3><p data-i18n="c06_p"></p>
+        </div>
+        <div class="card" tabindex="0">
+          <div class="cardtop"><span class="idx">07</span><span class="tag tag-prep" data-i18n="tag_prep"></span></div>
+          <h3 data-i18n="c07_h3"></h3><p data-i18n="c07_p"></p>
+        </div>
+        <div class="card" tabindex="0">
+          <div class="cardtop"><span class="idx">08</span><span class="tag tag-prep" data-i18n="tag_prep"></span></div>
+          <h3 data-i18n="c08_h3"></h3><p data-i18n="c08_p"></p>
+        </div>
+      </div>
+    </section>
+
+    <!-- PHASE 3 -->
+    <section class="phase p3">
+      <div class="phase-head">
+        <span class="no">03</span>
+        <h2 data-i18n="p3_h2"></h2>
+        <p class="note" data-i18n="p3_note"></p>
+      </div>
+      <div class="grid" style="grid-template-columns:1fr;">
+        <div class="card" tabindex="0">
+          <div class="cardtop"><span class="idx">09</span><span class="tag tag-aid" data-i18n="tag_aid"></span></div>
+          <h3 data-i18n="c09_h3"></h3><p data-i18n="c09_p"></p>
+        </div>
+      </div>
+
+      <!-- EMERGENCY ZONE -->
+      <div class="zone">
+        <p class="kick" data-i18n="zone_kick"></p>
+        <h3 data-i18n="zone_h3"></h3>
+        <p class="sign" data-i18n="zone_sign"></p>
+        <div class="zone-grid">
+          <a class="bignum" href="tel:112"><b>112</b><span data-i18n="zone_112sub"></span></a>
+          <ol class="steps" data-i18n="zone_steps"></ol>
+        </div>
+        <p class="warn" data-i18n="zone_warn"></p>
+        <p class="basis" data-i18n="zone_basis"></p>
+      </div>
+    </section>
+
+  </div>
+</div>
+
+<footer>
+  <div class="wrap">
+    <div class="dial" data-i18n="foot_dial"></div>
+    <div class="meta" data-i18n="foot_meta"></div>
+  </div>
+</footer>
+
+<noscript>
+  <div style="padding:16px;text-align:center;font-family:monospace;background:#7C130E;color:#fff;">
+    Enable JavaScript to switch languages · Овозможете JavaScript · Aktivizoni JavaScript
+  </div>
+</noscript>
+
+<script>
+var I18N = {
+  mk: {
+    doctitle: "Преживеј ја жештината — climate.mk",
+    tag_top: "Јавна безбедност · Екстремна горештина",
+    spine1: "БУДНОСТ", spine2: "ВНИМАНИЕ", spine3: "ТОПЛОТЕН БРАН", spine4: "ИТЕН СЛУЧАЈ",
+    hero_eyebrow: "Водич за преживување топлотен бран",
+    hero_h1: "Преживеј ја<br>жештината",
+    hero_sub: "Екстремната горештина е една од најсмртоносните временски појави — а повеќето смртни случаи можат да се спречат.",
+    hero_lede: "Најзагрозени се постарите лица, оние што живеат сами и сите без разладување. Знајте што да правите пред да настапи горештината, кога ќе снема струја и кога некој ќе колабира.",
+    hero_call_label: "Во итен случај",
+    hero_call_sub: "Бесплатно · 24 часа",
+    off_stamp: "Официјални препораки · Северна Македонија",
+    off_h2: "Што советуваат здравствените власти",
+    off_src: "Национален акциски план за топлотни бранови · Институт за јавно здравје на Северна Македонија",
+    off_scaletitle: "Национална скала за тревога",
+    off_scale: "<div class='row'><span class='sw' style='background:#2F7D67'></span><span class='nm'>Зелено</span><span class='ds'>Будност — вообичаена летна подготвеност</span></div><div class='row'><span class='sw' style='background:#E7C21C'></span><span class='nm'>Жолто</span><span class='ds'>Внимание — подгответе се и следете ги прогнозите</span></div><div class='row'><span class='sw' style='background:#E07B24'></span><span class='nm'>Портокалово</span><span class='ds'>Топлотен бран — заштитете ги ранливите</span></div><div class='row'><span class='sw' style='background:#C0271C'></span><span class='nm'>Црвено</span><span class='ds'>Итен случај — најголема опасност за здравјето</span></div>",
+    off_season: "Системот за здравствено предупредување за топлотни бранови работи секоја година од <b>1 мај до 30 септември</b>, координиран од <a href='https://zdravstvo.gov.mk/' target='_blank' rel='noopener'>Министерството за здравство</a>, <a href='https://iph.mk/' target='_blank' rel='noopener'>Институтот за јавно здравје</a> и Институтот за медицина на трудот.",
+    off_rectitle: "Препораки за јавноста",
+    off_reclist: "<li><b>Избегнувајте директно сонце од 11:00 до 17:00 часот</b> — избегнувајте работа, спорт и напор на отворено.</li><li>Носете <b>светла и лесна облека</b>; на сонце капа со широк обод и заштитни очила.</li><li>Дома, прозорците и ролетните дење нека се <b>затворени, а отворајте ги навечер</b>; разладувајте ги просториите.</li><li>Пијте вода во текот на денот, пред да ожеднеете; <b>избегнувајте алкохол, кофеин и многу ладни пијалаци.</b></li><li><b>Јадете умерено</b> — избегнувајте масна, висококалорична храна и големи количини шеќер.</li><li><b>Никогаш не оставајте никого во паркирано возило.</b> При црвена тревога, работата на отворено да запре, а на постарите и бездомните да им се помогне.</li>",
+    live_txt: "<p class='now'><span class='dot'></span><span>Проверете сега</span></p><h3>Денешно ниво на тревога</h3><p>Тековната боја на временско предупредување за Северна Македонија и најновите здравствени соопштенија. Ова е метеоролошко ниво на предупредување — не е автоматски здравствен индикатор.</p>",
+    live_btns: "<a class='btn' href='https://meteoalarm.org/en/region/MK' target='_blank' rel='noopener'><b>MeteoAlarm</b><span>Ниво на временско предупредување</span></a><a class='btn' href='https://iph.mk/' target='_blank' rel='noopener'><b>Соопштенија на ИЈЗ</b><span>Најнови совети</span></a>",
+    src_title: "Извори",
+    src_list: "<li><a href='https://iph.mk/' target='_blank' rel='noopener'>Препораки за заштита од топлото време</a> — <b>Институт за јавно здравје</b></li><li><a href='https://iph.mk/' target='_blank' rel='noopener'>Институт за јавно здравје на Северна Македонија</a> — национална здравствена установа</li><li><a href='https://zdravstvo.gov.mk/' target='_blank' rel='noopener'>Министерство за здравство на Северна Македонија</a></li><li><a href='https://climate-adapt.eea.europa.eu/en/metadata/case-studies/implementation-of-the-heat-health-action-plan-of-the-former-yugoslav-republic-of-macedonia' target='_blank' rel='noopener'>Национален акциски план за топлотни бранови</a> — систем на нивоа на тревога (на англиски)</li>",
+    legend: "Секој чекор е означен според изворот: <span class='tag tag-iph'>Совет на ИЈЗ</span> официјални препораки на Институтот за јавно здравје · <span class='tag tag-prep'>Подготвеност</span> општа подготвеност · <span class='tag tag-aid'>Прва помош</span> меѓународни упатства за прва помош.",
+    p1_h2: "Останете разладени", p1_note: "Секојдневна превенција — заштитете го телото и домот од прегревање.",
+    p2_h2: "Бидете подготвени", p2_note: "Кога ќе ве изневери струјата, водата или времето.",
+    p3_h2: "Останете живи", p3_note: "Препознајте ја опасноста навреме — и дејствувајте брзо кога станува критично.",
+    tag_iph: "Совет на ИЈЗ", tag_prep: "Подготвеност", tag_aid: "Прва помош",
+    c01_h3: "Спречете ја горештината", c01_p: "Отворајте навечер кога воздухот е свеж, а потоа <b>затворете ги прозорците, ролетните и завесите пред претпладне</b>. Засенете го стаклото однадвор — подобро е од завеси одвнатре.",
+    c02_h3: "Една ладна соба", c02_p: "Не разладувајте го целиот дом. Изберете ја најладната соба — свртена кон север, на низок кат или во подрум — и <b>поминете ги најжешките часови таму</b>.",
+    c03_h3: "Пијте пред да ожеднеете", c03_p: "Пијте <b>обична вода</b> во текот на денот, пред да ожеднеете. Само при <b>обилно потење</b>, додајте соли за рехидрација — или 1 л вода + ½ лажичка сол + 6 лажички шеќер. Внимавајте со алкохолот и силното кафе.",
+    c04_h3: "Знајте го засолништето", c04_p: "Немате клима? Испланирајте каде ќе се разладите — трговски центар, библиотека, кино или кај пријател. <b>Неколку часа дневно значително го намалуваат ризикот.</b>",
+    c05_h3: "Проверувајте ги ранливите", c05_p: "Најзагрозени се постарите, оние што живеат сами, малите деца и хронично болните. <b>Дневен повик или тропање на вратата спасува животи.</b>",
+    c06_h3: "Подготвени за снемување струја", c06_p: "Наполнете ги телефоните и батериите однапред. <b>Замрзнете шишиња вода</b> — ладат и ја чуваат храната безбедна. Држете го фрижидерот затворен при прекин.",
+    c07_h3: "Складирајте вода", c07_p: "Топлотните бранови можат да донесат прекини и низок притисок на водата. Чувајте резерва од <b>по неколку литри вода за пиење по лице</b>.",
+    c08_h3: "Заштитете се од пожар", c08_p: "Исчистете суви лисја и грмушки околу куќата. <b>Без отворен оган и скара при горештина и ветер.</b> Ако дојде чад, затворете сè и носете FFP2 маска. <b>Пријавете пожар на 112 (или 193).</b>",
+    c09_h3: "Топлотна исцрпеност — предупредување", c09_p: "Обилно потење, бледа и леплива кожа, вртоглавица, главоболка, гадење, слабост, грчеви. Однесете го лицето на ладно, положете го, разладете му ја кожата и дајте му течности. <b>Нема подобрување за 30 минути? Третирајте го како топлотен удар.</b>",
+    zone_kick: "Итен случај опасен по живот",
+    zone_h3: "Топлотен удар —<br>дејствувајте за минути",
+    zone_sign: "Најважниот знак е <b>промена во свеста</b>: збунетост, неразбирлив говор, вознемиреност или колапс — со многу топла кожа, влажна или сува. Разладувањето во првите минути спречува смрт и оштетување на мозокот.",
+    zone_112sub: "Најпрво јавете се",
+    zone_steps: "<li><b>Јавете се на 112 веднаш</b> и кажете „можен топлотен удар“. Не чекајте да помине.</li><li><b>Почнете да разладувате веднаш</b> — не чекајте ја брзата помош. Однесете на сенка, соблечете ја надворешната облека.</li><li><b>Полевајте со студена вода и дувајте силно</b>, или ставете завиткан мраз на вратот, под пазувите и во препоните.</li><li>Разладувајте додека не се подобри или додека не пристигне помош.</li>",
+    zone_warn: "<b>Не давајте течности</b> на лице што е збунето, поспано или без свест — опасност од задушување. Ако е без свест но дише, положете го на страна и следете го дишењето.",
+    zone_basis: "Чекорите за прва помош следат меѓународни упатства (Црвен крст / СЗО). Во Северна Македонија, 112 испраќа брза помош, пожарникари и полиција.",
+    foot_dial: "Во итен случај, јавете се на <b>112</b>",
+    foot_meta: "Упатства за екстремна горештина · climate.mk — засновани на препораките на Институтот за јавно здравје и националниот акциски план. Општи информации, не заменуваат стручен медицински совет."
+  },
+
+  sq: {
+    doctitle: "Mbijeto të nxehtin — climate.mk",
+    tag_top: "Siguria publike · I nxehti ekstrem",
+    spine1: "VIGJILENCË", spine2: "KUJDES", spine3: "VALË E TË NXEHTIT", spine4: "EMERGJENCË",
+    hero_eyebrow: "Udhëzues për mbijetesë nga vala e të nxehtit",
+    hero_h1: "Mbijeto<br>të nxehtin",
+    hero_sub: "I nxehti ekstrem është një nga dukuritë më vdekjeprurëse të motit — dhe shumica e vdekjeve mund të parandalohen.",
+    hero_lede: "Më të rrezikuarit janë të moshuarit, ata që jetojnë vetëm dhe kushdo pa ftohje. Dini çfarë të bëni para se të vijë i nxehti, kur ndërpritet rryma dhe kur dikush bie i fikët.",
+    hero_call_label: "Në rast urgjence",
+    hero_call_sub: "Falas · 24 orë",
+    off_stamp: "Udhëzime zyrtare · Maqedonia e Veriut",
+    off_h2: "Çfarë këshillojnë autoritetet shëndetësore",
+    off_src: "Plani Kombëtar i Veprimit për valët e të nxehtit · Instituti i Shëndetit Publik i Maqedonisë së Veriut",
+    off_scaletitle: "Shkalla kombëtare e alarmit",
+    off_scale: "<div class='row'><span class='sw' style='background:#2F7D67'></span><span class='nm'>E gjelbër</span><span class='ds'>Vigjilencë — gatishmëri normale verore</span></div><div class='row'><span class='sw' style='background:#E7C21C'></span><span class='nm'>E verdhë</span><span class='ds'>Kujdes — përgatituni dhe ndiqni parashikimet</span></div><div class='row'><span class='sw' style='background:#E07B24'></span><span class='nm'>Portokalli</span><span class='ds'>Valë e të nxehtit — mbroni të cenueshmit</span></div><div class='row'><span class='sw' style='background:#C0271C'></span><span class='nm'>E kuqe</span><span class='ds'>Emergjencë — rreziku më i lartë për shëndetin</span></div>",
+    off_season: "Sistemi i paralajmërimit për nxehtësinë dhe shëndetin funksionon çdo vit nga <b>1 maji deri më 30 shtator</b>, i koordinuar nga <a href='https://zdravstvo.gov.mk/' target='_blank' rel='noopener'>Ministria e Shëndetësisë</a>, <a href='https://iph.mk/sq' target='_blank' rel='noopener'>Instituti i Shëndetit Publik</a> dhe Instituti i Mjekësisë së Punës.",
+    off_rectitle: "Rekomandime për publikun",
+    off_reclist: "<li><b>Rrini larg diellit nga ora 11:00 deri në 17:00</b> — shmangni punën, sportin dhe përpjekjet e rënda jashtë.</li><li>Vishni <b>rroba të lehta e me ngjyra të çelëta</b>; në diell kapelë me buzë të gjera dhe syze dielli.</li><li>Brenda, mbajini dritaret dhe grilat <b>mbyllur ditën dhe hapini natën</b>; ftohni ambientet.</li><li>Pini ujë gjatë ditës, para se t'ju marrë etja; <b>shmangni alkoolin, kafeinën dhe pijet shumë të ftohta.</b></li><li><b>Ushqehuni lehtë</b> — shmangni ushqimet e yndyrshme, me shumë kalori dhe sasi të mëdha sheqeri.</li><li><b>Kurrë mos lini askënd në një automjet të parkuar.</b> Në alarm të kuq, puna jashtë duhet të ndalet dhe të moshuarit e të pastrehët të ndihmohen.</li>",
+    live_txt: "<p class='now'><span class='dot'></span><span>Kontrollo tani</span></p><h3>Niveli i alarmit sot</h3><p>Ngjyra aktuale e paralajmërimit të motit për Maqedoninë e Veriut dhe njoftimet më të fundit shëndetësore. Ky është niveli meteorologjik i paralajmërimit — jo një tregues shëndetësor i drejtpërdrejtë.</p>",
+    live_btns: "<a class='btn' href='https://meteoalarm.org/en/region/MK' target='_blank' rel='noopener'><b>MeteoAlarm</b><span>Niveli i paralajmërimit të motit</span></a><a class='btn' href='https://iph.mk/sq' target='_blank' rel='noopener'><b>Njoftime të ISHP</b><span>Këshillat më të fundit</span></a>",
+    src_title: "Burimet",
+    src_list: "<li><a href='https://iph.mk/sq' target='_blank' rel='noopener'>Rekomandime për mbrojtje nga i nxehti</a> — <b>Instituti i Shëndetit Publik</b></li><li><a href='https://iph.mk/sq' target='_blank' rel='noopener'>Instituti i Shëndetit Publik i Maqedonisë së Veriut</a> — institucion kombëtar shëndetësor</li><li><a href='https://zdravstvo.gov.mk/' target='_blank' rel='noopener'>Ministria e Shëndetësisë e Maqedonisë së Veriut</a></li><li><a href='https://climate-adapt.eea.europa.eu/en/metadata/case-studies/implementation-of-the-heat-health-action-plan-of-the-former-yugoslav-republic-of-macedonia' target='_blank' rel='noopener'>Plani Kombëtar i Veprimit për Nxehtësinë</a> — sistemi i niveleve të alarmit (në anglisht)</li>",
+    legend: "Çdo hap është shënuar sipas burimit: <span class='tag tag-iph'>Këshillë e ISHP</span> udhëzime zyrtare të Institutit të Shëndetit Publik · <span class='tag tag-prep'>Gatishmëri</span> gatishmëri e përgjithshme · <span class='tag tag-aid'>Ndihma e parë</span> udhëzime ndërkombëtare për ndihmën e parë.",
+    p1_h2: "Rrini të freskët", p1_note: "Parandalim i përditshëm — mbroni trupin dhe shtëpinë nga mbinxehja.",
+    p2_h2: "Jini gati", p2_note: "Kur rryma, uji ose moti kthehen kundër jush.",
+    p3_h2: "Mbani jetën", p3_note: "Njihni rrezikun herët — dhe veproni shpejt kur bëhet kritik.",
+    tag_iph: "Këshillë e ISHP", tag_prep: "Gatishmëri", tag_aid: "Ndihma e parë",
+    c01_h3: "Ndaloni nxehtësinë", c01_p: "Hapni natën kur ajri është i freskët, pastaj <b>mbyllni dritaret, grilat dhe perdet para paradites</b>. Hijezoni xhamin nga jashtë — është më mirë se perdet nga brenda.",
+    c02_h3: "Një dhomë e freskët", c02_p: "Mos u mundoni të ftohni gjithë shtëpinë. Zgjidhni dhomën më të freskët — nga veriu, në kat të ulët ose në bodrum — dhe <b>kaloni aty orët më të nxehta</b>.",
+    c03_h3: "Pini para se t'ju marrë etja", c03_p: "Pini <b>ujë të thjeshtë</b> gjatë ditës, para se t'ju marrë etja. Vetëm kur <b>djersitni shumë</b>, shtoni kripëra rehidratimi — ose 1 l ujë + ½ lugë çaji kripë + 6 lugë çaji sheqer. Kujdes me alkoolin dhe kafenë e fortë.",
+    c04_h3: "Njihni strehën tuaj", c04_p: "Pa kondicioner? Planifikoni ku do të freskoheni — një qendër tregtare, bibliotekë, kinema ose te një shok. <b>Disa orë në ditë e ulin ndjeshëm rrezikun.</b>",
+    c05_h3: "Kujdesuni për të cenueshmit", c05_p: "Më të rrezikuarit janë të moshuarit, ata që jetojnë vetëm, fëmijët e vegjël dhe të sëmurët kronikë. <b>Një telefonatë ose një trokitje në derë çdo ditë shpëton jetë.</b>",
+    c06_h3: "Gati për ndërprerje të rrymës", c06_p: "Mbushni telefonat dhe bateritë me kohë. <b>Ngrini shishe uji</b> — ftohin trupin dhe ruajnë ushqimin. Mbajeni frigoriferin mbyllur gjatë ndërprerjes.",
+    c07_h3: "Ruani ujë", c07_p: "Valët e të nxehtit mund të sjellin ndërprerje uji dhe presion të ulët. Mbani rezervë <b>nga disa litra ujë të pijshëm për person</b>.",
+    c08_h3: "Mbrohuni nga zjarri", c08_p: "Pastroni gjethet e thata dhe shkurret rreth shtëpisë. <b>Pa flakë të hapura dhe zjarr për mish në vapë e erë.</b> Nëse vjen tym, mbyllni gjithçka dhe vini maskë FFP2. <b>Raportoni zjarret në 112 (ose 193).</b>",
+    c09_h3: "Rraskapitja nga i nxehti — paralajmërim", c09_p: "Djersitje e shumtë, lëkurë e zbehtë dhe e lagësht, marramendje, dhimbje koke, të përziera, dobësi, ngërçe. Çojeni personin në një vend të freskët, shtrijeni, ftohni lëkurën dhe jepini lëngje. <b>Nuk përmirësohet brenda 30 minutave? Trajtojeni si goditje nga i nxehti.</b>",
+    zone_kick: "Emergjencë kërcënuese për jetën",
+    zone_h3: "Goditje nga i nxehti —<br>veproni brenda minutash",
+    zone_sign: "Shenja më e rëndësishme është <b>ndryshimi i vetëdijes</b>: hutim, të folur i paqartë, shqetësim ose kolaps — me lëkurë shumë të nxehtë, të lagësht ose të thatë. Ftohja në minutat e para parandalon vdekjen dhe dëmtimin e trurit.",
+    zone_112sub: "Telefononi së pari",
+    zone_steps: "<li><b>Telefononi 112 menjëherë</b> dhe thoni „mundësi goditjeje nga i nxehti“. Mos prisni të kalojë.</li><li><b>Filloni ftohjen menjëherë</b> — mos prisni ambulancën. Çojeni në hije, hiqni rrobat e sipërme.</li><li><b>Lageni me ujë të ftohtë dhe bëni erë fort</b>, ose vendosni akull të mbështjellë në qafë, sqetulla dhe ijë.</li><li>Vazhdoni ftohjen derisa të përmirësohet ose të vijë ndihma.</li>",
+    zone_warn: "<b>Mos jepni lëngje</b> askujt që është i hutuar, i përgjumur ose pa ndjenja — rrezik mbytjeje. Nëse është pa ndjenja por merr frymë, shtrijeni në krah dhe vëzhgoni frymëmarrjen.",
+    zone_basis: "Hapat e ndihmës së parë ndjekin udhëzimet ndërkombëtare (Kryqi i Kuq / OBSH). Në Maqedoninë e Veriut, 112 dërgon ambulancë, zjarrfikës dhe polici.",
+    foot_dial: "Në rast urgjence, telefononi <b>112</b>",
+    foot_meta: "Udhëzime për të nxehtin ekstrem · climate.mk — bazuar në këshillat e Institutit të Shëndetit Publik dhe planit kombëtar. Informacion i përgjithshëm, nuk zëvendëson këshillën profesionale mjekësore."
+  },
+
+  en: {
+    doctitle: "Survive the Heat — climate.mk",
+    tag_top: "Public Safety · Extreme Heat",
+    spine1: "VIGILANCE", spine2: "ALERT", spine3: "HEAT WAVE", spine4: "EMERGENCY",
+    hero_eyebrow: "Heat-wave survival guide",
+    hero_h1: "Survive<br>the Heat",
+    hero_sub: "Extreme heat is one of the deadliest weather events — and most deaths are preventable.",
+    hero_lede: "Older people, those living alone, and anyone without cooling are most at risk. Know what to do before the heat arrives, when the power fails, and when someone collapses.",
+    hero_call_label: "In an emergency",
+    hero_call_sub: "Free · 24 hours",
+    off_stamp: "Official guidance · North Macedonia",
+    off_h2: "What the health authorities advise",
+    off_src: "National Heat-Health Action Plan · Institute of Public Health of North Macedonia",
+    off_scaletitle: "The national alert scale",
+    off_scale: "<div class='row'><span class='sw' style='background:#2F7D67'></span><span class='nm'>Green</span><span class='ds'>Vigilance — normal summer readiness</span></div><div class='row'><span class='sw' style='background:#E7C21C'></span><span class='nm'>Yellow</span><span class='ds'>Alert — prepare and watch forecasts</span></div><div class='row'><span class='sw' style='background:#E07B24'></span><span class='nm'>Orange</span><span class='ds'>Heat wave — protect the vulnerable</span></div><div class='row'><span class='sw' style='background:#C0271C'></span><span class='nm'>Red</span><span class='ds'>Emergency — highest danger to health</span></div>",
+    off_season: "The heat-health warning system runs every year from <b>1 May to 30 September</b>, coordinated by the <a href='https://zdravstvo.gov.mk/' target='_blank' rel='noopener'>Ministry of Health</a>, the <a href='https://iph.mk/en' target='_blank' rel='noopener'>Institute of Public Health</a> and the Institute of Occupational Medicine.",
+    off_rectitle: "Recommendations to the public",
+    off_reclist: "<li><b>Stay out of the sun from 11:00 to 17:00</b> — avoid outdoor work, sport or hard effort.</li><li>Wear <b>light, loose, light-coloured clothing</b>; a wide-brimmed hat and sunglasses in the sun.</li><li>Indoors, keep windows and blinds <b>shut by day and open them at night</b>; cool your rooms.</li><li>Drink water through the day, before you feel thirsty; <b>avoid alcohol, caffeine and very cold drinks.</b></li><li><b>Eat lightly</b> — avoid fatty, high-calorie food and large amounts of sugar.</li><li><b>Never leave anyone in a parked vehicle.</b> On red alerts, outdoor work should pause and the elderly and homeless get help.</li>",
+    live_txt: "<p class='now'><span class='dot'></span><span>Check now</span></p><h3>Today's alert level</h3><p>The current weather-warning colour for North Macedonia, plus the latest public-health notices. This is the meteorological warning level — not a live health dial.</p>",
+    live_btns: "<a class='btn' href='https://meteoalarm.org/en/region/MK' target='_blank' rel='noopener'><b>MeteoAlarm</b><span>Weather-warning level</span></a><a class='btn' href='https://iph.mk/en' target='_blank' rel='noopener'><b>Public Health notices</b><span>Latest IPH advice</span></a>",
+    src_title: "Primary sources",
+    src_list: "<li><a href='https://iph.mk/en/news/index/1781' target='_blank' rel='noopener'>Public health recommendations for protection during hot weather</a> — <b>Institute of Public Health</b></li><li><a href='https://iph.mk/en' target='_blank' rel='noopener'>Institute of Public Health of North Macedonia</a> — national public health agency</li><li><a href='https://zdravstvo.gov.mk/' target='_blank' rel='noopener'>Ministry of Health of North Macedonia</a></li><li><a href='https://climate-adapt.eea.europa.eu/en/metadata/case-studies/implementation-of-the-heat-health-action-plan-of-the-former-yugoslav-republic-of-macedonia' target='_blank' rel='noopener'>National Heat-Health Action Plan</a> — alert-level system</li>",
+    legend: "Each step is tagged by its basis: <span class='tag tag-iph'>IPH advice</span> official Institute of Public Health guidance · <span class='tag tag-prep'>Preparedness</span> general readiness · <span class='tag tag-aid'>First aid</span> international first-aid guidance.",
+    p1_h2: "Stay Cool", p1_note: "Everyday prevention — keep your body and your home from overheating.",
+    p2_h2: "Stay Ready", p2_note: "When the grid, the water or the weather turns against you.",
+    p3_h2: "Stay Alive", p3_note: "Recognise the danger early — and act fast when it turns critical.",
+    tag_iph: "IPH advice", tag_prep: "Preparedness", tag_aid: "First aid",
+    c01_h3: "Block the Heat", c01_p: "Open up overnight when the air is cool, then <b>seal windows, shutters and blinds before mid-morning</b>. Shade the glass from the outside — it beats curtains inside.",
+    c02_h3: "One Cool Room", c02_p: "Don't fight to cool the whole home. Pick the coolest room — north-facing, low floor or basement — and <b>spend the peak hours there</b>.",
+    c03_h3: "Drink Before You're Thirsty", c03_p: "Sip <b>plain water</b> through the day, before you feel thirsty. Only when <b>sweating heavily</b>, add rehydration salts — or 1 L water + ½ tsp salt + 6 tsp sugar. Go easy on alcohol and strong coffee.",
+    c04_h3: "Know Your Refuge", c04_p: "No air conditioning? Plan where you'll cool down — a mall, library, cinema or a friend's place. <b>A few hours a day cuts your risk sharply.</b>",
+    c05_h3: "Check on the Vulnerable", c05_p: "Older people, those living alone, small children and the chronically ill are most at risk. <b>A daily call or knock on the door saves lives.</b>",
+    c06_h3: "Ready for Power Cuts", c06_p: "Charge phones and power banks early. <b>Freeze water bottles</b> — they cool your body and keep food safe. Keep the fridge shut during an outage.",
+    c07_h3: "Store Water", c07_p: "Heat waves can bring water cuts and low pressure. Keep <b>a few litres of drinking water per person</b> in reserve.",
+    c08_h3: "Guard Against Fire", c08_p: "Clear dry leaves and brush from around the house. <b>No open flames or barbecues in heat and wind.</b> If smoke comes, close up and wear an FFP2 mask. <b>Report fires on 112 (or 193).</b>",
+    c09_h3: "Heat Exhaustion — the Warning", c09_p: "Heavy sweating, pale clammy skin, dizziness, headache, nausea, weakness, cramps. Move the person somewhere cool, lie them down, cool their skin and give fluids. <b>No better within 30 minutes? Treat it as heat stroke.</b>",
+    zone_kick: "Life-threatening emergency",
+    zone_h3: "Heat Stroke —<br>Act in Minutes",
+    zone_sign: "The one sign that matters is a <b>change in the mind</b>: confusion, slurred speech, agitation or collapse — with very hot skin, wet or dry. Cooling in the first minutes prevents death and brain damage.",
+    zone_112sub: "Call first",
+    zone_steps: "<li><b>Call 112 now</b> and say “possible heat stroke.” Don't wait to see if it passes.</li><li><b>Start cooling immediately</b> — don't wait for the ambulance. Move to shade, remove outer clothing.</li><li><b>Drench with cold water and fan hard</b>, or put wrapped ice on the neck, armpits and groin.</li><li>Keep cooling until they improve or help arrives.</li>",
+    zone_warn: "<b>Do not give fluids</b> to anyone confused, drowsy or unconscious — choking risk. If they're unconscious but breathing, lay them on their side and watch their breathing.",
+    zone_basis: "First-aid steps follow international guidance (Red Cross / WHO). In North Macedonia, 112 dispatches ambulance, fire and police.",
+    foot_dial: "In an emergency, dial <b>112</b>",
+    foot_meta: "Extreme-heat guidance · climate.mk — based on advice from the Institute of Public Health and the national Heat-Health Action Plan. General information, not a substitute for professional medical advice."
+  }
+};
+
+function setLang(l){
+  var d = I18N[l] || I18N.mk;
+  var nodes = document.querySelectorAll('[data-i18n]');
+  for(var i=0;i<nodes.length;i++){
+    var k = nodes[i].getAttribute('data-i18n');
+    if(d[k] != null) nodes[i].innerHTML = d[k];
+  }
+  var btns = document.querySelectorAll('.langbtn');
+  for(var j=0;j<btns.length;j++){
+    btns[j].setAttribute('aria-pressed', String(btns[j].getAttribute('data-l') === l));
+  }
+  document.documentElement.setAttribute('lang', l);
+  if(d.doctitle) document.title = d.doctitle;
+}
+setLang('mk');
+</script>
+
+</body>
+</html>
