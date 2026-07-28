@@ -37,6 +37,7 @@ Interactive web dashboard for exploring long-term climate trends across 20 locat
 - Welcome modal, "In the next episodes…" teaser section
 - Dark/light variable theming via CSS custom properties
 - **Climate news** (`climate-news.html`, MK only) — recent climate-related headlines aggregated from Macedonian news outlet RSS feeds, plus the site's X (Twitter) timeline
+- **Heat wave safety** (`heat-wave-poster.html`) — standalone public-safety page: the national heat-health alert scale, Institute of Public Health recommendations, a 9-step prevention/preparedness/first-aid guide and heat-stroke emergency instructions. Self-contained (own CSS and MK/SQ/EN strings inline, independent of the locale JSON files); linked from the main menu
 
 ### Wildfire tracker (new — separate `/fires` page)
 A standalone page tracking current and historical wildfires, built on a Leaflet map (the climate pages keep using Highcharts Maps). Feature-flagged via `fires_map`, `fires_year_chart`, `fires_danger`, `fires_satellite`, `fires_settlement` — turn any off in `countries/<cc>.yaml` to hide the layer, its endpoint, and its nav link.
@@ -81,6 +82,7 @@ ERA5_MK/
 │   ├── fires.html         # Standalone wildfire tracker page (/fires)
 │   ├── user-manual.html   # Standalone user manual page
 │   ├── climate-news.html  # Standalone climate-news page (MK only)
+│   ├── heat-wave-poster.html # Standalone heat-wave safety page (self-contained MK/SQ/EN)
 │   ├── js/
 │   │   ├── app.js         # Climate chart logic, API calls, UI interactions
 │   │   ├── fires.js       # Wildfire page logic (Leaflet map, controls, year chart)
