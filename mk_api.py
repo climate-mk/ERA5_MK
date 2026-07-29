@@ -2472,12 +2472,15 @@ def _prune_static_bucket(layer_key, layer_dir):
         except Exception:
             pass
 
-def _fetch_tile(layer_key, args, save=True):
-    """Return PNG bytes for a tile — from cache if present/fresh, else fetched from
-    upstream and cached. Returns the blank tile on upstream failure (uncached)."""
+def _fetch_tile(layer_key, args, save=True, attempts=2):
+    """Return (png_bytes, ok) for a tile — from cache if present/fresh, else
+    fetched from upstream and cached. On upstream failure returns the blank tile
+    with ok=False, so callers can tell a real tile from a hole in the map: a
+    blank looks identical to "no fire danger here" but is really a missing tile,
+    and must not be cached or counted as warmed."""
     up = _tile_upstream(layer_key)
     if not up:
-        return None
+        return None, False
     url, expected_layer, ttl = up
     # Only ever request the layer this key is bound to (no open-proxy / SSRF).
     params = {k: args[k] for k in _TILE_FORWARD_PARAMS if k in args}
@@ -2488,17 +2491,21 @@ def _fetch_tile(layer_key, args, save=True):
     path = _tile_cache_path(layer_key, args)
     cached = _fs_load_bytes(path, max_age_s=ttl)
     if cached is not None:
-        return cached
-    try:
-        r = _TILE_SESSION.get(url, params=params, timeout=12)
-        r.raise_for_status()
-        if r.content[:4] != b"\x89PNG":   # WMS error → don't cache, show blank
-            return _BLANK_TILE
-        if save:
-            _fs_save_bytes(path, r.content)
-        return r.content
-    except Exception:
-        return _BLANK_TILE
+        return cached, True
+    # EFFIS fails on scattered tiles under concurrent load; one retry turns most
+    # of those into a rendered tile instead of a rectangular hole in the overlay.
+    for attempt in range(attempts):
+        try:
+            r = _TILE_SESSION.get(url, params=params, timeout=12)
+            r.raise_for_status()
+            if r.content[:4] != b"\x89PNG":   # WMS error document, not an image
+                continue
+            if save:
+                _fs_save_bytes(path, r.content)
+            return r.content, True
+        except Exception:
+            pass
+    return _BLANK_TILE, False
 
 @app.route("/api/fires/tiles/<layer_key>")
 def api_fires_tile(layer_key):
@@ -2506,11 +2513,15 @@ def api_fires_tile(layer_key):
     params; we forward them upstream, cache the PNG, and serve cached bytes."""
     if _tile_upstream(layer_key) is None:
         return "", 404
-    png = _fetch_tile(layer_key, request.args)
+    png, ok = _fetch_tile(layer_key, request.args)
     if png is None:
         return "", 404
     resp = Response(png, mimetype="image/png")
-    resp.headers["Cache-Control"] = "public, max-age=900"   # let browsers cache too
+    # A real tile is cacheable for a while; a blank is a failed fetch, and
+    # caching it publicly for 15 min pins a hole in the overlay for everyone
+    # behind Cloudflare long after the upstream recovers.
+    resp.headers["Cache-Control"] = ("public, max-age=900" if ok
+                                     else "no-store")
     return resp
 
 def _bbox_tiles(bbox, zoom):
@@ -2575,7 +2586,12 @@ def _warm_tile_layer(layer_key, zooms=(7, 8, 9)):
     # kept modest to stay polite to a free public service (this runs hourly).
     with ThreadPoolExecutor(max_workers=_TILE_WARM_WORKERS) as pool:
         results = pool.map(lambda a: _fetch_tile(layer_key, a, save=True), jobs)
-        return sum(1 for r in results if r is not None)
+        warmed = sum(1 for _png, ok in results if ok)
+    if warmed < len(jobs):
+        print(f"[tile_warm] {layer_key}: {len(jobs) - warmed} of {len(jobs)} tiles "
+              f"failed upstream — those render as holes in the overlay",
+              file=sys.stderr)
+    return warmed
 
 def _tile_warm_time(layer_key):
     """The `time` value to warm for a time-dimensioned layer (matches what the
