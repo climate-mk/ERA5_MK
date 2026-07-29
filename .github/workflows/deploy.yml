@@ -148,9 +148,13 @@ jobs:
 
             # The warm runs in the background, so report what actually landed on
             # disk — otherwise a green deploy says nothing about the cache state.
-            echo '  waiting 90s for the background warm...'
-            sleep 90
             tiles=/opt/mk_climate/cache/mk/fires/tiles
+            # Sample as it fills: a rising count that flattens short of the full
+            # set means tiles are being dropped, not merely warming slowly.
+            for t in 60 60 60 60; do
+              sleep \$t
+              echo \"    +\${t}s → \$(find \$tiles -name '*.png' 2>/dev/null | wc -l | tr -d ' ') tiles\"
+            done
             echo \"  total tiles cached: \$(find \$tiles -name '*.png' 2>/dev/null | wc -l)\"
             for d in \$(find \$tiles -mindepth 2 -maxdepth 2 -type d 2>/dev/null | sort); do
               echo \"    \$(find \$d -name '*.png' | wc -l | tr -d ' ') tiles  \${d#\$tiles/}\"
