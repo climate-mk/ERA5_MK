@@ -2357,6 +2357,13 @@ def api_fires_danger_meta():
 
 _TILE_CACHE_DIR = os.path.join(_FIRES_CACHE_DIR, "tiles")
 
+# One pooled session for tile fetches — otherwise every tile pays a fresh TLS
+# handshake to Copernicus/JRC, which dominates the cost of a cache miss (and of
+# the hourly warm, which fetches a few hundred tiles in a row).
+_TILE_SESSION = http_requests.Session()
+_TILE_SESSION.mount("https://", http_requests.adapters.HTTPAdapter(
+    pool_connections=4, pool_maxsize=20))
+
 # layer_key -> (config key for the WMS base url, config key for the layer name,
 #               feature flag, cache time-to-live in seconds — None = long-lived)
 _FIRES_TILE_LAYERS = {
@@ -2393,24 +2400,38 @@ def _tile_upstream(layer_key):
         return None
     return url, layer, ttl
 
+def _norm_tile_param(k, v):
+    """Normalise a param value for cache keying. Leaflet sends bbox at full float
+    precision (2269873.9919565944) while the warmer formats to 4 dp
+    (2269873.9920) — the same tile, but a different key, so warmed tiles were
+    never actually hit. Round both to 0.1 m, far below one pixel at any zoom."""
+    if k != "bbox":
+        return v
+    try:
+        # `+ 0.0` collapses -0.0 (tile edges on the equator / prime meridian) to 0.0.
+        return ",".join(f"{round(float(x), 1) + 0.0:.1f}" for x in v.split(","))
+    except ValueError:
+        return v
+
 def _tile_cache_path(layer_key, args):
     """Cache path for a tile request. Time-dimensioned layers bucket by their
     `time` value (so a new day/window is a fresh fetch); static layers use one
     bucket. The tile itself is keyed by a hash of the geometry params."""
     bucket = (args.get("time") or "_static").replace("/", "_").replace(":", "")
-    key = "&".join(f"{k}={args[k]}" for k in sorted(args) if k in _TILE_FORWARD_PARAMS)
+    key = "&".join(f"{k}={_norm_tile_param(k, args[k])}"
+                   for k in sorted(args) if k in _TILE_FORWARD_PARAMS)
     h = hashlib.md5(key.encode()).hexdigest()
     return os.path.join(_TILE_CACHE_DIR, layer_key, bucket, f"{h}.png")
 
 # How many time-buckets (≈ days/windows) to keep per layer; older ones are pruned
-# so the tile cache can't grow without bound. `_static` folders are never pruned
-# (single folder, naturally bounded). Runs on the hourly warm.
+# so the tile cache can't grow without bound. Runs on the hourly warm.
 _TILE_BUCKETS_KEEP = 3
 
 def _prune_tile_buckets(layer_key, keep=_TILE_BUCKETS_KEEP):
     """Delete all but the `keep` most-recent time-bucket folders for a layer.
     Bucket names are date/range strings that sort chronologically, so a reverse
-    sort keeps the newest. The static bucket is always kept."""
+    sort keeps the newest. The static bucket has no dates to sort on, so it is
+    swept by age instead (see _prune_static_bucket)."""
     layer_dir = os.path.join(_TILE_CACHE_DIR, layer_key)
     try:
         buckets = [d for d in os.listdir(layer_dir)
@@ -2420,6 +2441,28 @@ def _prune_tile_buckets(layer_key, keep=_TILE_BUCKETS_KEEP):
     for stale in sorted(buckets, reverse=True)[keep:]:
         try:
             shutil.rmtree(os.path.join(layer_dir, stale))
+        except Exception:
+            pass
+    _prune_static_bucket(layer_key, layer_dir)
+
+def _prune_static_bucket(layer_key, layer_dir):
+    """Drop expired tiles from a layer's `_static` folder. Past its TTL a tile is
+    already unservable (_fs_load_bytes rejects it, _fetch_tile refetches), so it
+    is dead weight — and without this sweep the folder only ever grows, one file
+    per tile any visitor ever panned or zoomed to."""
+    ttl = _FIRES_TILE_LAYERS[layer_key][3]
+    if not ttl:
+        return
+    static_dir = os.path.join(layer_dir, "_static")
+    cutoff = time.time() - ttl
+    try:
+        stale = [f for f in os.listdir(static_dir)
+                 if os.path.getmtime(os.path.join(static_dir, f)) < cutoff]
+    except Exception:
+        return
+    for f in stale:
+        try:
+            os.remove(os.path.join(static_dir, f))
         except Exception:
             pass
 
@@ -2441,7 +2484,7 @@ def _fetch_tile(layer_key, args, save=True):
     if cached is not None:
         return cached
     try:
-        r = http_requests.get(url, params=params, timeout=12)
+        r = _TILE_SESSION.get(url, params=params, timeout=12)
         r.raise_for_status()
         if r.content[:4] != b"\x89PNG":   # WMS error → don't cache, show blank
             return _BLANK_TILE
