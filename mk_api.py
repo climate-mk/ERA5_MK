@@ -5,6 +5,7 @@ Open: http://127.0.0.1:5050
 """
 
 import os, glob, time, hashlib, json, threading, ipaddress, sqlite3, csv, io, datetime, shutil
+import sys, traceback
 import numpy as np
 import pandas as pd
 import requests as http_requests
@@ -2583,12 +2584,23 @@ def _tile_warm_time(layer_key):
 def warm_all_tiles():
     """Warm the cache for every enabled overlay layer, then prune old buckets so
     the cache stays bounded. Called by the hourly cron (via /api/fires/tiles/warm)
-    and after an on-demand refresh."""
+    and after an on-demand refresh. One layer failing must not sink the rest, so
+    each is isolated — the warm is best-effort by nature (it only pre-fills a
+    cache that _fetch_tile would otherwise fill on demand)."""
     total = {}
     for key in _FIRES_TILE_LAYERS:
-        if _tile_upstream(key):
+        if not _tile_upstream(key):
+            continue
+        t0 = time.time()
+        try:
             total[key] = _warm_tile_layer(key)
             _prune_tile_buckets(key)   # keep only the newest few day/window buckets
+            print(f"[tile_warm] {key}: {total[key]} tiles in {time.time() - t0:.1f}s")
+        except Exception:
+            total[key] = None
+            print(f"[tile_warm] {key} FAILED after {time.time() - t0:.1f}s",
+                  file=sys.stderr)
+            traceback.print_exc()
     return total
 
 # Serialise warms so an overlapping cron tick / deploy can't launch a second pass
@@ -2612,8 +2624,17 @@ def api_fires_tiles_warm():
         return jsonify({"started": False, "busy": True}), 409
 
     def _work():
+        # Nothing is waiting on this thread, so an unhandled error would vanish
+        # silently and leave a half-filled cache with no trace. Log it.
+        t0 = time.time()
         try:
-            warm_all_tiles()
+            print("[tile_warm] starting")
+            warmed = warm_all_tiles()
+            print(f"[tile_warm] done in {time.time() - t0:.1f}s: {warmed}")
+        except Exception:
+            print(f"[tile_warm] ABORTED after {time.time() - t0:.1f}s",
+                  file=sys.stderr)
+            traceback.print_exc()
         finally:
             _TILE_WARM_LOCK.release()
     threading.Thread(target=_work, daemon=True).start()
