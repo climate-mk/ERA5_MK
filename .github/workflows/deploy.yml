@@ -133,15 +133,18 @@ jobs:
           "
 
       - name: Warm fire overlay-tile cache
+        continue-on-error: true
         run: |
           echo "Warming the WMS overlay-tile cache (fire danger, Sentinel-3, burnt-area, GHSL, WDPA)..."
-          ssh root@46.224.208.142 "
-            status=\$(curl -s -o /dev/null -w '%{http_code}' -X POST \"http://localhost:5050/api/fires/tiles/warm?key=\$(grep -o 'TODAY_REFRESH_KEY=.*' /opt/mk_climate/.env | cut -d= -f2-)\")
-            if [ \"\$status\" = '204' ]; then
-              echo '  skipped (fires disabled)'
-            else
-              echo \"  tile warm [\$status]\"
-            fi
+          echo "The endpoint starts the warm and returns immediately; tiles fill in over the next few minutes."
+          ssh -o ServerAliveInterval=15 root@46.224.208.142 "
+            status=\$(curl -s --max-time 30 -o /dev/null -w '%{http_code}' -X POST \"http://localhost:5050/api/fires/tiles/warm?key=\$(grep -o 'TODAY_REFRESH_KEY=.*' /opt/mk_climate/.env | cut -d= -f2-)\")
+            case \"\$status\" in
+              204) echo '  skipped (fires disabled)' ;;
+              409) echo '  already warming (previous run still in flight)' ;;
+              200) echo '  tile warm started' ;;
+              *)   echo \"  tile warm [\$status] — cold cache only means a slower first paint\" ;;
+            esac
           "
 
       - name: Warm per-location today/trend caches

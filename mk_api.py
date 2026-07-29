@@ -2591,17 +2591,33 @@ def warm_all_tiles():
             _prune_tile_buckets(key)   # keep only the newest few day/window buckets
     return total
 
+# Serialise warms so an overlapping cron tick / deploy can't launch a second pass
+# over the same few hundred upstream tiles.
+_TILE_WARM_LOCK = threading.Lock()
+
 @app.route("/api/fires/tiles/warm", methods=["POST", "GET"])
 @limiter.limit("6 per hour")
 def api_fires_tiles_warm():
-    """Warm the overlay-tile cache (hourly cron target). Keyed like the other
-    cron-only refresh endpoints so it can't be triggered by arbitrary visitors."""
+    """Kick off a warm of the overlay-tile cache (hourly cron + deploy target).
+    Keyed like the other cron-only refresh endpoints so it can't be triggered by
+    arbitrary visitors. Returns as soon as the warm starts: a cold rebuild is a
+    few hundred live Copernicus/JRC fetches and can run for minutes, which is far
+    too long to hold the caller's connection open (it broke the deploy's ssh)."""
     if not _fires_any_enabled():
         return "", 204
     key = request.args.get("key", "")
     if not _TODAY_REFRESH_KEY or key != _TODAY_REFRESH_KEY:
         return Response("Forbidden", status=403)
-    return jsonify({"warmed": warm_all_tiles()})
+    if not _TILE_WARM_LOCK.acquire(blocking=False):
+        return jsonify({"started": False, "busy": True}), 409
+
+    def _work():
+        try:
+            warm_all_tiles()
+        finally:
+            _TILE_WARM_LOCK.release()
+    threading.Thread(target=_work, daemon=True).start()
+    return jsonify({"started": True})
 
 # Serialise on-demand refreshes so concurrent clicks don't launch parallel FIRMS pulls.
 _FIRES_REFRESH_LOCK = threading.Lock()
