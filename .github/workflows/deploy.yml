@@ -140,11 +140,25 @@ jobs:
           ssh -o ServerAliveInterval=15 root@46.224.208.142 "
             status=\$(curl -s --max-time 30 -o /dev/null -w '%{http_code}' -X POST \"http://localhost:5050/api/fires/tiles/warm?key=\$(grep -o 'TODAY_REFRESH_KEY=.*' /opt/mk_climate/.env | cut -d= -f2-)\")
             case \"\$status\" in
-              204) echo '  skipped (fires disabled)' ;;
+              204) echo '  skipped (fires disabled)'; exit 0 ;;
               409) echo '  already warming (previous run still in flight)' ;;
               200) echo '  tile warm started' ;;
-              *)   echo \"  tile warm [\$status] — cold cache only means a slower first paint\" ;;
+              *)   echo \"  tile warm [\$status] — cold cache only means a slower first paint\"; exit 0 ;;
             esac
+
+            # The warm runs in the background, so report what actually landed on
+            # disk — otherwise a green deploy says nothing about the cache state.
+            echo '  waiting 90s for the background warm...'
+            sleep 90
+            tiles=/opt/mk_climate/cache/mk/fires/tiles
+            echo \"  total tiles cached: \$(find \$tiles -name '*.png' 2>/dev/null | wc -l)\"
+            for d in \$(find \$tiles -mindepth 2 -maxdepth 2 -type d 2>/dev/null | sort); do
+              echo \"    \$(find \$d -name '*.png' | wc -l | tr -d ' ') tiles  \${d#\$tiles/}\"
+            done
+            # A blank tile is EFFIS erroring out; those are never cached, so they
+            # are refetched live on every pan and look exactly like a slow layer.
+            blanks=\$(find \$tiles -name '*.png' -size -200c 2>/dev/null | wc -l)
+            echo \"  suspiciously small tiles (likely upstream errors): \$blanks\"
           "
 
       - name: Warm per-location today/trend caches
