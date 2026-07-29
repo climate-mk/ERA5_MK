@@ -6,6 +6,7 @@ Open: http://127.0.0.1:5050
 
 import os, glob, time, hashlib, json, threading, ipaddress, sqlite3, csv, io, datetime, shutil
 import sys, traceback
+from concurrent.futures import ThreadPoolExecutor
 import numpy as np
 import pandas as pd
 import requests as http_requests
@@ -2365,6 +2366,10 @@ _TILE_SESSION = http_requests.Session()
 _TILE_SESSION.mount("https://", http_requests.adapters.HTTPAdapter(
     pool_connections=4, pool_maxsize=20))
 
+# Concurrent upstream fetches during a warm. Kept well under the session's
+# pool_maxsize so workers never contend for a connection.
+_TILE_WARM_WORKERS = 6
+
 # layer_key -> (config key for the WMS base url, config key for the layer name,
 #               feature flag, cache time-to-live in seconds — None = long-lived)
 _FIRES_TILE_LAYERS = {
@@ -2551,7 +2556,7 @@ def _warm_tile_layer(layer_key, zooms=(7, 8, 9)):
     def merc(lon, lat):
         return (R * math.radians(lon),
                 R * math.log(math.tan(math.pi / 4 + math.radians(lat) / 2)))
-    warmed = 0
+    jobs = []
     for z in zooms:
         nt = 2 ** z
         for x, y in _bbox_tiles(bbox, z):
@@ -2562,10 +2567,15 @@ def _warm_tile_layer(layer_key, zooms=(7, 8, 9)):
             lat1 = math.degrees(math.atan(math.sinh(math.pi * (1 - 2 * (y + 1) / nt))))
             xa, ya = merc(lon0, lat1)
             xb, yb = merc(lon1, lat0)
-            args = _tile_wms_params((xa, ya, xb, yb), layer, time_val)
-            if _fetch_tile(layer_key, args, save=True) is not None:
-                warmed += 1
-    return warmed
+            jobs.append(_tile_wms_params((xa, ya, xb, yb), layer, time_val))
+
+    # Each tile is ~4s of waiting on Copernicus, so a sequential warm of all five
+    # layers ran ~10 minutes — long enough that the cache was still filling when
+    # visitors arrived. The work is pure I/O wait, so a small pool collapses it;
+    # kept modest to stay polite to a free public service (this runs hourly).
+    with ThreadPoolExecutor(max_workers=_TILE_WARM_WORKERS) as pool:
+        results = pool.map(lambda a: _fetch_tile(layer_key, a, save=True), jobs)
+        return sum(1 for r in results if r is not None)
 
 def _tile_warm_time(layer_key):
     """The `time` value to warm for a time-dimensioned layer (matches what the
