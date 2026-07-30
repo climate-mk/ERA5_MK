@@ -135,7 +135,7 @@ jobs:
       - name: Warm fire overlay-tile cache
         continue-on-error: true
         run: |
-          echo "Warming the WMS overlay-tile cache (fire danger, Sentinel-3, burnt-area, GHSL, WDPA)..."
+          echo "Warming the WMS overlay-tile cache (enabled fire overlays)..."
           echo "The endpoint starts the warm and returns immediately; tiles fill in over the next few minutes."
           ssh -o ServerAliveInterval=15 root@46.224.208.142 "
             status=\$(curl -s --max-time 30 -o /dev/null -w '%{http_code}' -X POST \"http://localhost:5050/api/fires/tiles/warm?key=\$(grep -o 'TODAY_REFRESH_KEY=.*' /opt/mk_climate/.env | cut -d= -f2-)\")

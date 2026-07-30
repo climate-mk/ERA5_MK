@@ -42,9 +42,9 @@ Interactive web dashboard for exploring long-term climate trends across 20 locat
 ### Wildfire tracker (new — separate `/fires` page)
 A standalone page tracking current and historical wildfires, built on a Leaflet map (the climate pages keep using Highcharts Maps). Feature-flagged via `fires_map`, `fires_year_chart`, `fires_danger`, `fires_satellite`, `fires_settlement` — turn any off in `countries/<cc>.yaml` to hide the layer, its endpoint, and its nav link.
 - **Interactive fire map** — NASA FIRMS active-fire detections (MODIS + VIIRS SNPP / NOAA-20 / NOAA-21) plotted as points coloured by fire radiative power, with a **date/period picker** and a **per-satellite filter**
-- **Map layers** — base toggle (OpenStreetMap streets ↔ Esri satellite) and toggleable WMS overlays: **EFFIS Fire Weather Index** (fire-danger forecast), **Sentinel-3 hotspots**, and **GHSL built-up areas** (human settlement)
+- **Map layers** — base toggle (OpenStreetMap streets ↔ Esri satellite) and toggleable WMS overlays: **EFFIS Fire Weather Index** (fire-danger forecast), **Sentinel-3 hotspots**, and **EFFIS burnt areas** (fire footprint). GHSL built-up and WDPA protected-areas overlays are currently disabled (`fires_settlement`, `fires_protected_areas`: EFFIS removed those WMS layers in 2026; re-enable only with a replacement source)
 - **Fires-per-year chart** — year-over-year detection totals; served from Global Forest Watch's aggregated VIIRS query when a `GFW_API_KEY` is set, otherwise counted from the local FIRMS CSVs (with a sensor-comparability caveat)
-- **Data sources block** — attributions/links for FIRMS, EFFIS, GFW, GHSL and the base maps, shown below the charts
+- **Data sources block** — attributions/links for FIRMS, EFFIS, GFW and the base maps (plus GHSL while the built-up overlay is enabled), shown below the charts
 - **Collection** — `fire_collect.py` mirrors `mk_collect.py`: chunked 10-day FIRMS requests per sensor into `data/<cc>/fires/<SENSOR>.csv`, differential by default, `--force-refresh` for a full backfill, a self-healing `_gaps.json` retry log, and Sentinel-3 pulled from the EFFIS WFS. Needs `FIRMS_MAP_KEY` in `.env`; hourly cron entry at `cron/fire_collect`.
 
 ---

@@ -58,9 +58,11 @@ features:
   fires_year_chart:      true   # year-over-year fire totals comparison chart
   fires_danger:          true   # EFFIS Fire Weather Index (fire danger) WMS overlay toggle
   fires_satellite:       true   # satellite basemap toggle (Esri World Imagery)
-  fires_settlement:      true   # GHSL human-settlement overlays (built-up + population)
+  fires_settlement:      false  # OFF: EFFIS removed the `ghsl` WMS layer (LayerNotDefined,
+                                # confirmed 2026-07-30); re-enable only with a working source (e.g. JRC GHSL WMS)
   fires_burnt_area:      true   # EFFIS burnt-area (fire footprint) overlay — in switcher, unchecked by default
-  fires_protected_areas: true   # WDPA protected-areas (national parks/reserves) overlay
+  fires_protected_areas: false  # OFF: EFFIS removed the `wdpa.poly` WMS layer (LayerNotDefined,
+                                # confirmed 2026-07-30); re-enable only with a working source (e.g. Protected Planet)
 
 # ── Wildfires ─────────────────────────────────────────────────────────────────
 # Data sources for the /fires page. Secrets (FIRMS_MAP_KEY, GFW_API_KEY) live in
