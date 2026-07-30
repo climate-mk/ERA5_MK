@@ -430,11 +430,12 @@ function renderDataSources() {
       tx('fires.src_effis_desc', 'Fire Weather Index (fire-danger forecast) and Sentinel-3 hotspot overlays.')],
     ['Global Forest Watch', 'https://www.globalforestwatch.org/',
       tx('fires.src_gfw_desc', 'Aggregated yearly fire-alert totals for the comparison chart.')],
-    ['EC JRC — GHSL', 'https://ghsl.jrc.ec.europa.eu/',
-      tx('fires.src_ghsl_desc', 'Global Human Settlement Layer — built-up areas overlay.')],
-    ['OpenStreetMap / Esri', 'https://www.openstreetmap.org/copyright',
-      tx('fires.src_base_desc', 'Street and satellite base maps.')],
   ];
+  // Only credit GHSL while its overlay is actually enabled (feature-gated, §help consistency).
+  if (FIRES.settlement) rows.push(['EC JRC — GHSL', 'https://ghsl.jrc.ec.europa.eu/',
+    tx('fires.src_ghsl_desc', 'Global Human Settlement Layer — built-up areas overlay.')]);
+  rows.push(['OpenStreetMap / Esri', 'https://www.openstreetmap.org/copyright',
+    tx('fires.src_base_desc', 'Street and satellite base maps.')]);
   const el = document.getElementById('data-sources-list');
   if (!el) return;
   el.innerHTML = rows.map(([name, url, desc]) =>
