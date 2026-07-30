@@ -2551,17 +2551,17 @@ def _tile_wms_params(bbox_3857, layer, time_val):
         p["time"] = time_val
     return p
 
-def _warm_tile_layer(layer_key, zooms=(7, 8, 9)):
-    """Pre-fetch and cache the MK-bbox tiles for one layer at common zooms, so
-    visitors are served from cache instead of hitting Copernicus live."""
+def _tile_warm_jobs(layer_key, zooms=(7, 8, 9)):
+    """The (layer_key, wms_params) tiles a warm of this layer would fetch — the
+    country bbox at the zooms visitors land on."""
     import math
     up = _tile_upstream(layer_key)
     if not up:
-        return 0
+        return []
     _url, layer, _ttl = up
     bbox = FIRES_CFG.get("bbox")
     if not bbox:
-        return 0
+        return []
     time_val = _tile_warm_time(layer_key)
     R = 6378137.0
     def merc(lon, lat):
@@ -2578,20 +2578,18 @@ def _warm_tile_layer(layer_key, zooms=(7, 8, 9)):
             lat1 = math.degrees(math.atan(math.sinh(math.pi * (1 - 2 * (y + 1) / nt))))
             xa, ya = merc(lon0, lat1)
             xb, yb = merc(lon1, lat0)
-            jobs.append(_tile_wms_params((xa, ya, xb, yb), layer, time_val))
+            jobs.append((layer_key, _tile_wms_params((xa, ya, xb, yb), layer, time_val)))
+    return jobs
 
-    # Each tile is ~4s of waiting on Copernicus, so a sequential warm of all five
-    # layers ran ~10 minutes — long enough that the cache was still filling when
-    # visitors arrived. The work is pure I/O wait, so a small pool collapses it;
-    # kept modest to stay polite to a free public service (this runs hourly).
+def _warm_tile_layer(layer_key, zooms=(7, 8, 9)):
+    """Pre-fetch and cache one layer's tiles. Kept for the targeted re-warm after
+    an on-demand refresh; the full warm goes through warm_all_tiles."""
+    jobs = _tile_warm_jobs(layer_key, zooms)
+    if not jobs:
+        return 0
     with ThreadPoolExecutor(max_workers=_TILE_WARM_WORKERS) as pool:
-        results = pool.map(lambda a: _fetch_tile(layer_key, a, save=True), jobs)
-        warmed = sum(1 for _png, ok in results if ok)
-    if warmed < len(jobs):
-        print(f"[tile_warm] {layer_key}: {len(jobs) - warmed} of {len(jobs)} tiles "
-              f"failed upstream — those render as holes in the overlay",
-              file=sys.stderr)
-    return warmed
+        results = pool.map(lambda j: _fetch_tile(j[0], j[1], save=True), jobs)
+        return sum(1 for _png, ok in results if ok)
 
 def _tile_warm_time(layer_key):
     """The `time` value to warm for a time-dimensioned layer (matches what the
@@ -2613,20 +2611,39 @@ def warm_all_tiles():
     and after an on-demand refresh. One layer failing must not sink the rest, so
     each is isolated — the warm is best-effort by nature (it only pre-fills a
     cache that _fetch_tile would otherwise fill on demand)."""
-    total = {}
+    # Every layer's tiles go into ONE pool. Warming layer-by-layer meant a slow or
+    # failing early layer starved the ones after it — `settlement` is last and had
+    # never been warmed at all, because a restart or an upstream stall always cut
+    # the run short first. Interleaving makes progress even on the tail layers.
+    jobs = []
     for key in _FIRES_TILE_LAYERS:
-        if not _tile_upstream(key):
-            continue
-        t0 = time.time()
+        if _tile_upstream(key):
+            jobs.extend(_tile_warm_jobs(key))
+    if not jobs:
+        return {}
+
+    total = {k: 0 for k, _ in jobs}
+    failed = {k: 0 for k, _ in jobs}
+    t0 = time.time()
+    with ThreadPoolExecutor(max_workers=_TILE_WARM_WORKERS) as pool:
+        for (key, _args), (_png, ok) in zip(
+                jobs, pool.map(lambda j: _fetch_tile(j[0], j[1], save=True), jobs)):
+            if ok:
+                total[key] += 1
+            else:
+                failed[key] += 1
+
+    for key in total:
+        msg = f"[tile_warm] {key}: {total[key]} tiles"
+        if failed[key]:
+            msg += f", {failed[key]} FAILED upstream (holes in the overlay)"
+        print(msg, file=sys.stderr if failed[key] else sys.stdout)
         try:
-            total[key] = _warm_tile_layer(key)
             _prune_tile_buckets(key)   # keep only the newest few day/window buckets
-            print(f"[tile_warm] {key}: {total[key]} tiles in {time.time() - t0:.1f}s")
         except Exception:
-            total[key] = None
-            print(f"[tile_warm] {key} FAILED after {time.time() - t0:.1f}s",
-                  file=sys.stderr)
+            print(f"[tile_warm] {key}: prune failed", file=sys.stderr)
             traceback.print_exc()
+    print(f"[tile_warm] {sum(total.values())}/{len(jobs)} tiles in {time.time() - t0:.1f}s")
     return total
 
 # Serialise warms so an overlapping cron tick / deploy can't launch a second pass
